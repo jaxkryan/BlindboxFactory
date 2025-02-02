@@ -5,20 +5,38 @@ using System.Text;
 using GooglePlayGames;
 using GooglePlayGames.BasicApi.SavedGame;
 using UnityEngine.SocialPlatforms;
+using Firebase.Database;
 using GooglePlayGames.BasicApi;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
+[Serializable]
+public class DataToSave
+{
+    public string userName;
+    public float x, y, z;
+    public int score;
+}
+
 public class ScoreManager : MonoBehaviour
 {
     public TMP_Text scoreText;
-    public TMP_Text debugText; // Assign in Inspector
-    private int score = 0;
-    public float rotationSpeed = 100f;
+    public TMP_Text debugText;
     public GameObject rotatingObject;
+    public Transform movableObject;
+    public float rotationSpeed = 100f;
+    private int score = 0;
+    private Vector3 objectPosition;
+    private bool isDragging = false;
+    private Vector3 offset;
+
+    DatabaseReference dbRef;
+    public string userId => Social.localUser.id;
 
     void Start()
     {
+        dbRef = FirebaseDatabase.DefaultInstance.RootReference;
+
         if (GooglePlayManager.Instance != null && GooglePlayManager.Instance.IsSignedIn)
         {
             LoadFromCloud();
@@ -44,37 +62,48 @@ public class ScoreManager : MonoBehaviour
             }
         }
 
-        if (rotatingObject != null)
+        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+        if (Input.GetMouseButtonDown(0))
         {
-            rotatingObject.transform.Rotate(Vector3.forward * rotationSpeed * Time.deltaTime);
+            RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
+            if (hit.collider != null && hit.transform == movableObject)
+            {
+                Debug.Log("Dragging Started!");
+                isDragging = true;
+                offset = (Vector3)mousePos - movableObject.position;
+            }
         }
+        else if (Input.GetMouseButtonUp(0))
+        {
+            isDragging = false;
+        }
+
+        if (isDragging)
+        {
+            movableObject.position = (Vector3)mousePos - offset;
+        }
+        // if (rotatingObject != null)
+        // {
+        //     rotatingObject.transform.Rotate(Vector3.forward * rotationSpeed * Time.deltaTime);
+        // }
     }
 
     bool IsClickOnUI()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit)) // For 3D UI
-        {
-            if (hit.collider.CompareTag("UI"))
-            {
-                return true;
-            }
-        }
-
         PointerEventData eventData = new PointerEventData(EventSystem.current) { position = Input.mousePosition };
         var results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(eventData, results);
-
-        foreach (var result in results) // Check all UI elements
+        foreach (var result in results)
         {
             if (result.gameObject.CompareTag("UI"))
             {
                 return true;
             }
         }
-
         return false;
     }
+
     void IncreaseScore()
     {
         score++;
@@ -85,6 +114,7 @@ public class ScoreManager : MonoBehaviour
     {
         Log("Saving game...");
         SaveToCloud();
+        SaveToFirebase();
     }
 
     void SaveToCloud()
@@ -95,8 +125,10 @@ public class ScoreManager : MonoBehaviour
             return;
         }
 
-        string saveData = score.ToString();
-        byte[] data = Encoding.UTF8.GetBytes(saveData);
+        objectPosition = movableObject.position;
+        DataToSave data = new DataToSave { score = score, x = objectPosition.x, y = objectPosition.y, z = objectPosition.z };
+        string saveData = JsonUtility.ToJson(data);
+        byte[] dataBytes = Encoding.UTF8.GetBytes(saveData);
 
         PlayGamesPlatform.Instance.SavedGame.OpenWithAutomaticConflictResolution(
             "savefile",
@@ -110,7 +142,7 @@ public class ScoreManager : MonoBehaviour
                         .WithUpdatedDescription("Updated score: " + score)
                         .Build();
 
-                    PlayGamesPlatform.Instance.SavedGame.CommitUpdate(game, update, data, (commitStatus, meta) =>
+                    PlayGamesPlatform.Instance.SavedGame.CommitUpdate(game, update, dataBytes, (commitStatus, meta) =>
                     {
                         if (commitStatus == SavedGameRequestStatus.Success)
                         {
@@ -130,6 +162,23 @@ public class ScoreManager : MonoBehaviour
         );
     }
 
+    void SaveToFirebase()
+    {
+        DataToSave data = new DataToSave { userName = userId, score = score, x = movableObject.position.x, y = movableObject.position.y, z = movableObject.position.z };
+        string json = JsonUtility.ToJson(data);
+        dbRef.Child("users").Child(userId).SetRawJsonValueAsync(json).ContinueWith(task =>
+        {
+            if (task.IsFaulted)
+            {
+                Log("Error: Failed to save data to Firebase.");
+            }
+            else if (task.IsCompleted)
+            {
+                Log("Data saved to Firebase.");
+            }
+        });
+    }
+
     void LoadFromCloud()
     {
         if (!Social.localUser.authenticated)
@@ -137,10 +186,7 @@ public class ScoreManager : MonoBehaviour
             Log("Error: Not authenticated with Google Play when loading!");
             return;
         }
-        else
-        {
-            Log("Ready to load from Google Play");
-        }
+
         PlayGamesPlatform.Instance.SavedGame.OpenWithAutomaticConflictResolution(
             "savefile",
             DataSource.ReadCacheOrNetwork,
@@ -154,12 +200,11 @@ public class ScoreManager : MonoBehaviour
                         if (readStatus == SavedGameRequestStatus.Success)
                         {
                             string saveData = Encoding.UTF8.GetString(data);
-                            if (int.TryParse(saveData, out int savedScore))
-                            {
-                                score = savedScore;
-                                scoreText.text = score.ToString();
-                                Log("Game Loaded! Score: " + score);
-                            }
+                            DataToSave loadedData = JsonUtility.FromJson<DataToSave>(saveData);
+                            score = loadedData.score;
+                            movableObject.position = new Vector3(loadedData.x, loadedData.y, loadedData.z);
+                            scoreText.text = score.ToString();
+                            Log("Game Loaded! Score: " + score);
                         }
                         else
                         {
