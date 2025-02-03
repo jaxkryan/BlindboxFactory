@@ -4,10 +4,28 @@ using UnityEngine.SocialPlatforms;
 using System.Text;
 using UnityEngine;
 using GooglePlayGames.BasicApi;
+using System;
 
 public class GooglePlaySaveManager : MonoBehaviour
 {
-    public string userId => Social.localUser.id;
+    public string googleId => Social.localUser.id;
+    public string userId => GetShortUserId(googleId).ToString();
+ 
+    public static int GetShortUserId(string googleId)
+    {
+        unchecked
+        {
+            const int prime = 16777619;
+            int hash = (int)2166136261;
+            foreach (char c in googleId)
+            {
+                hash ^= c;
+                hash *= prime;
+            }
+
+            return Math.Abs(hash) % 1000000000; // Ensure it's a positive 9-digit number
+        }
+    }
 
     public void SaveToCloud(int score, Vector3 position)
     {

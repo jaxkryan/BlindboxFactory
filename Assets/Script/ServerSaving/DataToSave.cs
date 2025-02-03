@@ -5,7 +5,8 @@ using System;
 [Serializable]
 public class DataToSave
 {
-    public string userName;
+    public string googleId;
+    public string userId;
     public float x, y, z;
     public int score;
 }

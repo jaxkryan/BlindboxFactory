@@ -11,6 +11,7 @@ public class ScoreManager : MonoBehaviour
     public TMP_Text scoreText;
     public TMP_Text debugText;
     public Transform movableObject;
+    public GameObject LDB;
     private int score = 0;
     private bool isDragging = false;
     private Vector3 offset;
@@ -36,14 +37,20 @@ public class ScoreManager : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if (!IsClickOnUI())
-            {
-                IncreaseScore();
-            }
-            else if (IsClickOnUI())
+
+            if (IsClickOnUI().Equals("UI"))
             {
                 Log("Click on save button");
                 SaveGame();
+            }
+            else if (IsClickOnUI().Equals("ViewLDB"))
+            {
+                LDB.SetActive(true);
+                Time.timeScale = 0;
+            }
+            else
+            {
+                IncreaseScore();
             }
         }
 
@@ -70,7 +77,7 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
-    bool IsClickOnUI()
+    string IsClickOnUI()
     {
         PointerEventData eventData = new PointerEventData(EventSystem.current) { position = Input.mousePosition };
         var results = new List<RaycastResult>();
@@ -79,10 +86,14 @@ public class ScoreManager : MonoBehaviour
         {
             if (result.gameObject.CompareTag("UI"))
             {
-                return true;
+                return "UI";
+            }
+            else if (result.gameObject.CompareTag("ViewLDB"))
+            {
+                return "ViewLDB";
             }
         }
-        return false;
+        return "IncreaseScore";
     }
 
     void IncreaseScore()
@@ -99,7 +110,7 @@ public class ScoreManager : MonoBehaviour
         googlePlaySaveManager.SaveToCloud(score, movableObject.position);
 
         // Save to Firebase
-        firebaseSaveManager.SaveToFirebase(Social.localUser.id, score, movableObject.position);
+        firebaseSaveManager.SaveToFirebase(Social.localUser.id, googlePlaySaveManager.userId, score, movableObject.position);
     }
 
     void OnDataLoaded(DataToSave loadedData)

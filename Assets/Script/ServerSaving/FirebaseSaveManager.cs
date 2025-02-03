@@ -10,9 +10,22 @@ public class FirebaseSaveManager : MonoBehaviour
         dbRef = FirebaseDatabase.DefaultInstance.RootReference;
     }
 
-    public void SaveToFirebase(string userId, int score, Vector3 position)
+    public void SaveToFirebase(string googleId, string userId, int score, Vector3 position)
     {
-        DataToSave data = new DataToSave { userName = userId, score = score, x = position.x, y = position.y, z = position.z };
+        if (googleId == null || userId == null)
+        {
+            Debug.Log("Error: Not authenticated with Firebase when saving!");
+            return;
+        }
+        DataToSave data = new DataToSave
+        {
+            googleId = googleId,
+            userId = userId,
+            score = score,
+            x = position.x,
+            y = position.y,
+            z = position.z
+        };
         string json = JsonUtility.ToJson(data);
         dbRef.Child("users").Child(userId).SetRawJsonValueAsync(json).ContinueWith(task =>
         {
