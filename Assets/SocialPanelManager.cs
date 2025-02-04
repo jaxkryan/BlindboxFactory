@@ -5,12 +5,16 @@ using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using static PlayerVisitManager;
+using System.Collections;
 public class SocialPanelManager : MonoBehaviour
 {
     public TMP_InputField searchInput;  // Reference to the search box
     public Button searchButton;
 
     private SynchronizationContext mainThreadContext;
+    private string foundUserId;
     public Button closeButton;
     public Transform contentPanel;      // ScrollView Content Panel
     public GameObject playerPrefab;     // Prefab to display player data
@@ -21,6 +25,11 @@ public class SocialPanelManager : MonoBehaviour
     {
         mainThreadContext = SynchronizationContext.Current;
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;
+        if (GameManager.Instance == null)
+        {
+            GameObject obj = new GameObject("GameManager");
+            obj.AddComponent<GameManager>();
+        }
     }
 
     public void Close()
@@ -71,7 +80,7 @@ public class SocialPanelManager : MonoBehaviour
                 continue;
             }
 
-            string foundUserId = userIdValue.ToString();
+            foundUserId = userIdValue.ToString();
             float x = float.Parse(child.Child("x")?.Value?.ToString() ?? "0");
             float y = float.Parse(child.Child("y")?.Value?.ToString() ?? "0");
             float z = float.Parse(child.Child("z")?.Value?.ToString() ?? "0");
@@ -80,6 +89,9 @@ public class SocialPanelManager : MonoBehaviour
 
             GameObject newPlayer = Instantiate(playerPrefab, contentPanel);
             newPlayer.transform.Find("PlayerNameText").GetComponent<TMP_Text>().text = $"ID: {foundUserId}";
+
+            VisitButton visitBtn = newPlayer.transform.Find("VisitBtn").GetComponent<VisitButton>();
+            visitBtn.SetUserId(foundUserId);
         }
     }
     else
@@ -99,6 +111,15 @@ public class SocialPanelManager : MonoBehaviour
             debugText.text = message;
         }
     }
+
+
+    public void VisitPlayer()
+    {
+        GameManager.Instance.visitedUserId = foundUserId;
+        Log("Setting visitedUserId: " + GameManager.Instance.visitedUserId);
+        SceneManager.LoadScene("PlayerVisit");
+    }
+
     // private string GetShortUserId(string googleId)
     // {
     //     string digits = new string(googleId.Where(char.IsDigit).ToArray());
