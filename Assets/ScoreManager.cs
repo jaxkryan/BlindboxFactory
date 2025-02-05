@@ -2,7 +2,8 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
-
+using Unity.Android.Gradle.Manifest;
+using System.IO;
 public class ScoreManager : MonoBehaviour
 {
     private GooglePlaySaveManager googlePlaySaveManager;
@@ -37,20 +38,24 @@ public class ScoreManager : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
+            string clickedUI = IsClickOnUI();
 
-            if (IsClickOnUI().Equals("UI"))
+            switch (clickedUI)
             {
-                Log("Click on save button");
-                SaveGame();
-            }
-            else if (IsClickOnUI().Equals("ViewLDB"))
-            {
-                LDB.SetActive(true);
-                Time.timeScale = 0;
-            }
-            else
-            {
-                IncreaseScore();
+                case "UI":
+                    Log("Click on save button");
+                    SaveGame();
+                    break;
+                case "ViewLDB":
+                    LDB.SetActive(true);
+                    Time.timeScale = 0;
+                    break;
+                case "SocialPanel":
+                    Log("Click on social panel");
+                    break;
+                default:
+                    IncreaseScore();
+                    break;
             }
         }
 
@@ -79,18 +84,19 @@ public class ScoreManager : MonoBehaviour
 
     string IsClickOnUI()
     {
-        PointerEventData eventData = new PointerEventData(EventSystem.current) { position = Input.mousePosition };
-        var results = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(eventData, results);
+        EventSystem eventSystem = EventSystem.current;
+        PointerEventData eventData = new PointerEventData(eventSystem) { position = Input.mousePosition };
+        List<RaycastResult> results = new List<RaycastResult>();
+
+        eventSystem.RaycastAll(eventData, results);
+
+        HashSet<string> validTags = new HashSet<string> { "UI", "ViewLDB", "SocialPanel" };
+
         foreach (var result in results)
         {
-            if (result.gameObject.CompareTag("UI"))
+            if (validTags.Contains(result.gameObject.tag))
             {
-                return "UI";
-            }
-            else if (result.gameObject.CompareTag("ViewLDB"))
-            {
-                return "ViewLDB";
+                return result.gameObject.tag;
             }
         }
         return "IncreaseScore";
@@ -105,19 +111,41 @@ public class ScoreManager : MonoBehaviour
     public void SaveGame()
     {
         Log("Saving game...");
+        // Load existing data
+        DataToSave saveData = LoadSaveDataFromJson();
 
-        // Save to Google Play Services
+        // Update data (e.g., add score from this session)
+        saveData.score += score;
+        saveData.position = movableObject.position;
+
+        // Save to JSON file
+        string json = JsonUtility.ToJson(saveData, true);
+        File.WriteAllText(UnityEngine.Application.persistentDataPath + "/savegame.json", json);
+
         googlePlaySaveManager.SaveToCloud(score, movableObject.position);
 
-        // Save to Firebase
         firebaseSaveManager.SaveToFirebase(Social.localUser.id, googlePlaySaveManager.userId, score, movableObject.position);
+    }
+
+    public DataToSave LoadSaveDataFromJson()
+    {
+        string path = UnityEngine.Application.persistentDataPath + "/savegame.json";
+
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            return JsonUtility.FromJson<DataToSave>(json);
+        }
+
+        // Default save data if file doesn't exist
+        return new DataToSave(0, Vector3.zero);
     }
 
     void OnDataLoaded(DataToSave loadedData)
     {
         // Update the score and movable object position with the loaded data
         score = loadedData.score;
-        movableObject.position = new Vector3(loadedData.x, loadedData.y, loadedData.z);
+        movableObject.position = new Vector3(loadedData.position.x, loadedData.position.y, loadedData.position.z);
         scoreText.text = score.ToString();
 
         Log("Game Loaded! Score: " + score);

@@ -35,7 +35,7 @@ public class GooglePlaySaveManager : MonoBehaviour
             return;
         }
 
-        DataToSave data = new DataToSave { score = score, x = position.x, y = position.y, z = position.z };
+        DataToSave data = new DataToSave { score = score, position = position };
         string saveData = JsonUtility.ToJson(data);
         byte[] dataBytes = Encoding.UTF8.GetBytes(saveData);
 

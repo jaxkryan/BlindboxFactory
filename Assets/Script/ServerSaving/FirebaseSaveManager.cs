@@ -22,9 +22,7 @@ public class FirebaseSaveManager : MonoBehaviour
             googleId = googleId,
             userId = userId,
             score = score,
-            x = position.x,
-            y = position.y,
-            z = position.z
+            position = position
         };
         string json = JsonUtility.ToJson(data);
         dbRef.Child("users").Child(userId).SetRawJsonValueAsync(json).ContinueWith(task =>
