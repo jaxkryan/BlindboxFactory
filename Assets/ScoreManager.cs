@@ -2,7 +2,6 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
-using Unity.Android.Gradle.Manifest;
 using System.IO;
 public class ScoreManager : MonoBehaviour
 {
