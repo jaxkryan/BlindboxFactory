@@ -10,7 +10,7 @@ public class GooglePlaySaveManager : MonoBehaviour
 {
     public string googleId => Social.localUser.id;
     public string userId => GetShortUserId(googleId).ToString();
- 
+
     public static int GetShortUserId(string googleId)
     {
         unchecked
@@ -29,9 +29,19 @@ public class GooglePlaySaveManager : MonoBehaviour
 
     public void SaveToCloud(int score, Vector3 position)
     {
+        ScoreManager scoreManager = FindObjectOfType<ScoreManager>();
+        if (scoreManager != null)
+        {
+            scoreManager.Log("Save to cloud is running");
+        }
+        else
+        {
+            Debug.LogError("ScoreManager not found in the scene!");
+        }
+
         if (!Social.localUser.authenticated)
         {
-            Debug.Log("Error: Not authenticated with Google Play when saving!");
+            scoreManager.Log("Error: Not authenticated with Google Play when saving!");
             return;
         }
 
@@ -40,47 +50,84 @@ public class GooglePlaySaveManager : MonoBehaviour
         byte[] dataBytes = Encoding.UTF8.GetBytes(saveData);
 
         PlayGamesPlatform.Instance.SavedGame.OpenWithAutomaticConflictResolution(
-            "savefile",
+            "bbf_save",
             DataSource.ReadCacheOrNetwork,
             ConflictResolutionStrategy.UseLongestPlaytime,
             (status, game) =>
             {
                 if (status == SavedGameRequestStatus.Success)
                 {
-                    SavedGameMetadataUpdate update = new SavedGameMetadataUpdate.Builder()
-                        .WithUpdatedDescription("Updated score: " + score)
-                        .Build();
-
-                    PlayGamesPlatform.Instance.SavedGame.CommitUpdate(game, update, dataBytes, (commitStatus, meta) =>
+                    // First, close any previously opened file before writing
+                    PlayGamesPlatform.Instance.SavedGame.CommitUpdate(game, new SavedGameMetadataUpdate.Builder().Build(), new byte[0], (commitStatus, meta) =>
                     {
                         if (commitStatus == SavedGameRequestStatus.Success)
                         {
-                            Debug.Log("Game Saved! Score: " + score);
+                            // Now reopen and write the new data
+                            PlayGamesPlatform.Instance.SavedGame.OpenWithAutomaticConflictResolution(
+                                "bbf_save",
+                                DataSource.ReadCacheOrNetwork,
+                                ConflictResolutionStrategy.UseLongestPlaytime,
+                                (reopenStatus, reopenedGame) =>
+                                {
+                                    if (reopenStatus == SavedGameRequestStatus.Success)
+                                    {
+                                        SavedGameMetadataUpdate update = new SavedGameMetadataUpdate.Builder()
+                                            .WithUpdatedDescription("Updated score: " + score)
+                                            .Build();
+
+                                        PlayGamesPlatform.Instance.SavedGame.CommitUpdate(reopenedGame, update, dataBytes, (finalStatus, finalMeta) =>
+                                        {
+                                            if (finalStatus == SavedGameRequestStatus.Success)
+                                            {
+                                                scoreManager.Log("Game Saved! Score: " + score);
+                                            }
+                                            else
+                                            {
+                                                scoreManager.Log("Error: Failed to save game.");
+                                            }
+                                        });
+                                    }
+                                    else
+                                    {
+                                        scoreManager.Log("Error: Failed to reopen save file.");
+                                    }
+                                }
+                            );
                         }
                         else
                         {
-                            Debug.Log("Error: Failed to save game.");
+                            scoreManager.Log("Error: Failed to close previous save file.");
                         }
                     });
                 }
                 else
                 {
-                    Debug.Log("Error: Failed to open save file.");
+                    scoreManager.Log("Error: Failed to open save file at save.");
                 }
             }
         );
     }
 
+
     public void LoadFromCloud(System.Action<DataToSave> onLoadComplete)
     {
+        ScoreManager scoreManager = FindObjectOfType<ScoreManager>();
+        if (scoreManager != null)
+        {
+            scoreManager.Log("load from cloud is running");
+        }
+        else
+        {
+            Debug.LogError("ScoreManager not found in the scene!");
+        }
         if (!Social.localUser.authenticated)
         {
-            Debug.Log("Error: Not authenticated with Google Play when loading!");
+            scoreManager.Log("Error: Not authenticated with Google Play when loading!");
             return;
         }
 
         PlayGamesPlatform.Instance.SavedGame.OpenWithAutomaticConflictResolution(
-            "savefile",
+            "bbf_save",
             DataSource.ReadCacheOrNetwork,
             ConflictResolutionStrategy.UseLongestPlaytime,
             (status, game) =>
@@ -97,13 +144,13 @@ public class GooglePlaySaveManager : MonoBehaviour
                         }
                         else
                         {
-                            Debug.Log("Error: Failed to read save data.");
+                            scoreManager.Log("Error: Failed to read save data.");
                         }
                     });
                 }
                 else
                 {
-                    Debug.Log("Error: Failed to open save file.");
+                    scoreManager.Log("Error: Failed to open save file at load.");
                 }
             }
         );

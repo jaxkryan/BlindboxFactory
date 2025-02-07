@@ -2,8 +2,9 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
-using Unity.Android.Gradle.Manifest;
+// using Unity.Android.Gradle.Manifest;
 using System.IO;
+using System.Collections;
 public class ScoreManager : MonoBehaviour
 {
     private GooglePlaySaveManager googlePlaySaveManager;
@@ -23,16 +24,40 @@ public class ScoreManager : MonoBehaviour
         googlePlaySaveManager = gameObject.AddComponent<GooglePlaySaveManager>();
         firebaseSaveManager = gameObject.AddComponent<FirebaseSaveManager>();
 
-        // Load saved data from Google Play Services (if authenticated)
-        if (Social.localUser.authenticated)
+        // Log the initial sign-in state (might be false initially)
+        Log("Initial Sign-In Status: " + GooglePlayManager.Instance.IsSignedIn);
+
+        // If already signed in, load immediately
+        if (GooglePlayManager.Instance.IsSignedIn)
         {
+            StartCoroutine(DelayedLoadData());
+        }
+        else
+        {
+            // Wait for sign-in to complete before loading data
+            GooglePlayManager.Instance.OnSignInComplete += () =>
+            {
+                Log("Sign-in event received! Now loading data...");
+                StartCoroutine(DelayedLoadData());
+            };
+        }
+    }
+
+    private IEnumerator DelayedLoadData()
+    {
+        yield return new WaitForSeconds(1f); // Delay for smoother transition
+
+        if (GooglePlayManager.Instance.IsSignedIn) // Now properly updated
+        {
+            Log("User is authenticated with Google Play Services.");
             googlePlaySaveManager.LoadFromCloud(OnDataLoaded);
         }
         else
         {
-            Debug.Log("User is not authenticated with Google Play Services.");
+            Log("User is not authenticated with Google Play Services.");
         }
     }
+
 
     void Update()
     {
@@ -143,6 +168,10 @@ public class ScoreManager : MonoBehaviour
 
     void OnDataLoaded(DataToSave loadedData)
     {
+        if (loadedData ==null){
+            Log("No saved data found.");
+            return;
+        }
         // Update the score and movable object position with the loaded data
         score = loadedData.score;
         movableObject.position = new Vector3(loadedData.position.x, loadedData.position.y, loadedData.position.z);
@@ -151,7 +180,7 @@ public class ScoreManager : MonoBehaviour
         Log("Game Loaded! Score: " + score);
     }
 
-    void Log(string message)
+    public void Log(string message)
     {
         Debug.Log(message);
         if (debugText != null)
