@@ -57,31 +57,30 @@ public class PlayerVisitManager : MonoBehaviour
             if (task.IsCompleted)
             {
                 DataSnapshot snapshot = task.Result;
-                mainThreadContext.Post(_ =>
-                  {
-                      if (snapshot.Exists)
-                      {
-                          foreach (var child in snapshot.Children)
-                          {
-                              string foundUserId = child.Child("userId").Value.ToString();
-                              float x = float.Parse(child.Child("x").Value.ToString());
-                              float y = float.Parse(child.Child("y").Value.ToString());
-                              float z = float.Parse(child.Child("z").Value.ToString());
 
-                              Log($"Loaded Player - ID: {foundUserId}, Position: X:{x}, Y:{y}, Z:{z}");
+                if (snapshot.Exists)
+                {
+                    foreach (var child in snapshot.Children)
+                    {
+                        string foundUserId = child.Child("userId").Value.ToString();
+                        float x = float.Parse(child.Child("x").Value.ToString());
+                        float y = float.Parse(child.Child("y").Value.ToString());
+                        float z = float.Parse(child.Child("z").Value.ToString());
 
-                              // Move the player to the loaded position
+                        Log($"Loaded Player - ID: {foundUserId}, Position: X:{x}, Y:{y}, Z:{z}");
 
-                              playerTransform.transform.position = new Vector3(x, y, z);
-                              playerNameText.text = $"Visiting: {foundUserId}";
-
-                          }
-                      }
-                      else
-                      {
-                          Log("Player not found in Firebase.");
-                      }
-                  }, null);
+                        // Move the player to the loaded position
+                        mainThreadContext.Post(_ =>
+                        {
+                            playerTransform.transform.position = new Vector3(x, y, z);
+                            playerNameText.text = $"Visiting: {foundUserId}";
+                        }, null);
+                    }
+                }
+                else
+                {
+                    Log("Player not found in Firebase.");
+                }
             }
         });
     }
