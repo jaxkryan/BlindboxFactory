@@ -25,6 +25,8 @@ public class Grids : MonoBehaviour
     public int yDim;
     public float fillTime;
 
+    public MinigameLevel level;
+
     public PiecePrefab[] piecePrefabs;
     public GameObject backgroundPrefab;
 
@@ -36,7 +38,9 @@ public class Grids : MonoBehaviour
 
     private GamePiece pressedPiece;
     private GamePiece enteredPiece;
-    private void Start()
+
+    private bool gameOver = false;
+    private void Awake()
     {
         piecePrefabDict = new Dictionary<PieceType, GameObject>();
 
@@ -209,6 +213,8 @@ public class Grids : MonoBehaviour
 
     public void SwapPiece(GamePiece piece1, GamePiece piece2)
     {
+        if (gameOver) { return; }
+
         if (piece1.IsMoveable() && piece2.IsMoveable())
         {
             pieces[piece1.X, piece1.Y] = piece2;
@@ -223,7 +229,13 @@ public class Grids : MonoBehaviour
                 piece2.MoveableComponent.Move(piece1X, piece1Y, fillTime);
 
                 ClearAllValidMatches();
+
+                pressedPiece = null;
+                enteredPiece = null;
+
                 StartCoroutine(Fill());
+
+                level.OnMove();
             }
             else
             {
@@ -484,5 +496,10 @@ public class Grids : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    public void GameOver()
+    {
+        gameOver = true;
     }
 }
