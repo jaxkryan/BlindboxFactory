@@ -412,7 +412,9 @@ public class Grids : MonoBehaviour
     {
         Debug.Log("Clear All!");
         bool needsRefill = false;
-        int matchCount = 0;
+        HashSet<GamePiece> allMatchedPieces = new HashSet<GamePiece>();
+
+        // First, find all matches across the grid
         for (int y = 0; y < yDim; y++)
         {
             for (int x = 0; x < xDim; x++)
@@ -422,21 +424,33 @@ public class Grids : MonoBehaviour
                     List<GamePiece> match = GetMatch(pieces[x, y], x, y);
                     if (match != null)
                     {
-                        for (int i = 0; i < match.Count; i++)
-                        {
-                            if (ClearPiece(match[i].X, match[i].Y))
-                            {
-                                needsRefill = true;
-                                matchCount++;
-                            }
-                        }
+                        allMatchedPieces.UnionWith(match);
                     }
                 }
             }
         }
-        Debug.Log($"Total Matches Found: {matchCount}");
+
+        // If multiple separate matches were found, clear them all
+        if (allMatchedPieces.Count > 0)
+        {
+            foreach (GamePiece piece in allMatchedPieces)
+            {
+                if (ClearPiece(piece.X, piece.Y))
+                {
+                    needsRefill = true;
+                }
+            }
+
+            // Notify MinigameLevel if more than 3 pieces were cleared
+            if (allMatchedPieces.Count > 3)
+            {
+                level.OnBigMatch(allMatchedPieces.Count);
+            }
+        }
+
         return needsRefill;
     }
+
 
     public bool ClearPiece(int x, int y)
     {

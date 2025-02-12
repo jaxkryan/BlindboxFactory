@@ -68,8 +68,7 @@ public class MinigameLevel : MonoBehaviour
             ColorPiece.ColorType pieceColor = colorPiece.Color;
             if (pieceColor != ColorPiece.ColorType.ANY && pieceColor != ColorPiece.ColorType.COUNT)
             {
-                ResourceManager.Instance.AddResource(pieceColor, 1);
-                Debug.Log($"Added 1 {pieceColor} resource");
+                ResourceManager.Instance.AddResource(pieceColor, 5);
                 UpdateResourceTexts();
             }
         }
@@ -86,4 +85,18 @@ public class MinigameLevel : MonoBehaviour
             }
         }
     }
+
+    public virtual void OnBigMatch(int matchSize)
+{
+    int extraRewards = (matchSize - 3) * 7; // Example: 10 extra points per extra match
+    
+
+    // Reward extra resources
+    foreach (ResourceText resourceText in resourceTexts)
+    {
+        ResourceManager.Instance.AddResource(resourceText.resourceType, extraRewards);
+    }
+    UpdateResourceTexts();
+}
+
 }
