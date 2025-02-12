@@ -1,4 +1,6 @@
 using UnityEngine;
+using TMPro;
+using System.Collections.Generic;
 
 public class MinigameLevel : MonoBehaviour
 {
@@ -20,16 +22,24 @@ public class MinigameLevel : MonoBehaviour
     public LevelType Type { get { return type; } }
 
     protected int currentScore;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
 
+    [System.Serializable]
+    public class ResourceText
+    {
+        public ColorPiece.ColorType resourceType;
+        public TextMeshProUGUI textComponent;
     }
 
-    // Update is called once per frame
+    public List<ResourceText> resourceTexts;
+
+    void Start()
+    {
+        UpdateResourceTexts();
+    }
+
     void Update()
     {
-
+        UpdateResourceTexts();
     }
 
     public virtual void GameWin()
@@ -37,6 +47,7 @@ public class MinigameLevel : MonoBehaviour
         Debug.Log("Game win");
         grid.GameOver();
     }
+
     public virtual void GameLose()
     {
         Debug.Log("Game lose");
@@ -45,12 +56,34 @@ public class MinigameLevel : MonoBehaviour
 
     public virtual void OnMove()
     {
-
     }
 
     public virtual void OnPieceClear(GamePiece piece)
     {
         currentScore += piece.score;
-        //Debug.Log("Score: " + currentScore);
+
+        ColorPiece colorPiece = piece.GetComponent<ColorPiece>();
+        if (colorPiece != null)
+        {
+            ColorPiece.ColorType pieceColor = colorPiece.Color;
+            if (pieceColor != ColorPiece.ColorType.ANY && pieceColor != ColorPiece.ColorType.COUNT)
+            {
+                ResourceManager.Instance.AddResource(pieceColor, 1);
+                Debug.Log($"Added 1 {pieceColor} resource");
+                UpdateResourceTexts();
+            }
+        }
+    }
+
+    private void UpdateResourceTexts()
+    {
+        foreach (ResourceText resourceText in resourceTexts)
+        {
+            if (resourceText.textComponent != null)
+            {
+                int amount = ResourceManager.Instance.GetResourceAmount(resourceText.resourceType);
+                resourceText.textComponent.text = $"{amount}";
+            }
+        }
     }
 }

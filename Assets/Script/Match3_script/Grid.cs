@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 
 public class Grids : MonoBehaviour
 {
@@ -42,6 +43,7 @@ public class Grids : MonoBehaviour
     private Vector2 boardOrigin;
     private float halfX;
 
+    public TextMeshProUGUI resetText;
     private void Awake()
     {
         piecePrefabDict = new Dictionary<PieceType, GameObject>(piecePrefabs.Length);
@@ -448,9 +450,8 @@ public class Grids : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// Checks for a valid move by temporarily swapping two pieces and seeing if a match is made.
-    /// </summary>
+    //Checks for a valid move by temporarily swapping two pieces and seeing if a match is made.
+
     private bool CheckSwapForMatch(int x1, int y1, int x2, int y2)
     {
         GamePiece p1 = pieces[x1, y1];
@@ -469,10 +470,8 @@ public class Grids : MonoBehaviour
         return validMove;
     }
 
-    /// <summary>
-    /// Scans the board for any adjacent swap that would yield a match.
-    /// Only rightward and downward checks are performed to avoid redundancy.
-    /// </summary>
+    //Scans the board for any adjacent swap that would yield a match.
+    //Only rightward and downward checks are performed to avoid redundancy.
     private bool HasValidMoves()
     {
         for (int x = 0; x < xDim; x++)
@@ -503,14 +502,10 @@ public class Grids : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// Resets the board by destroying all pieces and reinitializing the grid.
-    /// </summary>
+    //Resets the board by destroying all pieces and reinitializing the grid.
     private void ResetBoard()
     {
-        Debug.Log("Resetting board.");
-        StopAllCoroutines();
-
+        // Clear the existing board
         for (int x = 0; x < xDim; x++)
         {
             for (int y = 0; y < yDim; y++)
@@ -519,10 +514,33 @@ public class Grids : MonoBehaviour
                 {
                     Destroy(pieces[x, y].gameObject);
                 }
+            }
+        }
+
+        // Display reset text
+        if (resetText != null)
+        {
+            resetText.text = "Resetting Board...";
+            resetText.gameObject.SetActive(true);
+            StartCoroutine(HideResetText());
+        }
+
+        // Recreate the board
+        for (int x = 0; x < xDim; x++)
+        {
+            for (int y = 0; y < yDim; y++)
+            {
                 SpawnNewPiece(x, y, PieceType.EMPTY);
             }
         }
+
         StartCoroutine(Fill());
+    }
+
+    private IEnumerator HideResetText()
+    {
+        yield return new WaitForSeconds(2f); // Wait for 2 seconds
+        resetText.gameObject.SetActive(false);
     }
 
     public void GameOver()
