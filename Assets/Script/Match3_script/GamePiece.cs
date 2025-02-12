@@ -1,8 +1,8 @@
 using UnityEngine;
+using UnityEngine.EventSystems; // Required for pointer interfaces
 
-public class GamePiece : MonoBehaviour
+public class GamePiece : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler
 {
-
     public int score;
 
     private int x;
@@ -36,7 +36,6 @@ public class GamePiece : MonoBehaviour
     private Grids grid;
     public Grids GridRef { get { return grid; } }
 
-
     private MoveablePiece moveableComponent;
     public MoveablePiece MoveableComponent { get { return moveableComponent; } }
 
@@ -44,23 +43,13 @@ public class GamePiece : MonoBehaviour
     public ColorPiece ColorComponent { get { return colorComponent; } }
 
     private ClearablePiece clearableComponent;
-    public ClearablePiece ClearableComponent { get {return clearableComponent;} }
+    public ClearablePiece ClearableComponent { get { return clearableComponent; } }
+
     private void Awake()
     {
         moveableComponent = GetComponent<MoveablePiece>();
         colorComponent = GetComponent<ColorPiece>();
-        clearableComponent=GetComponent<ClearablePiece>();
-    }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
+        clearableComponent = GetComponent<ClearablePiece>();
     }
 
     public void Init(int _x, int _y, Grids _grid, Grids.PieceType _type)
@@ -69,9 +58,26 @@ public class GamePiece : MonoBehaviour
         y = _y;
         grid = _grid;
         type = _type;
-
     }
 
+    // These methods allow the piece to respond to touch or mouse input.
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        grid.EnteredPiece(this);
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        grid.PressedPiece(this);
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        grid.ReleasePiece();
+    }
+
+    // Optional: You can also leave the legacy mouse callbacks for debugging in the Editor,
+    // but they aren’t necessary if you’re only targeting mobile.
     private void OnMouseEnter()
     {
         grid.EnteredPiece(this);
@@ -81,7 +87,7 @@ public class GamePiece : MonoBehaviour
     {
         grid.PressedPiece(this);
     }
-    
+
     private void OnMouseUp()
     {
         grid.ReleasePiece();
