@@ -183,12 +183,6 @@ public class EnergySystem : MonoBehaviour
         if (currentEnergy >= amount)
         {
             currentEnergy -= amount;
-            if (currentEnergy < MAX_ENERGY)
-            {
-                // Reset the timer using trusted time.
-                lastUpdateTime = TimeManager.Now;
-                PlayerPrefs.SetString(LAST_UPDATE_KEY, lastUpdateTime.ToString());
-            }
             PlayerPrefs.SetInt(ENERGY_KEY, currentEnergy);
             PlayerPrefs.Save();
             UpdateUI();
@@ -196,4 +190,5 @@ public class EnergySystem : MonoBehaviour
         }
         return false;
     }
+
 }
