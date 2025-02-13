@@ -20,6 +20,7 @@ namespace Script.HumanResource.Worker {
         void StopWorking();
         event Action onWorking;
         event Action onStopWorking;
+        BonusManager BonusManager { get; }
         IEnumerable<Bonus> Bonuses { get; }
         void AddBonus(Bonus bonus);
         void RemoveBonus(Bonus bonus);

@@ -42,6 +42,8 @@ namespace Script.HumanResource.Worker {
         [Header("Work")]
         [SerializeField] private MachineBase _machine;
         public IMachine Machine { get => _machine; set => _machine = (MachineBase)value; }
+        public BonusManager BonusManager { get => _bonusManager; }
+        [SerializeField] BonusManager _bonusManager;
         public IEnumerable<Bonus> Bonuses { get => _bonuses;  }
         [SerializeReference, SubclassSelector] private List<Bonus> _bonuses;
         public event Action onWorking;

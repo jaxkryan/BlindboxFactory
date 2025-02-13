@@ -8,19 +8,19 @@ using UnityEngine;
 namespace Script.HumanResource.Worker {
     [CreateAssetMenu(fileName = "Bonus Manager", menuName = "HumanResource/Bonus Manager")]
     public class BonusManager : ScriptableObject {
+        public Dictionary<Bonus, BonusCondition> BonusConditions {get => _bonusConditions;}
         [SerializeField] private SerializedDictionary<Bonus, BonusCondition> _bonusConditions;
 
         public void RecalculateBonuses(IWorker worker){
-            var bonuses = GetApplicableBonuses();
+            var bonuses = GetApplicableBonuses((int)worker.CurrentHappiness, (int)worker.CurrentHunger);
             var currentBonuses = worker.Bonuses.ToList();
             currentBonuses.Where(bonus => !bonuses.Contains(bonus)).ForEach(worker.RemoveBonus);
             currentBonuses = worker.Bonuses.ToList();
             bonuses.Where(bonus => !currentBonuses.Contains(bonus)).ForEach(worker.AddBonus);
-            
-            List<Bonus> GetApplicableBonuses() {
+        }
+        
+        public List<Bonus> GetApplicableBonuses(int happiness, int hunger) {
                 var applicableBonuses = new List<Bonus>();
-                var hunger = worker.CurrentHunger;
-                var happiness = worker.CurrentHappiness;
 
                 //Check for all that satisfied first
                 foreach (var bonus in _bonusConditions.Keys) {
@@ -69,8 +69,6 @@ namespace Script.HumanResource.Worker {
                 removeUnmet.ForEach(bonus => applicableBonuses.Remove(bonus));
                 return applicableBonuses;
             }
-        }
-
         private void OnValidate() {
             foreach (var bonus in _bonusConditions.Keys) {
                 var bonusConditions = new List<string>();
