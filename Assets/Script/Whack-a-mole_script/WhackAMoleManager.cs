@@ -86,7 +86,7 @@ public class WhackAMoleManager : MonoBehaviour {
     score += 1;
     scoreText.text = $"{score}";
     // Increase time by a little bit.
-    // timeRemaining += 1;
+    timeRemaining += 1;
     // Remove from active moles.
     currentMoles.Remove(moles[moleIndex]);
   }
@@ -94,7 +94,7 @@ public class WhackAMoleManager : MonoBehaviour {
   public void Missed(int moleIndex, bool isMole) {
     if (isMole) {
       // Decrease time by a little bit.
-      timeRemaining -= 2;
+      timeRemaining -= 3;
     }
     // Remove from active moles.
     currentMoles.Remove(moles[moleIndex]);

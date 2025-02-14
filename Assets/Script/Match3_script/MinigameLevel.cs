@@ -88,8 +88,7 @@ public class MinigameLevel : MonoBehaviour
 
     public virtual void OnBigMatch(int matchSize)
 {
-    int extraRewards = (matchSize - 3) * 7; // Example: 10 extra points per extra match
-    
+    int extraRewards = (matchSize - 3) * 7 + matchSize ;
 
     // Reward extra resources
     foreach (ResourceText resourceText in resourceTexts)

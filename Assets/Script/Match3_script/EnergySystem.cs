@@ -57,19 +57,21 @@ public class EnergySystem : MonoBehaviour
         {
             lastUpdateTime = DateTime.Parse(lastUpdateString);
             double elapsedSeconds = (now - lastUpdateTime).TotalSeconds;
-            // Clamp negative elapsed time to zero.
+
             if (elapsedSeconds < 0)
             {
-                elapsedSeconds = 0;
+                Debug.LogWarning("Detected time travel back! Ignoring regen calculation.");
+                lastUpdateTime = now; // Prevent unintended energy gain
+                PlayerPrefs.SetString(LAST_UPDATE_KEY, lastUpdateTime.ToString());
+                PlayerPrefs.Save();
+                return;
             }
-            // Calculate how many full energy points to award.
+
             int energyGained = Mathf.FloorToInt((float)elapsedSeconds / ENERGY_REGEN_TIME);
             currentEnergy = Mathf.Min(currentEnergy + energyGained, MAX_ENERGY);
 
             if (currentEnergy < MAX_ENERGY)
             {
-                // Instead of adding (energyGained * ENERGY_REGEN_TIME) to lastUpdateTime,
-                // set lastUpdateTime to now minus the remainder that didn’t trigger a full energy refill.
                 double remainder = elapsedSeconds % ENERGY_REGEN_TIME;
                 lastUpdateTime = now - TimeSpan.FromSeconds(remainder);
                 PlayerPrefs.SetString(LAST_UPDATE_KEY, lastUpdateTime.ToString());
@@ -77,7 +79,6 @@ public class EnergySystem : MonoBehaviour
         }
         else
         {
-            // First time run – initialize lastUpdateTime.
             lastUpdateTime = now;
             PlayerPrefs.SetString(LAST_UPDATE_KEY, lastUpdateTime.ToString());
         }
@@ -85,6 +86,7 @@ public class EnergySystem : MonoBehaviour
         PlayerPrefs.SetInt(ENERGY_KEY, currentEnergy);
         PlayerPrefs.Save();
     }
+
 
 
     IEnumerator UpdateEnergyRoutine()
@@ -135,10 +137,15 @@ public class EnergySystem : MonoBehaviour
         {
             DateTime nextEnergyTime = lastUpdateTime.AddSeconds(ENERGY_REGEN_TIME);
             TimeSpan timeRemaining = nextEnergyTime - TimeManager.Now;
-            if (timeRemaining.TotalSeconds > 0)
-                timerText.text = $"{timeRemaining.Minutes:D2}:{timeRemaining.Seconds:D2}";
+
+            if (timeRemaining.TotalSeconds < 0)
+            {
+                timerText.text = "00:00"; // Ensure we never display negative times
+            }
             else
-                timerText.text = "00:00";
+            {
+                timerText.text = $"{timeRemaining.Minutes:D2}:{timeRemaining.Seconds:D2}";
+            }
         }
         else
         {
@@ -182,7 +189,22 @@ public class EnergySystem : MonoBehaviour
     {
         if (currentEnergy >= amount)
         {
+            int previousEnergy = currentEnergy; // Store energy before spending.
             currentEnergy -= amount;
+
+            // If we’re below max energy...
+            if (currentEnergy < MAX_ENERGY)
+            {
+                // Only reset the timer if we were full before spending,
+                // because that means no regen progress had been accumulated.
+                if (previousEnergy == MAX_ENERGY)
+                {
+                    lastUpdateTime = TimeManager.Now;
+                }
+                // Otherwise, preserve the existing regen progress.
+                PlayerPrefs.SetString(LAST_UPDATE_KEY, lastUpdateTime.ToString());
+            }
+
             PlayerPrefs.SetInt(ENERGY_KEY, currentEnergy);
             PlayerPrefs.Save();
             UpdateUI();

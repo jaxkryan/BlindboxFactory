@@ -13,8 +13,8 @@ public class Mole : MonoBehaviour {
   [SerializeField] private WhackAMoleManager gameManager;
 
   // The offset of the sprite to hide it.
-  private Vector2 startPosition = new Vector2(0f, -2.56f);
-  private Vector2 endPosition = Vector2.zero;
+  private Vector2 startPosition = new Vector2(0f, -3.3f);
+  private Vector2 endPosition = new Vector2(0f, -0.95f);
   // How long it takes to show a mole.
   private float showDuration = 0.5f;
   private float duration = 1f;
@@ -165,10 +165,10 @@ public class Mole : MonoBehaviour {
   // As the level progresses the game gets harder.
   private void SetLevel(int level) {
     // As level increases increse the bomb rate to 0.25 at level 10.
-    bombRate = Mathf.Min(level * 0.025f, 0.25f);
+    //bombRate = Mathf.Min(level * 0.025f, 0.25f);
 
     // Increase the amounts of HardHats until 100% at level 40.
-    hardRate = Mathf.Min(level * 0.025f, 1f);
+    hardRate = Mathf.Min(level * 0.05f, 1f);
 
     // Duration bounds get quicker as we progress. No cap on insanity.
     float durationMin = Mathf.Clamp(1 - level * 0.1f, 0.01f, 1f);

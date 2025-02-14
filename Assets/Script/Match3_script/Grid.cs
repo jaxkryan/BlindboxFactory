@@ -534,7 +534,7 @@ public class Grids : MonoBehaviour
         // Display reset text
         if (resetText != null)
         {
-            resetText.text = "Resetting Board...";
+            resetText.text = "Resetting The Board";
             resetText.gameObject.SetActive(true);
             StartCoroutine(HideResetText());
         }
