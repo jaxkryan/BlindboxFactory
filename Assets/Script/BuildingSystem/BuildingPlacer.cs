@@ -21,6 +21,8 @@ namespace BuildingSystem
 
         [SerializeField]
         private CrossPlatformInputUser _input;
+        [SerializeField]
+        public bool _IsBuildingFromInventory { get; private set; } = false;
 
         private void Update()
         {
@@ -70,6 +72,8 @@ namespace BuildingSystem
             {
                 _constructionLayer.Build(_input.PointerWorldPosition, ActiveBuildable);
             }
+
+
         }
 
 
@@ -86,6 +90,18 @@ namespace BuildingSystem
         public void SetActiveBuildable(BuildableItem item)
         {
             ActiveBuildable = item;
+            _IsBuildingFromInventory = false;
+        }
+
+        public void SetBuildableFromInventory(BuildableItem item)
+        {
+            ActiveBuildable = item;
+            _IsBuildingFromInventory = true; 
+        }
+
+        public bool IsBuildingFromInventory()
+        {
+            return _IsBuildingFromInventory;
         }
 
         private bool IsPointerOverUI()

@@ -50,6 +50,22 @@ namespace BuildingSystem
             {
                 _buildables.Add(coords, buildable);
             }
+
+            var buildingPlacer = FindObjectOfType<BuildingPlacer>();
+            if (buildingPlacer != null && buildingPlacer.IsBuildingFromInventory())
+            {
+                if (_storedBuildables.ContainsKey(item) && _storedBuildables[item] > 1)
+                {
+                    _storedBuildables[item]--;  
+                }
+                else
+                {
+                    _storedBuildables.Remove(item);
+                    buildingPlacer.SetBuildableFromInventory(null);
+                    buildingPlacer.ClearPreview();
+                }
+                FindObjectOfType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
+            }
         }
 
         //public void Destroy(Vector3 worldCoords)
@@ -91,6 +107,7 @@ namespace BuildingSystem
 
             _buildables.Remove(coords);
             buildable.Destroy();
+            FindObjectOfType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
         }
 
         public Dictionary<BuildableItem, int> GetStoredBuildables()

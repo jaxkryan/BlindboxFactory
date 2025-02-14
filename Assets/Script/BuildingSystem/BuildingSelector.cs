@@ -50,6 +50,8 @@ public class BuildingSelector : MonoBehaviour
 
     public void OpenInventory()
     {
+        _buildingPlacer.ClearPreview();
+        _buildingPlacer.SetActiveBuildable(null);
         buildingSelectionUI.SetActive(false);
         InventoryUI.SetActive(true);
     }

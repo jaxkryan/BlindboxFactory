@@ -5,6 +5,7 @@ using TMPro;
 using BuildingSystem.Models;
 using BuildingSystem;
 using System.Linq;
+using UnityEditor.Build.Reporting;
 
 public class StoredBuildablesUI : MonoBehaviour
 {
@@ -19,6 +20,12 @@ public class StoredBuildablesUI : MonoBehaviour
     [SerializeField] private GameObject ShopUI;
 
     private Dictionary<BuildableItem, Button> _buttons = new();
+
+    private void OnEnable()
+    {
+        Debug.Log("StoredBuildablesUI is now active, updating UI...");
+        UpdateStoredBuildablesUI();
+    }
 
     private void Start()
     {
@@ -47,6 +54,8 @@ public class StoredBuildablesUI : MonoBehaviour
 
     public void OpenShop()
     {
+        _buildingPlacer.ClearPreview();
+        _buildingPlacer.SetActiveBuildable(null);
         InventoryUI.SetActive(false);
         ShopUI.SetActive(true);
     }
@@ -73,8 +82,8 @@ public class StoredBuildablesUI : MonoBehaviour
 
             Button newButton = Instantiate(_buttonPrefab, _contentParent);
             TMP_Text buttonText = newButton.GetComponentInChildren<TMP_Text>();
-            //Image buttonImage = newButton.GetComponentsInChildren<Image>()
-            //    .FirstOrDefault(img => img.gameObject.name == "PreviewImg");
+            Image buttonImage = newButton.GetComponentsInChildren<Image>()
+                .FirstOrDefault(img => img.gameObject.name == "PreviewImg");
 
             if (buttonText == null)
             {
@@ -83,17 +92,9 @@ public class StoredBuildablesUI : MonoBehaviour
             }
 
             buttonText.text = $"{buildableItem.name} x{count}";
-
-            newButton.onClick.AddListener(() => PlaceStoredBuildable(buildableItem));
+            buttonImage.sprite = buildableItem.PreviewSprite;
+            newButton.onClick.AddListener(() => FindObjectOfType<BuildingPlacer>().SetBuildableFromInventory(buildableItem));
             _buttons[buildableItem] = newButton;
         }
-    }
-
-
-    private void PlaceStoredBuildable(BuildableItem buildableItem)
-    {
-        FindObjectOfType<BuildingPlacer>().SetActiveBuildable(buildableItem);
-        _constructionLayer.RemoveStoredBuildable(buildableItem);
-        UpdateStoredBuildablesUI();
     }
 }
