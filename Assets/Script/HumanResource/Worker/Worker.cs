@@ -54,7 +54,7 @@ namespace Script.HumanResource.Worker {
                     _currentHunger -= _hungerDrain.DrainOnWork;
                     onHungerChanged?.Invoke(_currentHunger);
                     _currentHappiness -= _happinessDrain.DrainOnWork;
-                    onHappinessChanged?.Invoke(_currentHunger);
+                    onHappinessChanged?.Invoke(_currentHappiness);
                     break;
                 case DrainType.Time:
                     if (_hungerDrain.TimeInterval <= _hungerCoreDrainTimeInterval) {
@@ -66,7 +66,7 @@ namespace Script.HumanResource.Worker {
                     if (_happinessDrain.TimeInterval <= _happinessCoreDrainTimeInterval) {
                         _currentHappiness -= _happinessDrain.DrainOverTime;
                         _happinessCoreDrainTimeInterval -= _happinessDrain.TimeInterval;
-                        onHappinessChanged?.Invoke(_currentHunger);
+                        onHappinessChanged?.Invoke(_currentHappiness);
                     }
                     break;
                 default:

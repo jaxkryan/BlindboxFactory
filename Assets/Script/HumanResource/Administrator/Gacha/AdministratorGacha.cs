@@ -4,7 +4,6 @@ using System.Linq;
 using JetBrains.Annotations;
 using Script.Gacha.Base;
 using Script.Gacha.Machine;
-using Script.HumanResource.Administrator.Positions;
 using Script.Utils;
 using UnityEngine;
 
@@ -18,10 +17,7 @@ namespace Script.HumanResource.Administrator {
         [SerializeField] public PortraitRandomizer PortraitRandomizer;
 
         [SerializeField] public List<EmployeeName> Names;
-        [SerializeField] public PolicyGacha HrPolicyGacha;
-        [SerializeField] public PolicyGacha FacilityPolicyGacha;
-        [SerializeField] public PolicyGacha SupplyPolicyGacha;
-        [SerializeField] public PolicyGacha FinancePolicyGacha;
+        [SerializeField] public PolicyGacha PolicyGacha;
 
         [CanBeNull]
         public Administrator Pull() {
@@ -51,7 +47,7 @@ namespace Script.HumanResource.Administrator {
                 Grade.Legendary => LegendarySettings,
                 _ => throw new ArgumentOutOfRangeException()
             };
-            Administrator admin = PullClass(setting, out var position);
+            Administrator admin = ScriptableObject.CreateInstance<Administrator>();
 
             admin.SetGrade(grade);
 
@@ -62,22 +58,7 @@ namespace Script.HumanResource.Administrator {
             if (PortraitRandomizer.UseGachaRequirements)PortraitRandomizer.SetRequirement(setting.portraitRequirements.Compose());
             admin.Portrait = PortraitRandomizer.Pull();
             //policies
-            switch (position) {
-                case AdministratorPosition.HR:
-                    admin.Policies = HrPolicyGacha.PullByAdminGrade(admin.Grade);
-                    break;
-                case AdministratorPosition.Facility:
-                    admin.Policies = FacilityPolicyGacha.PullByAdminGrade(admin.Grade);
-                    break;
-                case AdministratorPosition.Supply:
-                    admin.Policies = SupplyPolicyGacha.PullByAdminGrade(admin.Grade);
-                    break;
-                case AdministratorPosition.Finance:
-                    admin.Policies = FinancePolicyGacha.PullByAdminGrade(admin.Grade);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            admin.Policies = PolicyGacha.PullByAdminGrade(admin.Grade);
 
             Pulls++;
             PullHistory.Add(admin);
@@ -96,35 +77,6 @@ namespace Script.HumanResource.Administrator {
         }
 
         public IList<Administrator> PullHistory { get; set; } = new List<Administrator>(); 
-
-        Administrator PullClass(AdministratorSetting setting, out AdministratorPosition position) {
-            List<WeightedOption<AdministratorPosition>> positions = new();
-            positions.Add(new WeightedOption<AdministratorPosition>
-                { Option = AdministratorPosition.HR, Weight = setting.hrWeight });
-            positions.Add(new WeightedOption<AdministratorPosition>
-                { Option = AdministratorPosition.Supply, Weight = setting.supplyWeight });
-            positions.Add(new WeightedOption<AdministratorPosition>
-                { Option = AdministratorPosition.Facility, Weight = setting.facilityWeight });
-            positions.Add(new WeightedOption<AdministratorPosition>
-                { Option = AdministratorPosition.Finance, Weight = setting.financeWeight });
-
-            switch (positions.ToArray().PickRandom()) {
-                case AdministratorPosition.HR:
-                    position = AdministratorPosition.HR;
-                    return ScriptableObject.CreateInstance<HRAdministrator>();
-                case AdministratorPosition.Facility:
-                    position = AdministratorPosition.Facility;
-                    return ScriptableObject.CreateInstance<FacilityAdministrator>();
-                case AdministratorPosition.Supply:
-                    position = AdministratorPosition.Supply;
-                    return ScriptableObject.CreateInstance<SupplyAdministrator>();
-                case AdministratorPosition.Finance:
-                    position = AdministratorPosition.Finance;
-                    return ScriptableObject.CreateInstance<FinanceAdministrator>();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
 
         public AdministratorSetting CommonSettings {
             get => _commonSettings;

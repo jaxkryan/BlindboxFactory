@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Script.Controller;
 using Script.HumanResource.Administrator;
-using Script.HumanResource.Administrator.Positions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -17,10 +16,13 @@ public class AdminDepartmentManagerUI : MonoBehaviour {
     [SerializeField] private TextMeshProUGUI _policies;
     [SerializeField] public AdministratorPosition Position;
     [SerializeField] private AdministratorManagerUI _manager;
+    [SerializeField] private TextMeshProUGUI _ability;
 
     private void Awake() {
         _manager = GetComponentInParent<AdministratorManagerUI>();
     }
+    
+    
 
     public Administrator Administrator {
         get => _administrator;
@@ -35,37 +37,12 @@ public class AdminDepartmentManagerUI : MonoBehaviour {
     void Start() { SetUpAdmin(); }
 
     void SetUpAdmin() {
-        if (Administrator != null) switch (Position) {
-            case AdministratorPosition.HR:
-                if (Administrator is not HRAdministrator) {
-                    Administrator = null;
-                    return;
-                }
-
-                break;
-            case AdministratorPosition.Facility:
-                if (Administrator is not FacilityAdministrator) {
-                    Administrator = null;
-                    return;
-                }
-
-                break;
-            case AdministratorPosition.Supply:
-                if (Administrator is not SupplyAdministrator) {
-                    Administrator = null;
-                    return;
-                }
-
-                break;
-            case AdministratorPosition.Finance:
-                if (Administrator is not FinanceAdministrator) {
-                    Administrator = null;
-                    return;
-                }
-
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+        if (Administrator) {
+            _ability.color = Color.grey;
+        }
+        else {
+            _ability.color = Color.green;
+            
         }
         
         _position.text = Enum.GetName(typeof(AdministratorPosition), Position);
@@ -74,12 +51,13 @@ public class AdminDepartmentManagerUI : MonoBehaviour {
         var policies = "";
         Administrator?.Policies.ForEach(p => policies += p.Description + "\n");
         _policies.text = policies;
+        
     }
 
     public void OnClickInfo() {
         //Get list of admins from the same department
         var adminController = GameController.Instance.AdministratorController;
-        var list = adminController?.AdministratorList?.GetValueOrDefault(Position)?.ToList() ?? new List<Administrator>(); 
+        var list = adminController?.AdministratorList?.ToList() ?? new List<Administrator>(); 
         //Instantiate new selection window
         if (_manager.SelectionUI is null) return;
         var selectionUI = Instantiate(_manager.SelectionUI, _manager.gameObject.transform.parent);
@@ -98,6 +76,30 @@ public class AdminDepartmentManagerUI : MonoBehaviour {
         };
     }
 
-    private void OnValidate() { SetUpAdmin(); }
-    private void OnGUI() { SetUpAdmin(); }
+    private void OnValidate() {
+        SetUpAdmin();
+
+        SetDimensionsToEmpty(_ability);
+        SetDimensionsToEmpty(_policies);
+    }
+    private Vector3 GetEmptyDimension(TextMeshProUGUI text){
+        var txt = text.text;
+        text.text = string.Empty;
+        var d = text.transform.localScale;
+        text.text = txt;
+        return d;
+    }
+
+    private void SetDimensionsToEmpty(TextMeshProUGUI text) {
+        var d = GetEmptyDimension(text);
+        text.GetComponent<LayoutElement>().preferredWidth = d.x;
+        text.GetComponent<LayoutElement>().preferredHeight = d.y;
+    }
+    
+    private void OnGUI() { SetUpAdmin(); 
+
+        SetDimensionsToEmpty(_ability);
+        SetDimensionsToEmpty(_policies);
+        
+    }
 }

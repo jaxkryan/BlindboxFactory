@@ -50,14 +50,6 @@ public abstract class UIList<TItem> : UIScrollable where TItem : class {
 
 public class SelectAdminUI : UIList<Administrator> {
     public List<Administrator> List { get; set; }
-    public Administrator Current {
-        get => _current;
-        set {
-            OnSelectedChanged(value);
-            _current = value;
-        }
-    }
-    private Administrator _current;
 
     protected override void OnSelectedChanged(Administrator value) {
         var selected = _selectionList.FirstOrDefault(s => s.Administrator == value);

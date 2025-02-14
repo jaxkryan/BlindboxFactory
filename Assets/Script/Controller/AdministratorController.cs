@@ -2,57 +2,55 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Script.HumanResource.Administrator.Positions;
-using UnityEngine;
+using System.Linq;
 
 namespace Script.HumanResource.Administrator {
     public class AdministratorController {
-        public HRAdministrator? HRAdministrator {
+        public Administrator? HRAdministrator {
             get => _hrAdministrator;
-            private set => AssignAdministrator(value, ref _hrAdministrator);
+            set => AssignAdministrator(value, ref _hrAdministrator, AdministratorPosition.HR);
         }
 
-        private HRAdministrator? _hrAdministrator;
+        private Administrator? _hrAdministrator;
 
-        public FacilityAdministrator? FacilityAdministrator {
+        public Administrator? FacilityAdministrator {
             get => _facilityAdministrator;
-            private set => AssignAdministrator(value, ref _facilityAdministrator);
+            set => AssignAdministrator(value, ref _facilityAdministrator, AdministratorPosition.Facility);
         }
 
-        private FacilityAdministrator? _facilityAdministrator;
+        private Administrator? _facilityAdministrator;
 
-        public SupplyAdministrator? SupplyAdministrator {
+        public Administrator? SupplyAdministrator {
             get => _supplyAdministrator;
-            private set => AssignAdministrator(value, ref _supplyAdministrator);
+            set => AssignAdministrator(value, ref _supplyAdministrator, AdministratorPosition.Supply);
         }
 
-        private SupplyAdministrator? _supplyAdministrator;
+        private Administrator? _supplyAdministrator;
 
-        public FinanceAdministrator? FinanceAdministrator {
+        public Administrator? FinanceAdministrator {
             get => _financeAdministrator;
-            private set => AssignAdministrator(value, ref _financeAdministrator);
+            set => AssignAdministrator(value, ref _financeAdministrator, AdministratorPosition.Finance);
         }
 
-        private FinanceAdministrator? _financeAdministrator;
+        private Administrator? _financeAdministrator;
 
-        private void AssignAdministrator<TAdministrator>(TAdministrator value, ref TAdministrator admin)
-            where TAdministrator : Administrator? {
+        private void AssignAdministrator(Administrator? value, ref Administrator? admin, AdministratorPosition position) {
             if (value == admin) return;
-            OnAdminChanged?.Invoke(value);
+            OnAdminChanged?.Invoke(position, value);
             admin?.OnDismissManager();
             admin = value;
             admin?.OnAssignManager();
         }
 
-        public ReadOnlyDictionary<AdministratorPosition, HashSet<Administrator>> AdministratorList {
-            get => new ReadOnlyDictionary<AdministratorPosition, HashSet<Administrator>>(_administratorList);
+        public ReadOnlyCollection<Administrator> AdministratorList {
+            get => _administratorList.ToList().AsReadOnly();
         }
 
-        private Dictionary<AdministratorPosition, HashSet<Administrator>> _administratorList;
+        private HashSet<Administrator> _administratorList;
 
-        public AdministratorController(Dictionary<AdministratorPosition, HashSet<Administrator>> administratorList,
-            HRAdministrator hrAdministrator = null, FacilityAdministrator facilityAdministrator = null,
-            SupplyAdministrator supplyAdministrator = null, FinanceAdministrator financeAdministrator = null) {
+        public AdministratorController(HashSet<Administrator> administratorList,
+            Administrator? hrAdministrator = null, Administrator? facilityAdministrator = null,
+            Administrator? supplyAdministrator = null, Administrator? financeAdministrator = null) {
             HRAdministrator = hrAdministrator;
             FacilityAdministrator = facilityAdministrator;
             SupplyAdministrator = supplyAdministrator;
@@ -60,83 +58,10 @@ namespace Script.HumanResource.Administrator {
             _administratorList = administratorList;
         }
 
-        public AdministratorController() : this(new Dictionary<AdministratorPosition, HashSet<Administrator>>()) { }
+        public AdministratorController() : this(new HashSet<Administrator>()) { }
 
-        public void AddAdministrator<TAdministrator>(TAdministrator administrator)
-            where TAdministrator : Administrator {
-            switch (typeof(TAdministrator)) {
-                case Type hr when hr == typeof(HRAdministrator):
-                    if (!TryAddWorker(AdministratorPosition.HR, administrator))
-                        throw new Exception("Cannot add administrator");
-                    break;
-                case Type facility when facility == typeof(FacilityAdministrator):
-                    if (!TryAddWorker(AdministratorPosition.Facility, administrator))
-                        throw new Exception("Cannot add administrator");
-                    break;
-                case Type supply when supply == typeof(SupplyAdministrator):
-                    if (!TryAddWorker(AdministratorPosition.Supply, administrator))
-                        throw new Exception("Cannot add administrator");
-                    break;
-                case Type finance when finance == typeof(FinanceAdministrator):
-                    if (!TryAddWorker(AdministratorPosition.Finance, administrator))
-                        throw new Exception("Cannot add administrator");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
 
-            bool TryAddWorker(AdministratorPosition type, Administrator admin) {
-                HashSet<Administrator> administratorList;
-                if (!_administratorList.TryGetValue(type, out administratorList))
-                    administratorList = new HashSet<Administrator>();
-                if (!administratorList.Add(admin)) return false;
-                _administratorList[type] = administratorList;
-                return true;
-            }
-        }
+        public event Action<AdministratorPosition, Administrator?> OnAdminChanged = (position, administrator) => { };
 
-        public void RemoveAdministrator<TAdministrator>(TAdministrator administrator) where TAdministrator : Administrator {
-            switch (typeof(TAdministrator)) {
-                case Type hr when hr == typeof(HRAdministrator):
-                    if (!TryRemoveWorker(AdministratorPosition.HR, administrator))
-                        throw new Exception("Cannot remove administrator");
-                    break;
-                case Type facility when facility == typeof(FacilityAdministrator):
-                    if (!TryRemoveWorker(AdministratorPosition.Facility, administrator))
-                        throw new Exception("Cannot remove administrator");
-                    break;
-                case Type supply when supply == typeof(SupplyAdministrator):
-                    if (!TryRemoveWorker(AdministratorPosition.Supply, administrator))
-                        throw new Exception("Cannot remove administrator");
-                    break;
-                case Type finance when finance == typeof(FinanceAdministrator):
-                    if (!TryRemoveWorker(AdministratorPosition.Finance, administrator))
-                        throw new Exception("Cannot remove administrator");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            bool TryRemoveWorker(AdministratorPosition type, Administrator admin) {
-                HashSet<Administrator> administratorList;
-                if (!_administratorList.TryGetValue(type, out administratorList))
-                    administratorList = new HashSet<Administrator>();
-                if (!administratorList.Contains(admin)) return false;
-                administratorList.Remove(admin);
-                _administratorList[type] = administratorList;
-                return true;
-            } }
-
-        public event Action<Administrator?> OnAdminChanged = administrator => { };
-
-        public void AssignHRAdministrator(HRAdministrator administrator) => HRAdministrator = administrator;
-
-        public void AssignFacilityAdministrator(FacilityAdministrator administrator) =>
-            FacilityAdministrator = administrator;
-
-        public void AssignSupplyAdministrator(SupplyAdministrator administrator) => SupplyAdministrator = administrator;
-
-        public void AssignFinanceAdministrator(FinanceAdministrator administrator) =>
-            FinanceAdministrator = administrator;
     }
 }

@@ -1,7 +1,6 @@
 using System;
 using Script.Controller;
 using Script.HumanResource.Administrator;
-using Script.HumanResource.Administrator.Positions;
 using UnityEngine;
 
 public class AdministratorManagerUI : MonoBehaviour {
@@ -19,10 +18,10 @@ public class AdministratorManagerUI : MonoBehaviour {
 
     public void Save() {
         try {
-            _adminController.AssignHRAdministrator(Hr.Administrator as HRAdministrator);
-            _adminController.AssignFacilityAdministrator(Facility.Administrator as FacilityAdministrator);
-            _adminController.AssignSupplyAdministrator(Supply.Administrator as SupplyAdministrator);
-            _adminController.AssignFinanceAdministrator(Finance.Administrator as FinanceAdministrator);
+            _adminController.HRAdministrator = Hr.Administrator;
+            _adminController.FacilityAdministrator = Facility.Administrator;
+            _adminController.SupplyAdministrator = Supply.Administrator;
+            _adminController.FinanceAdministrator = Finance.Administrator;
 
             this.gameObject.SetActive(false);
         }
