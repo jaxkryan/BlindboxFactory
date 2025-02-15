@@ -31,8 +31,11 @@ public class NewMonoBehaviourScript : MonoBehaviour
 
     private void Update()
     {
-        energyText.text = ((int)currentEnergy).ToString();
-
+        
+        if (energyText != null)
+        {
+            energyText.text = $"Energy: {currentEnergy}/{maxCapacity}";
+        }
         if (energySlider != null)
         {
             energySlider.value = currentEnergy;
