@@ -8,7 +8,7 @@ namespace Script.Controller {
         Worker
     }
 
-    public class WorkerController {
+    public class WorkerController : ControllerBase {
         public ReadOnlyDictionary<WorkerType, HashSet<Worker>> WorkerList {
             get => new ReadOnlyDictionary<WorkerType, HashSet<Worker>>(_workerList);
         }
@@ -30,19 +30,18 @@ namespace Script.Controller {
         public WorkerController() : this(new Dictionary<WorkerType, HashSet<Worker>>(),
             new Dictionary<WorkerType, (int HappinessNeeds, int HungerNeeds)>()) { }
 
+        public event Action<Worker> onWorkerAdded = delegate { };
+        public event Action<Worker> onWorkerRemoved = delegate { };
+
         public void SetNeeds(WorkerType type, int happinessNeeds, int hungerNeeds) {
             if (!_workerNeedsList.ContainsKey(type)) _workerNeedsList.Add(type, (happinessNeeds, hungerNeeds));
             else _workerNeedsList[type] = (happinessNeeds, hungerNeeds);
         }
-        
+
         public void AddWorker<TWorker>(TWorker worker) where TWorker : Worker {
-            switch (typeof(TWorker)) {
-                case Type @base when @base == typeof(Worker):
-                    if (!TryAddWorker(WorkerType.Worker, worker)) throw new Exception("Cannot add worker");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            if (!TryAddWorker(IWorker.ToWorkerType(worker), worker)) throw new Exception("Cannot add worker");
+
+            onWorkerAdded?.Invoke(worker);
 
             bool TryAddWorker(WorkerType type, Worker worker) {
                 HashSet<Worker> workerList;
@@ -55,13 +54,8 @@ namespace Script.Controller {
         }
 
         public void RemoveWorker<TWorker>(TWorker worker) where TWorker : Worker {
-            switch (typeof(TWorker)) {
-                case Type @base when @base == typeof(Worker):
-                    if (!TryRemoveWorker(WorkerType.Worker, worker)) throw new Exception("Worker not found");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            if (!TryRemoveWorker(IWorker.ToWorkerType(worker), worker)) throw new Exception("Worker not found");
+            onWorkerRemoved?.Invoke(worker);
 
             bool TryRemoveWorker(WorkerType type, Worker worker) {
                 HashSet<Worker> workerList;

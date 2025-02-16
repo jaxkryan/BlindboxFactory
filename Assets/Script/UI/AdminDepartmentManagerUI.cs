@@ -37,13 +37,7 @@ public class AdminDepartmentManagerUI : MonoBehaviour {
     void Start() { SetUpAdmin(); }
 
     void SetUpAdmin() {
-        if (Administrator) {
-            _ability.color = Color.grey;
-        }
-        else {
-            _ability.color = Color.green;
-            
-        }
+        _ability.color = Administrator ? Color.grey : Color.green;
         
         _position.text = Enum.GetName(typeof(AdministratorPosition), Position);
         _portrait.sprite = Administrator?.Portrait ?? _defaultPortrait;
@@ -92,8 +86,10 @@ public class AdminDepartmentManagerUI : MonoBehaviour {
 
     private void SetDimensionsToEmpty(TextMeshProUGUI text) {
         var d = GetEmptyDimension(text);
-        text.GetComponent<LayoutElement>().preferredWidth = d.x;
-        text.GetComponent<LayoutElement>().preferredHeight = d.y;
+        var layout = text.GetComponent<LayoutElement>();
+        if (!layout) return;
+        layout.preferredWidth = d.x;
+        layout.preferredHeight = d.y;
     }
     
     private void OnGUI() { SetUpAdmin(); 

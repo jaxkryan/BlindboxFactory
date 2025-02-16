@@ -2,12 +2,14 @@ using System;
 using Script.Machine;
 using Unity.VisualScripting;
 using UnityEngine;
+using IMachine = Script.Machine.IMachine;
 
 namespace Script.HumanResource.Worker {
     [Serializable]
     public abstract class WorkDetail {
         [SerializeField] public int Slot;
         protected CountdownTimer _timer;
+        public IMachine Machine { get; set; }
         public bool IsRunning { get; private set; }
 
         public void Start() {

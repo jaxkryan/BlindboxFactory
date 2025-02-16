@@ -3,9 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Script.Controller;
+using Unity.VisualScripting;
 
 namespace Script.HumanResource.Administrator {
-    public class AdministratorController {
+    public class AdministratorController : ControllerBase {
         public Administrator? HRAdministrator {
             get => _hrAdministrator;
             set => AssignAdministrator(value, ref _hrAdministrator, AdministratorPosition.HR);
@@ -34,12 +36,17 @@ namespace Script.HumanResource.Administrator {
 
         private Administrator? _financeAdministrator;
 
+        private List<Administrator> _assignedAdministrators => typeof(AdministratorController).GetProperties()
+            .Where(p => p.PropertyType == typeof(Administrator))
+            .Select(info => (Administrator)info.GetValue(this))
+            .ToList();
+        
         private void AssignAdministrator(Administrator? value, ref Administrator? admin, AdministratorPosition position) {
             if (value == admin) return;
             OnAdminChanged?.Invoke(position, value);
-            admin?.OnDismissManager();
+            admin?.OnDismiss();
             admin = value;
-            admin?.OnAssignManager();
+            admin?.OnAssign();
         }
 
         public ReadOnlyCollection<Administrator> AdministratorList {
@@ -56,12 +63,33 @@ namespace Script.HumanResource.Administrator {
             SupplyAdministrator = supplyAdministrator;
             FinanceAdministrator = financeAdministrator;
             _administratorList = administratorList;
+            _assignedAdministrators.ForEach(admin => admin.OnAssign());
         }
 
         public AdministratorController() : this(new HashSet<Administrator>()) { }
+        public event Action<AdministratorPosition, Administrator?> OnAdminChanged = delegate { };
 
+        
+        public override void OnDestroy() {
+            base.OnDestroy();
+            _assignedAdministrators.ForEach(admin => admin.OnDismiss());
+        }
 
-        public event Action<AdministratorPosition, Administrator?> OnAdminChanged = (position, administrator) => { };
+        public override void OnEnable() {
+            base.OnEnable();
+            _assignedAdministrators.ForEach(admin => admin.OnAssign());
+        }
 
+        public override void OnDisable() {
+            base.OnDisable();
+            
+            _assignedAdministrators.ForEach(admin => admin.OnDismiss());
+        }
+
+        public override void OnStart() {
+            base.OnStart();
+            
+            _assignedAdministrators.ForEach(admin => admin.OnAssign());
+        }
     }
 }

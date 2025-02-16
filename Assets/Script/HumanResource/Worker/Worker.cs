@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using AYellowpaper.SerializedCollections;
 using Script.Machine;
 using UnityEngine;
 
@@ -18,83 +20,59 @@ namespace Script.HumanResource.Worker {
         [SerializeField] private Sprite _portrait;
         public WorkerDirector Director { get => _director; set => _director = value; }
         private WorkerDirector _director;
-        [Header("Hunger")]
-        [SerializeField] [Min(1f)]private float _maximumHunger = 1f;
-        [SerializeField] [Min(1f)]private float _startingHunger = 1f;
-        public float CurrentHunger { get => _currentHunger; set => _currentHunger = value; }
-        private float _currentHunger = -10f;
-        public CoreDrain HungerDrain { get => _hungerDrain; set => _hungerDrain = value; }
-        [SerializeField] private CoreDrain _hungerDrain;
-        private float _hungerCoreDrainTimeInterval = 0;
-        public event Action<float> onHungerChanged;
-        [Header("Happiness")]
-        [SerializeField] [Min(1f)]private float _maximumHappiness = 1f;
-        [SerializeField] [Min(1f)]private float _startingHappiness = 1f;
-        public float CurrentHappiness { get => _currentHappiness; set => _currentHappiness = value; }
-        private float _currentHappiness = -10f;
-        public CoreDrain HappinessDrain { get => _happinessDrain; set => _happinessDrain = value; }
-        [SerializeField] private CoreDrain _happinessDrain;
+        [Header("Cores")] 
+        [SerializeField] private SerializedDictionary<CoreType, float> _maximumCores;
+        [SerializeField] private SerializedDictionary<CoreType, float> _startingCores;
+        private Dictionary<CoreType, float> _coreDrainTimeIntervals = new ();
+        public Dictionary<CoreType, float> CurrentCores { get => _currentCores; }
+        private Dictionary<CoreType, float> _currentCores;
+        public Dictionary<CoreType, CoreDrain> CoreDrains { get => _coreDrains; }
+        [SerializeField] private SerializedDictionary<CoreType, CoreDrain> _coreDrains;
+        public event Action<CoreType, float> onCoreChanged = delegate { };
 
-        private float _happinessCoreDrainTimeInterval = 0;
-        public event Action<float> onHappinessChanged;
-        public event Action onCoreDrained;
-        
         [Header("Work")]
         [SerializeField] private MachineBase _machine;
         public IMachine Machine { get => _machine; set => _machine = (MachineBase)value; }
         public BonusManager BonusManager { get => _bonusManager; }
         [SerializeField] BonusManager _bonusManager;
-        public IEnumerable<Bonus> Bonuses { get => _bonuses;  }
-        [SerializeReference, SubclassSelector] private List<Bonus> _bonuses;
-        public event Action onWorking;
-        public event Action onStopWorking;
+        public HashSet<Bonus> Bonuses { get => _bonuses;  }
+        [SerializeReference, SubclassSelector] private HashSet<Bonus> _bonuses;
+        public event Action onWorking = delegate { };
+        public event Action onStopWorking = delegate { };
+
         public void DrainCores(DrainType drainType) {
             switch (drainType) {
                 case DrainType.Work:
-                    _currentHunger -= _hungerDrain.DrainOnWork;
-                    onHungerChanged?.Invoke(_currentHunger);
-                    _currentHappiness -= _happinessDrain.DrainOnWork;
-                    onHappinessChanged?.Invoke(_currentHappiness);
+                    foreach (CoreType coreType in Enum.GetValues(typeof(CoreType))) {
+                        if (!_coreDrains.ContainsKey(coreType) || (_coreDrains[coreType]?.DrainOnWork ?? 0) == 0) continue;
+                        _currentCores[coreType] -= _coreDrains[coreType]?.DrainOnWork ?? 0;
+                        onCoreChanged?.Invoke(coreType, -(_coreDrains[coreType]?.DrainOnWork ?? 0));
+                    }
                     break;
                 case DrainType.Time:
-                    if (_hungerDrain.TimeInterval <= _hungerCoreDrainTimeInterval) {
-                        _currentHunger -= _hungerDrain.DrainOverTime;
-                        _hungerCoreDrainTimeInterval -= _hungerDrain.TimeInterval;
-                        onHungerChanged?.Invoke(_currentHunger);
-                    }
-
-                    if (_happinessDrain.TimeInterval <= _happinessCoreDrainTimeInterval) {
-                        _currentHappiness -= _happinessDrain.DrainOverTime;
-                        _happinessCoreDrainTimeInterval -= _happinessDrain.TimeInterval;
-                        onHappinessChanged?.Invoke(_currentHappiness);
+                    foreach (CoreType coreType in Enum.GetValues(typeof(CoreType))) {
+                        if (!_coreDrains.ContainsKey(coreType) || (_coreDrains[coreType]?.DrainOnWork ?? 0) == 0) continue;
+                        if (!(_coreDrains[coreType].TimeInterval <= _coreDrainTimeIntervals[coreType])) continue;
+                        _currentCores[coreType] -= _coreDrains[coreType]?.DrainOverTime ?? 0;
+                        _coreDrainTimeIntervals[coreType] -= _coreDrains[coreType]?.TimeInterval ?? _coreDrainTimeIntervals[coreType];
+                        onCoreChanged?.Invoke(coreType, -(_coreDrains[coreType]?.DrainOverTime ?? 0));
                     }
                     break;
                 default:
                     Debug.LogError($"Invalid drain type: {drainType}");
                     return;
             }
-
-            onCoreDrained?.Invoke();
         }
 
-        public void RefillHunger(float amount) {
-            if (_maximumHunger <= _currentHunger) {
-                Debug.LogWarning("Worker is fulled.");
+        public void RefillCore(CoreType core, float amount) {
+            if (_currentCores[core] >= _maximumCores[core]) {
+                Debug.LogWarning($"Core {core} has reached its maximum amount.");
+                _currentCores[core] = _maximumCores[core];
                 return;
             }
-            amount = _currentHunger + amount <= _maximumHunger ? amount : _maximumHunger - _currentHunger;
-            _currentHunger += amount;
-            onHungerChanged?.Invoke(_currentHunger);
-        }
-
-        public void RefillHappiness(float amount) {
-            if (_maximumHappiness <= _currentHappiness) {
-                Debug.LogWarning("Worker is fulled.");
-                return;
-            }
-            amount = _currentHappiness + amount <= _maximumHappiness ? amount : _maximumHappiness - _currentHappiness;
-            _currentHappiness += amount;
-            onHappinessChanged?.Invoke(_currentHappiness);
+            amount = _currentCores[core] + amount <= _maximumCores[core] ? amount : _maximumCores[core] - _currentCores[core];
+            _currentCores[core] += amount;
+            onCoreChanged?.Invoke(core, amount);
         }
         public void DoWork() {
             if (_machine is null) {
@@ -126,15 +104,32 @@ namespace Script.HumanResource.Worker {
         }
 
         private void Start() {
-            if (_currentHunger < -1f) _currentHunger = +_startingHunger;
-            if (_currentHappiness < -1f) _currentHappiness = +_startingHappiness;
+            foreach (CoreType coreType in Enum.GetValues(typeof(CoreType))) {
+                if (!_currentCores.ContainsKey(coreType) && _startingCores.ContainsKey(coreType)) {
+                    _currentCores.Add(coreType, _startingCores[coreType]);
+                }
+
+                if (_coreDrainTimeIntervals.ContainsKey(coreType)) {
+                    _coreDrainTimeIntervals.Add(coreType, 0);
+                }
+            }
         }
         
         private void FixedUpdate() {
-            _hungerCoreDrainTimeInterval += Time.fixedDeltaTime;
-            _happinessCoreDrainTimeInterval += Time.fixedDeltaTime;
-            if (_hungerCoreDrainTimeInterval >= _hungerDrain.TimeInterval || _happinessCoreDrainTimeInterval >= _happinessDrain.TimeInterval) 
+            foreach (var key in _coreDrainTimeIntervals.Keys) {
+                _coreDrainTimeIntervals[key] += Time.fixedDeltaTime;
+            }
+            if (_coreDrainTimeIntervals.Any(c 
+                    => _coreDrains.ContainsKey(c.Key) && c.Value > (_coreDrains[c.Key]?.TimeInterval ?? 9999999999)))
                 DrainCores(DrainType.Time);
+        }
+
+        private void OnValidate() {
+            foreach (CoreType coreType in Enum.GetValues(typeof(CoreType))) {
+                _startingCores.TryAdd(coreType, 0);
+                _maximumCores.TryAdd(coreType, 100);
+                _coreDrainTimeIntervals.TryAdd(coreType, 1);
+            }
         }
 
         private void Update() {

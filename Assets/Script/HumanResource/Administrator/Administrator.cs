@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Script.Gacha.Base;
@@ -9,9 +10,19 @@ namespace Script.HumanResource.Administrator {
         public Sprite Portrait;
         public IEnumerable<Policy> Policies;
         public void SetGrade(Grade grade) => this.Grade = grade;
-        
-        public virtual void OnAssignManager() => Policies.ForEach(p => p.OnAssign());
-        public virtual void OnDismissManager() => Policies.ForEach(p => p.OnDismiss());
-        
+        public bool IsActive { get; private set; } = false;
+
+
+        public virtual void OnAssign() {
+            if (IsActive) return;
+            IsActive = true;
+            Policies.ForEach(p => p.OnAssign());
+        }
+
+        public virtual void OnDismiss() {
+            if (!IsActive) return;
+            IsActive = false;
+            Policies.ForEach(p => p.OnDismiss());
+        }
     }
 }

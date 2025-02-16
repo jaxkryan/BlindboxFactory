@@ -49,8 +49,6 @@ public abstract class UIList<TItem> : UIScrollable where TItem : class {
 }
 
 public class SelectAdminUI : UIList<Administrator> {
-    public List<Administrator> List { get; set; }
-
     protected override void OnSelectedChanged(Administrator value) {
         var selected = _selectionList.FirstOrDefault(s => s.Administrator == value);
         _selectionList.Where(s => s != selected).ForEach(s => s.IsSelected = false);
@@ -76,6 +74,7 @@ public class SelectAdminUI : UIList<Administrator> {
             var ui = obj.GetComponent<AdminSelectionUI>();
             ui.SetAdmin(admin);
             ui.SetReturn(this);
+            _selectionList.Add(ui);
         });
         if (List.Count == 0) Instantiate(_emptyListText, _container.transform);
     }

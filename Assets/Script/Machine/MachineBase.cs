@@ -5,15 +5,34 @@ using Script.HumanResource.Worker;
 using UnityEngine;
 
 namespace Script.Machine {
+    [Serializable]
     public abstract class MachineBase : MonoBehaviour, IMachine{
         public bool IsClosed { get => _isClosed; set => _isClosed = value; }
         [SerializeField] private bool _isClosed;
         public IEnumerable<MachineSlot> Slots { get => _slot; set => _slot = value.ToList(); }
-        [SerializeField] private List<MachineSlot> _slot; 
-        public float Progress { get; set; }
+        [SerializeField] private List<MachineSlot> _slot;
+
+        public float CurrentProgress {
+            get => _currentProgress;
+            set {
+                _currentProgress = value;
+                if (!(CurrentProgress >= MaxProgress)) return;
+                CurrentProgress -= MaxProgress;
+                CreateProduct();
+            }
+        }
+        private float _currentProgress;
+
+        public float MaxProgress {
+            get => _maxProgress;
+        }
+        [SerializeField] float _maxProgress;
         public IEnumerable<IWorker> Workers { get => _slot.Select(s => s.Worker).Where(w => w != null); }
-        
-        
+
+        private void Awake() {
+            WorkDetails.ForEach(d => d.Machine = this);
+        }
+
         public void AddWorker(IWorker worker) {
             if (Workers.Count() >= Slots.Count()) {
                 Debug.LogWarning($"Machine({name}) is full.");
@@ -43,27 +62,31 @@ namespace Script.Machine {
                 Debug.LogWarning($"Worker{str} is not working on machine({str}).");
                 return;
             }
-            Slots.Where(s => s.Worker.Equals(worker)).ForEach(s => s.Worker = default);
+            Slots.Where(s => s.Worker?.Equals(worker) ?? false).ForEach(s => s.Worker = default);
             WorkDetails.Where(d => d.Slot < Workers.Count() && d.IsRunning).ForEach(d => d.Stop());
             onWorkerChanged?.Invoke();
         }
 
-        public IEnumerable<WorkDetail> WorkDetails { get; }
+        public IEnumerable<WorkDetail> WorkDetails {
+            get => _workDetails;
+        }
         [SerializeReference, SubclassSelector] private List<WorkDetail> _workDetails;
         public IProduct Product { get => _product; }
         [SerializeField] private IProduct _product;
-        public event Action<IProduct> onCreateProduct;
+        public event Action<IProduct> onCreateProduct = delegate { };
         public virtual IProduct CreateProduct() {
-            IProduct ret;
-            if (Product is ScriptableObject scriptableProduct) ret = (IProduct)Instantiate(scriptableProduct);
-            else if (Product is MonoBehaviour monoProduct) ret = (IProduct)Instantiate(monoProduct);
-            else ret = Product;
-            
-            onCreateProduct?.Invoke(ret);
-            return ret;
+            onCreateProduct?.Invoke(_product);
+            return _product;
         }
 
-        public event Action onWorkerChanged;
+        public void IncreaseProgress(float progress) {
+            CurrentProgress += progress;
+            onProgress?.Invoke(progress);
+        }
+
+        public event Action<float> onProgress = delegate { };
+
+        public event Action onWorkerChanged = delegate { };
 
         protected virtual void Update() {
             WorkDetails.ForEach(d => d.Update(Time.deltaTime));

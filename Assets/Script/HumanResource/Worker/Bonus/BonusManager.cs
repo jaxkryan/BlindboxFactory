@@ -12,7 +12,7 @@ namespace Script.HumanResource.Worker {
         [SerializeField] private SerializedDictionary<Bonus, BonusCondition> _bonusConditions;
 
         public void RecalculateBonuses(IWorker worker){
-            var bonuses = GetApplicableBonuses((int)worker.CurrentHappiness, (int)worker.CurrentHunger);
+            var bonuses = GetApplicableBonuses((int)worker.CurrentCores[CoreType.Happiness], (int)worker.CurrentCores[CoreType.Hunger]);
             var currentBonuses = worker.Bonuses.ToList();
             currentBonuses.Where(bonus => !bonuses.Contains(bonus)).ForEach(worker.RemoveBonus);
             currentBonuses = worker.Bonuses.ToList();

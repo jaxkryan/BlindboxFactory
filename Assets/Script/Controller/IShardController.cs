@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
+using Script.Controller;
 using Script.Gacha.Base;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ namespace Script.Gacha.Shard {
         IEnumerable<IShard> ShatterItem(ILoot item, int quantity);
     }
     
-    public class ShardController : IShardController {
+    public class ShardController : ControllerBase, IShardController {
         public IShardInventory Inventory { get; }
         public Dictionary<ILoot, IEnumerable<(IShard Shard, int Quantity)>> ShardDictionary { get; }
         public IShard DefaultShard { get; }
