@@ -39,7 +39,7 @@ public static class NTPClient
 
             return networkDateTime;
         }
-        catch (Exception ex)
+        catch (System.Exception ex)
         {
             Debug.LogWarning("NTP Error: " + ex.Message);
             // Fallback to device time (not secure if offline)

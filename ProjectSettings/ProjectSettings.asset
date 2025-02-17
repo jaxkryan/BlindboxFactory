@@ -498,7 +498,10 @@ PlayerSettings:
   m_BuildTargetGroupLightmapSettings: []
   m_BuildTargetGroupLoadStoreDebugModeSettings: []
   m_BuildTargetNormalMapEncoding: []
-  m_BuildTargetDefaultTextureCompressionFormat: []
+  m_BuildTargetDefaultTextureCompressionFormat:
+  - serializedVersion: 3
+    m_BuildTarget: Android
+    m_Formats: 01000000
   playModeTestRunnerEnabled: 0
   runPlayModeTestAsEditModeTest: 0
   actionOnDotNetUnhandledException: 1
@@ -766,6 +769,7 @@ PlayerSettings:
   webWasm2023: 0
   scriptingDefineSymbols:
     Android: FUSION_LOGLEVEL_INFO;FUSION_WEAVER;FUSION2
+    Standalone: FUSION_WEAVER;FUSION2;FUSION_LOGLEVEL_INFO
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
@@ -801,7 +805,7 @@ PlayerSettings:
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
   metroPackageName: LastAssignment
-  metroPackageVersion: 
+  metroPackageVersion: 1.0.0.0
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
@@ -809,7 +813,7 @@ PlayerSettings:
   metroCertificateNotAfter: 0000000000000000
   metroApplicationDescription: LastAssignment
   wsaImages: {}
-  metroTileShortName: 
+  metroTileShortName: LastAssignment
   metroTileShowName: 0
   metroMediumTileShowName: 0
   metroLargeTileShowName: 0
