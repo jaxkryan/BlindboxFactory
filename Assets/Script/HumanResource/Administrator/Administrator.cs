@@ -1,0 +1,28 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using Script.Gacha.Base;
+using UnityEngine;
+
+namespace Script.HumanResource.Administrator {
+    public abstract class Administrator : Gacha.Base.Loot {
+        public EmployeeName Name;
+        public Sprite Portrait;
+        public IEnumerable<Policy> Policies;
+        public void SetGrade(Grade grade) => this.Grade = grade;
+        public bool IsActive { get; private set; } = false;
+
+
+        public virtual void OnAssign() {
+            if (IsActive) return;
+            IsActive = true;
+            Policies.ForEach(p => p.OnAssign());
+        }
+
+        public virtual void OnDismiss() {
+            if (!IsActive) return;
+            IsActive = false;
+            Policies.ForEach(p => p.OnDismiss());
+        }
+    }
+}
