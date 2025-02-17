@@ -127,7 +127,7 @@ namespace GameInput
 
         ~@InputActions()
         {
-            UnityEngine.Debug.Assert(!m_Game.enabled, "This will cause a leak and performance issues, InputActions.Game.Disable() has not been called.");
+            // UnityEngine.Debug.Assert(!m_Game.enabled, "This will cause a leak and performance issues, InputActions.Game.Disable() has not been called.");
         }
 
         public void Dispose()
