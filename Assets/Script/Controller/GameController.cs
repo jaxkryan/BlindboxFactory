@@ -14,6 +14,7 @@ namespace Script.Controller {
 
         private List<ControllerBase> _controllers => typeof(GameController).GetFields()
                 .Where(f => f.FieldType.IsSubclassOf(typeof(ControllerBase)))
+                .Where(f => ((ControllerBase)f.GetValue(this)) != null)
                 .Select(fieldInfo => (ControllerBase)fieldInfo.GetValue(this))
                 .ToList();
         

@@ -38,6 +38,7 @@ namespace Script.HumanResource.Administrator {
 
         private List<Administrator> _assignedAdministrators => typeof(AdministratorController).GetProperties()
             .Where(p => p.PropertyType == typeof(Administrator))
+            .Where(p => ((Administrator?)p.GetValue(this)) != null)
             .Select(info => (Administrator)info.GetValue(this))
             .ToList();
         
