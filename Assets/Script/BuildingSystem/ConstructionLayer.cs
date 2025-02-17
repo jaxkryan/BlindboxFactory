@@ -68,7 +68,7 @@ namespace BuildingSystem
             }
         }
 
-        //public void Destroy(Vector3 worldCoords)
+        //public void Stored(Vector3 worldCoords)
         //{
         //    var coords = _tilemap.WorldToCell(worldCoords);
 
@@ -79,10 +79,10 @@ namespace BuildingSystem
         //        UnRegisterBuildableCollisionSpace(buildable);
         //    }
         //    _buildables.Remove(coords);
-        //    buildable.Destroy();
+        //    buildable.Stored();
         //}
 
-        public void Destroy(Vector3 worldCoords)
+        public void Stored(Vector3 worldCoords)
         {
             var coords = _tilemap.WorldToCell(worldCoords);
 
@@ -108,6 +108,11 @@ namespace BuildingSystem
             _buildables.Remove(coords);
             buildable.Destroy();
             FindObjectOfType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
+        }
+
+        public Dictionary<Vector3Int, Buildable> GetBuildables()
+        {
+            return _buildables;
         }
 
         public Dictionary<BuildableItem, int> GetStoredBuildables()

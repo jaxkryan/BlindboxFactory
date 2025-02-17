@@ -43,7 +43,7 @@ namespace BuildingSystem
             {
                 try
                 {
-                    _constructionLayer.Destroy(_input.PointerWorldPosition);
+                    _constructionLayer.Stored(_input.PointerWorldPosition);
                 }
                 catch
                 {
@@ -102,6 +102,11 @@ namespace BuildingSystem
         public bool IsBuildingFromInventory()
         {
             return _IsBuildingFromInventory;
+        }
+
+        public bool IsActiveBuildable()
+        {
+            return ActiveBuildable != null;
         }
 
         private bool IsPointerOverUI()
