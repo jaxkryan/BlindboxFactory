@@ -6,7 +6,7 @@ using Unity.VisualScripting;
 
 public static class ListExtension {
     public static void AddAfter<T>(this List<T> list, T item, T after) {
-        if (!list.Contains(item)) throw new Exception($"Item {after.GetType()} is not in the list");
+        if (!list.Contains(item)) throw new System.Exception($"Item {after.GetType()} is not in the list");
         List<T> temp = list;
         list.Clear();
         foreach (var i in temp) {
@@ -16,7 +16,7 @@ public static class ListExtension {
     }
 
     public static void AddAfter<T, TAfter>(this List<T> list, T item, bool forAllCopy = false) where TAfter : T {
-        if (!list.Contains(item)) throw new Exception($"Item {typeof(TAfter)} is not in the list");
+        if (!list.Contains(item)) throw new System.Exception($"Item {typeof(TAfter)} is not in the list");
 
         bool shouldAdd = true;
 
@@ -32,7 +32,7 @@ public static class ListExtension {
     }
 
     public static void AddBefore<T>(this List<T> list, T item, T before) {
-        if (!list.Contains(item)) throw new Exception($"Item {before.GetType()} is not in the list");
+        if (!list.Contains(item)) throw new System.Exception($"Item {before.GetType()} is not in the list");
         List<T> temp = list;
         list.Clear();
         foreach (var i in temp) {
@@ -42,7 +42,7 @@ public static class ListExtension {
     }
 
     public static void AddBefore<T, TBefore>(this List<T> list, T item, bool forAllCopy = false) where TBefore : T {
-        if (!list.Contains(item)) throw new Exception($"Item {typeof(TBefore)} is not in the list");
+        if (!list.Contains(item)) throw new System.Exception($"Item {typeof(TBefore)} is not in the list");
 
         bool shouldAdd = true;
 

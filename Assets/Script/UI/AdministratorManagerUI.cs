@@ -25,7 +25,7 @@ public class AdministratorManagerUI : MonoBehaviour {
 
             this.gameObject.SetActive(false);
         }
-        catch (Exception e) {
+        catch (System.Exception e) {
             Debug.Log(e);
         }
     }
