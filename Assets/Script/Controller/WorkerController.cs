@@ -39,7 +39,7 @@ namespace Script.Controller {
         }
 
         public void AddWorker<TWorker>(TWorker worker) where TWorker : Worker {
-            if (!TryAddWorker(IWorker.ToWorkerType(worker), worker)) throw new Exception("Cannot add worker");
+            if (!TryAddWorker(IWorker.ToWorkerType(worker), worker)) throw new System.Exception("Cannot add worker");
 
             onWorkerAdded?.Invoke(worker);
 
@@ -54,7 +54,7 @@ namespace Script.Controller {
         }
 
         public void RemoveWorker<TWorker>(TWorker worker) where TWorker : Worker {
-            if (!TryRemoveWorker(IWorker.ToWorkerType(worker), worker)) throw new Exception("Worker not found");
+            if (!TryRemoveWorker(IWorker.ToWorkerType(worker), worker)) throw new System.Exception("Worker not found");
             onWorkerRemoved?.Invoke(worker);
 
             bool TryRemoveWorker(WorkerType type, Worker worker) {
