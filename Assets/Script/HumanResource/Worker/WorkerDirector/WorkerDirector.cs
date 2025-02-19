@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Script.Controller;
 using Script.Machine;
 using Script.Machine.WorkDetails;
+using Script.Patterns.AI.GOAP.Strategies;
 using UnityEngine;
 
 namespace Script.HumanResource.Worker {
@@ -48,7 +49,7 @@ namespace Script.HumanResource.Worker {
                 var minimumCores = new Dictionary<CoreType, float>();
                 if (GameController.Instance.WorkerController.WorkerNeedsList.TryGetValue(IWorker.ToWorkerType(_worker),
                         out var needs)) {
-                    
+                    needs.ForEach(n => minimumCores.Add(n.Key, n.Value));
                 }
                 else {
                     Enum.GetValues(typeof(CoreType)).Cast<CoreType>().ForEach(c => minimumCores.Add(c, 0.0f));
@@ -94,10 +95,6 @@ namespace Script.HumanResource.Worker {
             if (_slot) _workMachineSensor.Target = _slot.gameObject;
         }
 
-        protected override void SetupTimers() {
-            base.SetupTimers();
-        }
-
         protected override void SetupBeliefs() {
             base.SetupBeliefs();
             BeliefFactory bf = new(this, Beliefs);
@@ -111,10 +108,17 @@ namespace Script.HumanResource.Worker {
                 var condition = _worker.BonusManager.BonusConditions.GetValueOrDefault(bonus);
                 bf.AddBelief($"{_worker.Name}HasBonus: {bonus.Name}", () => condition.IsApplicable(_worker));
             });
-            bf.AddBelief($"{_worker.Name}HasWorkableMachine", () => GameController.Instance.MachineController.FindWorkableMachines(_worker).Any());
-            bf.AddBelief($"{_worker.Name}HasNoWorkableMachine", () => !GameController.Instance.MachineController.FindWorkableMachines(_worker).Any());
+            bf.AddBelief($"{_worker.Name}HasWorkableMachine", () => _workableMachines(this).Any());
+            bf.AddBelief($"{_worker.Name}HasNoWorkableMachine", () => !_workableMachines(this).Any());
             bf.AddBelief($"{_worker.Name}WishListedAMachine", () => GameController.Instance.MachineController.Machines.Any(m => m.Slots.Any(s => s.WishListWorker != null && (Worker)s.WishListWorker == _worker)));
-            
+            bf.AddBelief($"{_worker.Name}WishListedMachineIsWorkMachine", 
+                () => GameController.Instance.MachineController.Machines
+                    .Any(m 
+                        => m.Slots.Any(s => s.WishListWorker != null 
+                                            && (Worker)s.WishListWorker == _worker) 
+                           && _workMachines(this).Contains(m)));
+            bf.AddBelief($"{_worker.Name}HasNoWishListedMachine", () => GameController.Instance.MachineController.Machines.Any(m => m.Slots.Any(s => s.WishListWorker != null && (Worker)s.WishListWorker == _worker)));
+            bf.AddBelief($"{_worker.Name}HasTargetMachine", () => _slot?.Machine is not null);
             
             foreach (CoreType core in Enum.GetValues(typeof(CoreType))) {
                 var workerType = IWorker.ToWorkerType(_worker);
@@ -128,10 +132,17 @@ namespace Script.HumanResource.Worker {
                 bf.AddBelief($"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsFulfilled", () => 
                     _worker.CurrentCores[core] < needDict.GetValueOrDefault(core));
                 //Beliefs for machines that improve cores
-                throw new NotImplementedException();
+                bf.AddBelief($"{_worker.Name}Has{core}RecoveryMachine", () => _recoveryMachines(this, new[]{core}).Any());
+                bf.AddBelief($"{_worker.Name}HasNo{core}RecoveryMachine", () => !_recoveryMachines(this, new[]{core}).Any());
+                bf.AddBelief($"{_worker.Name}WishListedMachineIs{core}RecoveryMachine", 
+                    () => GameController.Instance.MachineController.Machines
+                        .Any(m => m.Slots
+                                      .Any(s => s.WishListWorker != null 
+                                                && (Worker)s.WishListWorker == _worker) 
+                                  && _recoveryMachines(this, new[]{core}).Contains(m)));
             }
             
-            bf.AddSensorBelief("MachineInWorkingRange", _workMachineSensor);
+            bf.AddSensorBelief($"{_worker.Name}AtMachine", _workMachineSensor);
             bf.AddBelief($"{_worker.Name}Working", () => _worker.Machine is not null);
         }
 
@@ -161,10 +172,67 @@ namespace Script.HumanResource.Worker {
         protected override void SetupActions() {
             base.SetupActions();
 
+            Actions.Add(new AgentAction.Builder("Standing")
+                .WithStrategy(new IdleStrategy(2f))
+                .AddEffect(Beliefs["Nothing"])
+                .Build());
             Actions.Add(new AgentAction.Builder("Wander")
                 .WithStrategy(new WanderStrategy(_navMeshAgent, 10f))
                 .AddEffect(Beliefs["Nothing"])
                 .Build());
+            Actions.Add(new AgentAction.Builder($"MoveToMachine")
+                .WithCost(2)
+                .WithStrategy(new MoveStrategy(_navMeshAgent, () => _slot.transform.position))
+                .AddPrecondition(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                .Build());
+            Actions.Add(new AgentAction.Builder("WorkAtMachine")
+                .WithCost(3)
+                .WithStrategy(new WorkStrategy(_worker))
+                .AddPrecondition(Beliefs[$"{_worker.Name}WishListedMachineIsWorkMachine"])
+                .AddEffect(Beliefs[$"{_worker.Name}Working"])
+                .Build());
+
+            Actions.Add(new AgentAction.Builder("ConsiderWorkMachine")
+                .WithStrategy(new WishlistMachineStrategy(_worker, _workMachines(this), _navMeshAgent, 3))
+                .AddPrecondition(Beliefs[$"{_worker.Name}HasWorkableMachine"])
+                .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
+                .AddEffect(Beliefs[$"{_worker.Name}WishListedAMachine"])
+                .AddEffect(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                .Build());
+
+            foreach (CoreType core in Enum.GetValues(typeof(CoreType))) {
+                Actions.Add(new AgentAction.Builder($"Consider{core}RecoveryMachine")
+                    .WithStrategy(new WishlistMachineStrategy(_worker, _recoveryMachines(this, new[] { core }),
+                        _navMeshAgent, 3))
+                    .AddPrecondition(Beliefs[$"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsDepleted"])
+                    .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
+                    .AddPrecondition(Beliefs[$"{_worker.Name}Has{core}RecoveryMachine"])
+                    .AddEffect(Beliefs[$"{_worker.Name}WishListedAMachine"])
+                    .AddEffect(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                    .Build());
+                Actions.Add(new AgentAction.Builder($"{core}RecoverAtMachine")
+                    .WithCost(3)
+                    .WithStrategy(new WorkStrategy(_worker))
+                    .AddPrecondition(Beliefs[$"{_worker.Name}WishListedMachineIs{core}RecoveryMachine"])
+                    .AddEffect(Beliefs[$"{_worker.Name}Working"])
+                    .Build());
+            }
         }
+        
+        Func<WorkerDirector, HashSet<MachineBase>> _workableMachines = (director) => GameController.Instance.MachineController.FindWorkableMachines(director._worker).ToHashSet();
+        Func<WorkerDirector, CoreType[], HashSet<MachineBase>> _recoveryMachines = (director, cores) =>
+            GameController.Instance.MachineController
+                .FindWorkableMachines(
+                    director._worker
+                    , GameController.Instance.MachineController.RecoveryMachines
+                        .Where(m 
+                            => m.Value
+                                .Any(v => v.Worker == IWorker.ToWorkerType(director._worker) && cores.Contains(v.Core)))
+                        .Select(m => m.Key)).ToHashSet();
+        Func<WorkerDirector, HashSet<MachineBase>> _workMachines = (director) => 
+            director._workableMachines.Invoke(director)
+                .Except(
+                    director._recoveryMachines.Invoke(director, Enum.GetValues(typeof(CoreType)).Cast<CoreType>().ToArray()))
+                .ToHashSet();
     }
 }
