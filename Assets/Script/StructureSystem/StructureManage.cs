@@ -1,13 +1,13 @@
 using BuildingSystem;
 using BuildingSystem.Models;
-using GameInput;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
+using UnityEngine.UIElements;
 
 public class StructureManage : MonoBehaviour
 {
-    private CrossPlatformInputUser _inputUser;
 
     private ConstructionLayer _constructionLayer;
 
@@ -21,72 +21,88 @@ public class StructureManage : MonoBehaviour
     {
         _buildingPlacer = FindObjectOfType<BuildingPlacer>();
         _constructionLayer = FindObjectOfType<ConstructionLayer>();
-        _inputUser = FindObjectOfType<CrossPlatformInputUser>(); // Get input handler
     }
 
     private void Update()
     {
-        if (_inputUser.IsInputButtonPressed(InputButton.Primary))
+        if (Input.GetMouseButtonDown(0) && !_buildingPlacer.IsbuildMode)
         {
-            Vector3 worldPosition = _inputUser.PointerWorldPosition;
+            Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            worldPosition.z = 0;  
             Debug.Log($"[CrossPlatformInputUser] Click detected at world position: {worldPosition}");
+
             HandleBuildableSelection(worldPosition);
         }
     }
 
-
     private void HandleBuildableSelection(Vector3 worldCoords)
     {
+        if (IsPointerOverUI ())
+        {
+            return;
+        }
         if (_buildingPlacer.IsActiveBuildable())
         {
             return;
         }
-        var buildables = _constructionLayer.GetBuildables();
 
-        Debug.Log($"[HandleBuildableSelection] Called with worldCoords: {worldCoords}");
+        // Perform a raycast from the mouse position in world space
+        RaycastHit2D hit = Physics2D.Raycast(worldCoords, Vector2.zero);  // Raycast directly under the mouse position
 
-        // Convert world position to tilemap grid coordinates
-        var coords = _tilemap.WorldToCell(worldCoords);
-        Debug.Log($"[HandleBuildableSelection] Converted to tilemap coords: {coords}");
-
-        // Check if buildable exists at the clicked location
-        if (!buildables.ContainsKey(coords))
+        // Check if the raycast hit an object
+        if (hit.collider != null)
         {
-            Debug.LogWarning($"[HandleBuildableSelection] No buildable found at {coords}");
-            return;
-        }
+            GameObject buildableObject = hit.collider.gameObject;
+            if (buildableObject == null)
+            {
+                Debug.LogWarning("[HandleBuildableSelection] The buildable object is null.");
+                return;
+            }
 
-        // Retrieve the Buildable item
-        var buildable = buildables[coords];
-        Debug.Log($"[HandleBuildableSelection] Buildable found: {buildable.GameObject.name}");
+            Debug.Log($"[HandleBuildableSelection] Buildable found: {buildableObject.name}");
 
-        // Attempt to find the ChosePanel inside the buildable
-        Transform canvasTransform = buildable.GameObject.transform.Find("Canvas");
+            // Check if the buildable object has a Canvas component
+            Transform canvasTransform = buildableObject.transform.Find("Canvas");
+            if (canvasTransform == null)
+            {
+                Debug.LogWarning("[HandleBuildableSelection] Canvas NOT found inside the Buildable.");
+                return;
+            }
 
-        if (canvasTransform != null)
-        {
             Debug.Log("[HandleBuildableSelection] Canvas found.");
 
-            // Now, try to find the ChosePanel inside the Canvas
+            // Try to find the ChosePanel inside the Canvas
             Transform chosePanel = canvasTransform.Find("Chose Panel");
-
-            if (chosePanel != null)
-            {
-                Debug.Log("[HandleBuildableSelection] ChosePanel found, enabling it.");
-                chosePanel.gameObject.SetActive(true);
-            }
-            else
+            if (chosePanel == null)
             {
                 Debug.LogWarning("[HandleBuildableSelection] ChosePanel NOT found inside the Canvas.");
+                return;
             }
+
+            Debug.Log("[HandleBuildableSelection] ChosePanel found, enabling it.");
+            chosePanel.gameObject.SetActive(true);  // Enable the panel
         }
         else
         {
-            Debug.LogWarning("[HandleBuildableSelection] Canvas NOT found inside the Buildable.");
+            Debug.LogWarning("[HandleBuildableSelection] No object found at the clicked position.");
         }
     }
 
 
+
+    private bool IsPointerOverUI()
+    {
+        if (EventSystem.current == null) return false;
+
+        if (EventSystem.current.IsPointerOverGameObject()) return true;
+
+        if (Application.isMobilePlatform && Input.touchCount > 0)
+        {
+            return EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId);
+        }
+
+        return false;
+    }
 
     private void OpenDefaultUI()
     {
