@@ -1,161 +1,165 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using System;
-using System.Collections;
+using System.Net;
+using System.Net.Sockets;
+using TMPro;
+using System.IO;
+
+[Serializable]
+public class EnergySaveData
+{
+    public int currentEnergy;
+    public long lastEnergyTimeTicks;
+}
 
 public class EnergySystem : MonoBehaviour
 {
-    private const int MAX_ENERGY = 25;
-    private const float ENERGY_REGEN_TIME = 10f; // For testing (set to 180f for 3 minutes)
-    private int currentEnergy;
+    [Header("Energy Settings")]
+    public int maxEnergy = 25;
+    public int currentEnergy = 0;
+    public float regenTime = 10f; // seconds per energy unit
 
-    public int CurrentEnergy => currentEnergy;
+    [Header("UI Elements")]
+    public Slider energySlider;
+    public TextMeshProUGUI energyText;
+    public TextMeshProUGUI timerText;
 
-    private const string ENERGY_KEY = "Energy";
-    private const string LAST_UPDATE_KEY = "LastEnergyUpdate";
+    // Time variables
+    private DateTime lastEnergyTime; // The time when energy last regenerated
+    private bool cheatDetected = false;
 
-    public Slider energyBar;             // UI Slider for energy
-    public TextMeshProUGUI energyText;     // Text to display energy (e.g., "10/25")
-    public TextMeshProUGUI timerText;      // Countdown timer text
+    // These variables help us update time without querying NTP every frame.
+    private DateTime networkStartTime;
+    private float localStartTime;
 
-    private DateTime lastUpdateTime;
+    // Path to save our JSON file.
+    private string saveFilePath;
 
-    private void Start()
+    void Start()
     {
-        // Wait until TimeManager is initialized (we have a valid time source)
-        StartCoroutine(WaitForTimeInitialization());
-    }
+        // Get the initial network time from our NTP server.
+        networkStartTime = GetNetworkTime();
+        localStartTime = Time.realtimeSinceStartup;
 
-    private IEnumerator WaitForTimeInitialization()
-    {
-        float timeout = 5f;
-        float elapsed = 0f;
-        while (!TimeManager.IsInitialized && elapsed < timeout)
+        // Set file path for saving data.
+        saveFilePath = Path.Combine(Application.persistentDataPath, "energyTimerJSON.json");
+
+        // Make sure the slider displays energy values.
+        energySlider.maxValue = maxEnergy;
+
+        // Load saved energy and last update time from JSON file.
+        if (File.Exists(saveFilePath))
         {
-            yield return null;
-            elapsed += Time.deltaTime;
-        }
-        if (!TimeManager.IsInitialized)
-        {
-            Debug.LogWarning("TimeManager initialization timed out. Forcing initialization using local time.");
-            TimeManager.ForceInitialize();
-        }
-
-        LoadEnergy();
-        UpdateUI();
-        StartCoroutine(UpdateEnergyRoutine());
-    }
-
-    void LoadEnergy()
-    {
-        currentEnergy = PlayerPrefs.GetInt(ENERGY_KEY, MAX_ENERGY);
-        string lastUpdateString = PlayerPrefs.GetString(LAST_UPDATE_KEY, "");
-        DateTime now = TimeManager.Now;
-
-        if (!string.IsNullOrEmpty(lastUpdateString))
-        {
-            lastUpdateTime = DateTime.Parse(lastUpdateString);
-            double elapsedSeconds = (now - lastUpdateTime).TotalSeconds;
-
-            if (elapsedSeconds < 0)
-            {
-                Debug.LogWarning("Detected time travel back! Ignoring regen calculation.");
-                lastUpdateTime = now; // Prevent unintended energy gain
-                PlayerPrefs.SetString(LAST_UPDATE_KEY, lastUpdateTime.ToString());
-                PlayerPrefs.Save();
-                return;
-            }
-
-            int energyGained = Mathf.FloorToInt((float)elapsedSeconds / ENERGY_REGEN_TIME);
-            currentEnergy = Mathf.Min(currentEnergy + energyGained, MAX_ENERGY);
-
-            if (currentEnergy < MAX_ENERGY)
-            {
-                double remainder = elapsedSeconds % ENERGY_REGEN_TIME;
-                lastUpdateTime = now - TimeSpan.FromSeconds(remainder);
-                PlayerPrefs.SetString(LAST_UPDATE_KEY, lastUpdateTime.ToString());
-            }
+            string json = File.ReadAllText(saveFilePath);
+            EnergySaveData data = JsonUtility.FromJson<EnergySaveData>(json);
+            currentEnergy = data.currentEnergy;
+            lastEnergyTime = new DateTime(data.lastEnergyTimeTicks);
         }
         else
         {
-            lastUpdateTime = now;
-            PlayerPrefs.SetString(LAST_UPDATE_KEY, lastUpdateTime.ToString());
+            // If no save exists, use default values.
+            currentEnergy = currentEnergy;
+            lastEnergyTime = GetCurrentNetworkTime();
         }
 
-        PlayerPrefs.SetInt(ENERGY_KEY, currentEnergy);
-        PlayerPrefs.Save();
-    }
-
-
-
-    IEnumerator UpdateEnergyRoutine()
-    {
-        while (true)
+        // Offline energy calculation.
+        DateTime currentTime = GetCurrentNetworkTime();
+        if (currentTime < lastEnergyTime)
         {
-            yield return new WaitForSeconds(1f);
-
-            if (currentEnergy < MAX_ENERGY)
-            {
-                DateTime now = TimeManager.Now;
-                double elapsedSeconds = (now - lastUpdateTime).TotalSeconds;
-                if (elapsedSeconds < 0)
-                {
-                    elapsedSeconds = 0;
-                }
-
-                if (elapsedSeconds >= ENERGY_REGEN_TIME)
-                {
-                    // Calculate how many energy points to add.
-                    int energyToGain = Mathf.FloorToInt((float)elapsedSeconds / ENERGY_REGEN_TIME);
-                    // Ensure we don't exceed the maximum energy.
-                    energyToGain = Mathf.Min(energyToGain, MAX_ENERGY - currentEnergy);
-                    currentEnergy += energyToGain;
-
-                    // Update lastUpdateTime to now minus the leftover seconds (the remainder).
-                    double remainder = elapsedSeconds % ENERGY_REGEN_TIME;
-                    lastUpdateTime = now - TimeSpan.FromSeconds(remainder);
-
-                    PlayerPrefs.SetInt(ENERGY_KEY, currentEnergy);
-                    PlayerPrefs.SetString(LAST_UPDATE_KEY, lastUpdateTime.ToString());
-                    PlayerPrefs.Save();
-                }
-            }
-            UpdateUI();
+            // If the current network time is before the saved time, assume cheating.
+            cheatDetected = true;
+            Debug.LogWarning("Time cheat detected! No offline energy gain.");
         }
+        else if (!cheatDetected && currentEnergy < maxEnergy)
+        {
+            TimeSpan delta = currentTime - lastEnergyTime;
+            int energyToAdd = (int)(delta.TotalSeconds / regenTime);
+            if (energyToAdd > 0)
+            {
+                currentEnergy = Mathf.Min(maxEnergy, currentEnergy + energyToAdd);
+                // Move the lastEnergyTime forward to account for the added energy.
+                lastEnergyTime = lastEnergyTime.AddSeconds(energyToAdd * regenTime);
+            }
+        }
+
+        UpdateUI();
     }
 
+    void Update()
+    {
+        // If we don't have full energy and no cheat was detected, try to regenerate energy.
+        if (currentEnergy < maxEnergy && !cheatDetected)
+        {
+            DateTime currentTime = GetCurrentNetworkTime();
+            double elapsed = (currentTime - lastEnergyTime).TotalSeconds;
+            if (elapsed >= regenTime)
+            {
+                int energyToAdd = (int)(elapsed / regenTime);
+                currentEnergy = Mathf.Min(maxEnergy, currentEnergy + energyToAdd);
+                lastEnergyTime = lastEnergyTime.AddSeconds(energyToAdd * regenTime);
+            }
+        }
+        // If energy is full, reset the timer.
+        else if (currentEnergy >= maxEnergy)
+        {
+            lastEnergyTime = GetCurrentNetworkTime();
+        }
+
+        UpdateUI();
+    }
 
     void UpdateUI()
     {
-        if (energyBar != null)
-            energyBar.value = (float)currentEnergy / MAX_ENERGY;
-        if (energyText != null)
-            energyText.text = $"{currentEnergy}/{MAX_ENERGY}";
+        // Update the energy text (e.g., "3/25")
+        energyText.text = $"{currentEnergy}/{maxEnergy}";
 
-        if (currentEnergy < MAX_ENERGY)
+        // Update the slider to display the current energy.
+        energySlider.value = currentEnergy;
+
+        // Update the timer for the next energy unit if energy isn't full.
+        if (currentEnergy < maxEnergy)
         {
-            DateTime nextEnergyTime = lastUpdateTime.AddSeconds(ENERGY_REGEN_TIME);
-            TimeSpan timeRemaining = nextEnergyTime - TimeManager.Now;
+            DateTime currentTime = GetCurrentNetworkTime();
+            double secondsPassed = (currentTime - lastEnergyTime).TotalSeconds;
+            double secondsLeft = regenTime - secondsPassed;
+            if (secondsLeft < 0) secondsLeft = 0;
 
-            if (timeRemaining.TotalSeconds < 0)
-            {
-                timerText.text = "00:00"; // Ensure we never display negative times
-            }
-            else
-            {
-                timerText.text = $"{timeRemaining.Minutes:D2}:{timeRemaining.Seconds:D2}";
-            }
+            timerText.text = FormatTime(secondsLeft);
         }
         else
         {
-            timerText.text = "Full";
+            timerText.text = "";
         }
+    }
+
+    // Helper to format seconds into MM:SS.
+    string FormatTime(double seconds)
+    {
+        TimeSpan time = TimeSpan.FromSeconds(seconds);
+        return string.Format("{0:D2}:{1:D2}", time.Minutes, time.Seconds);
+    }
+
+    // Call this method to spend energy.
+    public bool SpendEnergy(int amount)
+    {
+        if (currentEnergy >= amount)
+        {
+            currentEnergy -= amount;
+            // Start the regeneration timer if energy drops below max.
+            if (currentEnergy < maxEnergy)
+            {
+                lastEnergyTime = GetCurrentNetworkTime();
+            }
+            UpdateUI();
+            return true;
+        }
+        return false;
     }
 
     public void Use5Energy()
     {
-        bool playable = UseEnergy(5);
+        bool playable = SpendEnergy(5);
         if (playable)
             Debug.Log("Joining game");
         else
@@ -166,51 +170,86 @@ public class EnergySystem : MonoBehaviour
     {
         if (currentEnergy > 0)
         {
-            int energyToUse = currentEnergy; // or any other logic for determining energy used
-            bool playable = UseEnergy(energyToUse);
-            if (playable)
-            {
-                // Save the number of moves (equal to energy used)
-                PlayerPrefs.SetInt("numMoves", energyToUse);
-                PlayerPrefs.Save();
-                
-                UnityEngine.SceneManagement.SceneManager.LoadScene("Match3_Scene");
-                Debug.Log("Joining game");
-            }
-            else
-            {
-                Debug.Log("Not enough energy!");
-            }
+            UnityEngine.SceneManagement.SceneManager.LoadScene("Match3_Scene");
+            Debug.Log("Joining game");
         }
-    }
-
-
-    public bool UseEnergy(int amount)
-    {
-        if (currentEnergy >= amount)
+        else
         {
-            int previousEnergy = currentEnergy; // Store energy before spending.
-            currentEnergy -= amount;
-
-            // If we’re below max energy...
-            if (currentEnergy < MAX_ENERGY)
-            {
-                // Only reset the timer if we were full before spending,
-                // because that means no regen progress had been accumulated.
-                if (previousEnergy == MAX_ENERGY)
-                {
-                    lastUpdateTime = TimeManager.Now;
-                }
-                // Otherwise, preserve the existing regen progress.
-                PlayerPrefs.SetString(LAST_UPDATE_KEY, lastUpdateTime.ToString());
-            }
-
-            PlayerPrefs.SetInt(ENERGY_KEY, currentEnergy);
-            PlayerPrefs.Save();
-            UpdateUI();
-            return true;
+            Debug.Log("Not enough energy!");
         }
-        return false;
     }
 
+    // Save energy data when the application quits or pauses.
+    void OnApplicationQuit() { SaveEnergy(); }
+    void OnApplicationPause(bool pause)
+    {
+        if (pause)
+            SaveEnergy();
+    }
+
+    void SaveEnergy()
+    {
+        EnergySaveData data = new EnergySaveData();
+        data.currentEnergy = currentEnergy;
+        data.lastEnergyTimeTicks = lastEnergyTime.Ticks;
+        string json = JsonUtility.ToJson(data, true);
+        File.WriteAllText(saveFilePath, json);
+    }
+
+    // Returns the current network time using the offset from the initial NTP query.
+    DateTime GetCurrentNetworkTime()
+    {
+        return networkStartTime.AddSeconds(Time.realtimeSinceStartup - localStartTime);
+    }
+
+    // Get the network time from an NTP server.
+    public static DateTime GetNetworkTime()
+    {
+        const string ntpServer = "pool.ntp.org";
+        byte[] ntpData = new byte[48];
+
+        // Set protocol version (LI, VN, Mode)
+        ntpData[0] = 0x1B;
+
+        try
+        {
+            var addresses = Dns.GetHostEntry(ntpServer).AddressList;
+            IPEndPoint ipEndPoint = new IPEndPoint(addresses[0], 123);
+            using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
+            {
+                socket.Connect(ipEndPoint);
+                socket.ReceiveTimeout = 3000; // 3-second timeout
+                socket.Send(ntpData);
+                socket.Receive(ntpData);
+            }
+
+            // Offset to the "Transmit Timestamp" field is at byte 40.
+            const byte serverReplyTime = 40;
+            ulong intPart = BitConverter.ToUInt32(ntpData, serverReplyTime);
+            ulong fractPart = BitConverter.ToUInt32(ntpData, serverReplyTime + 4);
+
+            intPart = SwapEndianness(intPart);
+            fractPart = SwapEndianness(fractPart);
+
+            // Convert to milliseconds.
+            ulong milliseconds = (intPart * 1000UL) + ((fractPart * 1000UL) / 0x100000000UL);
+            DateTime networkDateTime = (new DateTime(1900, 1, 1)).AddMilliseconds((long)milliseconds);
+            return networkDateTime.ToLocalTime();
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError("Failed to get NTP time: " + ex.Message);
+            // Fallback to local time (not ideal, but necessary if NTP fails)
+            return DateTime.Now;
+        }
+    }
+
+    // Helper method to convert big-endian to little-endian.
+    static uint SwapEndianness(ulong x)
+    {
+        return (uint)(((x & 0x000000ff) << 24) +
+                      ((x & 0x0000ff00) << 8) +
+                      ((x & 0x00ff0000) >> 8) +
+                      ((x & 0xff000000) >> 24));
+    }
 }

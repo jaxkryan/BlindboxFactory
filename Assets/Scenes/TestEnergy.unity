@@ -819,7 +819,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75015a847004bd74fb525234f4974ed0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  energyBar: {fileID: 2126144591}
+  maxEnergy: 25
+  currentEnergy: 0
+  regenTime: 10
+  energySlider: {fileID: 2126144591}
   energyText: {fileID: 1550635306}
   timerText: {fileID: 622113920}
 --- !u!4 &1018430295

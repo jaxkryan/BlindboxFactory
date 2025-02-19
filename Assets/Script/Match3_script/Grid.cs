@@ -55,15 +55,25 @@ public class Grids : MonoBehaviour
             }
         }
 
-        boardOrigin = transform.position;
-        halfX = xDim / 2.0f;
+        // Get screen width dynamically
+        float screenWidth = Camera.main.orthographicSize * 2 * Screen.width / Screen.height;
 
-        // Create backgrounds.
+        float tileHeight = 7.5f / yDim; // Height should be 3/4 of the screen
+        float tileWidth = screenWidth / (xDim + 2); // Add margin on left & right
+
+        float tileSize = Mathf.Min(tileWidth, tileHeight); // Ensure square tiles
+
+        boardOrigin = new Vector2(-((xDim - 1) * tileSize) / 2, -5 + tileSize / 2); // Center and align bottom
+
+        halfX = (xDim * tileSize) / 2.0f;
+
+        // Create backgrounds
         for (int x = 0; x < xDim; x++)
         {
             for (int y = 0; y < yDim; y++)
             {
-                Instantiate(backgroundPrefab, GetWorldPosition(x, y), Quaternion.identity, transform);
+                GameObject bg = Instantiate(backgroundPrefab, GetWorldPosition(x, y), Quaternion.identity, transform);
+                bg.transform.localScale = new Vector3(tileSize, tileSize, 1);
             }
         }
 
@@ -75,14 +85,21 @@ public class Grids : MonoBehaviour
                 SpawnNewPiece(x, y, PieceType.EMPTY);
             }
         }
+
         StartCoroutine(Fill());
     }
 
+
     public Vector2 GetWorldPosition(int x, int y)
     {
-        return new Vector2(boardOrigin.x + x - halfX + 0.5f,
-                           boardOrigin.y - y + 0.5f);
+        float tileHeight = 7.5f / yDim;
+        float screenWidth = Camera.main.orthographicSize * 2 * Screen.width / Screen.height;
+        float tileWidth = screenWidth / (xDim + 2);
+        float tileSize = Mathf.Min(tileWidth, tileHeight);
+
+        return new Vector2(boardOrigin.x + x * tileSize, boardOrigin.y + y * tileSize);
     }
+
 
     public IEnumerator Fill()
     {
@@ -119,93 +136,58 @@ public class Grids : MonoBehaviour
     public bool FillStep()
     {
         bool movedPiece = false;
-        for (int y = yDim - 2; y >= 0; y--)
+
+        // Loop from top to bottom
+        for (int y = 1; y < yDim; y++)
         {
             for (int loopX = 0; loopX < xDim; loopX++)
             {
                 int x = inverse ? (xDim - 1 - loopX) : loopX;
                 GamePiece piece = pieces[x, y];
+
                 if (piece.IsMoveable())
                 {
-                    GamePiece pieceBelow = pieces[x, y + 1];
+                    GamePiece pieceBelow = pieces[x, y - 1];
+
                     if (pieceBelow.Type == PieceType.EMPTY)
                     {
                         Destroy(pieceBelow.gameObject);
-                        piece.MoveableComponent.Move(x, y + 1, fillTime);
-                        pieces[x, y + 1] = piece;
+                        piece.MoveableComponent.Move(x, y - 1, fillTime);
+                        pieces[x, y - 1] = piece;
                         SpawnNewPiece(x, y, PieceType.EMPTY);
                         movedPiece = true;
-                    }
-                    else
-                    {
-                        for (int diag = -1; diag <= 1; diag++)
-                        {
-                            if (diag == 0)
-                                continue;
-
-                            int diagX = inverse ? x - diag : x + diag;
-                            if (diagX >= 0 && diagX < xDim)
-                            {
-                                GamePiece diagonalPiece = pieces[diagX, y + 1];
-                                if (diagonalPiece.Type == PieceType.EMPTY)
-                                {
-                                    bool hasPieceAbove = true;
-                                    for (int aboveY = y; aboveY >= 0; aboveY--)
-                                    {
-                                        GamePiece pieceAbove = pieces[diagX, aboveY];
-                                        if (pieceAbove.IsMoveable())
-                                        {
-                                            break;
-                                        }
-                                        else if (!pieceAbove.IsMoveable() && pieceAbove.Type != PieceType.EMPTY)
-                                        {
-                                            hasPieceAbove = false;
-                                            break;
-                                        }
-                                    }
-                                    if (!hasPieceAbove)
-                                    {
-                                        Destroy(diagonalPiece.gameObject);
-                                        piece.MoveableComponent.Move(diagX, y + 1, fillTime);
-                                        pieces[diagX, y + 1] = piece;
-                                        SpawnNewPiece(x, y, PieceType.EMPTY);
-                                        movedPiece = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
         }
 
+        // Spawn new pieces at the top row
         for (int x = 0; x < xDim; x++)
         {
-            GamePiece pieceBelow = pieces[x, 0];
-            if (pieceBelow.Type == PieceType.EMPTY)
+            GamePiece topPiece = pieces[x, yDim - 1];
+            if (topPiece.Type == PieceType.EMPTY)
             {
-                Destroy(pieceBelow.gameObject);
+                Destroy(topPiece.gameObject);
                 GameObject newPiece = Instantiate(piecePrefabDict[PieceType.NORMAL],
-                                                   GetWorldPosition(x, -1),
-                                                   Quaternion.identity,
-                                                   transform);
-                pieces[x, 0] = newPiece.GetComponent<GamePiece>();
-                pieces[x, 0].Init(x, -1, this, PieceType.NORMAL);
-                pieces[x, 0].MoveableComponent.Move(x, 0, fillTime);
-                pieces[x, 0].ColorComponent.SetColor((ColorPiece.ColorType)Random.Range(0, pieces[x, 0].ColorComponent.NumColor));
+                                                  GetWorldPosition(x, yDim), // Spawn above the top row
+                                                  Quaternion.identity,
+                                                  transform);
+                pieces[x, yDim - 1] = newPiece.GetComponent<GamePiece>();
+                pieces[x, yDim - 1].Init(x, yDim, this, PieceType.NORMAL);
+                pieces[x, yDim - 1].MoveableComponent.Move(x, yDim - 1, fillTime);
+                pieces[x, yDim - 1].ColorComponent.SetColor((ColorPiece.ColorType)Random.Range(0, pieces[x, yDim - 1].ColorComponent.NumColor));
                 movedPiece = true;
             }
         }
+
         return movedPiece;
     }
 
+
     public GamePiece SpawnNewPiece(int x, int y, PieceType type)
     {
-        GameObject newPiece = Instantiate(piecePrefabDict[type],
-                                          GetWorldPosition(x, y),
-                                          Quaternion.identity,
-                                          transform);
+        GameObject newPiece = Instantiate(piecePrefabDict[type], GetWorldPosition(x, y), Quaternion.identity, transform);
+        newPiece.transform.localScale = new Vector3(1, 1, 1); // Scale the tile properly
         pieces[x, y] = newPiece.GetComponent<GamePiece>();
         pieces[x, y].Init(x, y, this, type);
         return pieces[x, y];

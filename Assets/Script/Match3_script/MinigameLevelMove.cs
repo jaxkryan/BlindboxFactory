@@ -4,48 +4,54 @@ using UnityEngine.UI;
 
 public class MinigameLevelMove : MinigameLevel
 {
-    public int numMoves;
-    public int targetScore;
-    private int moveUsed = 0;
+    private EnergySystem energySystem;
 
-    [SerializeField] private TextMeshProUGUI movesText;
-
-    // UI elements for the win screen
     [SerializeField] private GameObject winPanel;
     [SerializeField] private TextMeshProUGUI winMessage;
     [SerializeField] private Button winButton;
+    //[SerializeField] private TextMeshProUGUI movesText; // UI to show remaining moves
 
     void Start()
     {
-        numMoves = PlayerPrefs.GetInt("numMoves", numMoves);
         type = LevelType.MOVES;
+        energySystem = FindObjectOfType<EnergySystem>();
 
-        Debug.Log("No Move: " + numMoves + " | Target score: " + targetScore);
+        Debug.Log("Game Started | Current Energy: " + energySystem.currentEnergy);
 
-        UpdateMovesText();
-
-        // Hide the win panel at the start
         if (winPanel != null) winPanel.SetActive(false);
+
+        //UpdateMovesText();
+    }
+
+    void Update()
+    {
+        //UpdateMovesText(); // Continuously update move count based on energy
     }
 
     public override void OnMove()
     {
-        moveUsed++;
-        UpdateMovesText();
-
-        Debug.Log("Moves remaining: " + (numMoves - moveUsed));
-
-        if (moveUsed >= numMoves)
+        if (energySystem != null && energySystem.SpendEnergy(1)) // Try using 1 energy per move
         {
-            GameWin();
+            Debug.Log("Move made | Remaining Energy: " + energySystem.currentEnergy);
+        }
+        else
+        {
+            Debug.Log("No energy left! Wait for regeneration.");
         }
     }
+
+    //void UpdateMovesText()
+    //{
+    //    if (movesText != null)
+    //    {
+    //        movesText.text = "Moves: " + energySystem.CurrentEnergy;
+    //    }
+    //}
 
     public override void GameWin()
     {
         Debug.Log("Game Won!");
 
-        // Display the win panel and message
         if (winPanel != null)
         {
             winPanel.SetActive(true);
@@ -58,18 +64,6 @@ public class MinigameLevelMove : MinigameLevel
         else
         {
             Debug.LogWarning("Win Panel is not assigned in the inspector!");
-        }
-    }
-
-    private void UpdateMovesText()
-    {
-        if (movesText != null)
-        {
-            movesText.text = "Moves: " + (numMoves - moveUsed);
-        }
-        else
-        {
-            Debug.LogWarning("Moves Text component is not assigned!");
         }
     }
 }
