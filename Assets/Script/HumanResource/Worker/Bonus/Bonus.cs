@@ -8,6 +8,7 @@ namespace Script.HumanResource.Worker {
     public abstract class Bonus{
         public abstract string Name { get; }
         public abstract string Description { get; }
+        public IWorker Worker { get; set; }
         public virtual void OnUpdate(float deltaTime){}
         public virtual void OnStart(){}
         public virtual void OnStop(){}

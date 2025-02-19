@@ -8,106 +8,74 @@ using UnityEngine;
 namespace Script.HumanResource.Worker {
     [CreateAssetMenu(fileName = "Bonus Manager", menuName = "HumanResource/Bonus Manager")]
     public class BonusManager : ScriptableObject {
-        public Dictionary<Bonus, BonusCondition> BonusConditions {get => _bonusConditions;}
+        public Dictionary<Bonus, BonusCondition> BonusConditions {
+            get => _bonusConditions;
+        }
+
         [SerializeField] private SerializedDictionary<Bonus, BonusCondition> _bonusConditions;
 
-        public void RecalculateBonuses(IWorker worker){
-            var bonuses = GetApplicableBonuses((int)worker.CurrentCores[CoreType.Happiness], (int)worker.CurrentCores[CoreType.Hunger]);
+        public void RecalculateBonuses(IWorker worker) {
+            var bonuses = GetApplicableBonuses(worker);
             var currentBonuses = worker.Bonuses.ToList();
             currentBonuses.Where(bonus => !bonuses.Contains(bonus)).ForEach(worker.RemoveBonus);
             currentBonuses = worker.Bonuses.ToList();
             bonuses.Where(bonus => !currentBonuses.Contains(bonus)).ForEach(worker.AddBonus);
         }
-        
-        public List<Bonus> GetApplicableBonuses(int happiness, int hunger) {
-                var applicableBonuses = new List<Bonus>();
 
-                //Check for all that satisfied first
-                foreach (var bonus in _bonusConditions.Keys) {
-                    var condition = _bonusConditions[bonus];
-                    if (condition.UseHungerCore) {
-                        if (hunger >= condition.HungerCoreMinimum && hunger <= condition.HungerCoreMaximum)
-                            applicableBonuses.AddIfNew(bonus);
-                    }
+        public List<Bonus> GetApplicableBonuses(IWorker worker) =>
+            GetApplicableBonuses(worker.CurrentCores);
 
-                    if (condition.UseHappinessCore) {
-                        if (happiness >= condition.HappinessCoreMinimum && happiness <= condition.HappinessCoreMaximum)
-                            applicableBonuses.AddIfNew(bonus);
-                    }
-
-                    if (condition.UseBothCores) {
-                        if (hunger >= condition.HungerCoreMinimum && hunger <= condition.HungerCoreMaximum
-                                                                  && happiness >= condition.HappinessCoreMinimum &&
-                                                                  happiness <= condition.HappinessCoreMaximum)
-                            applicableBonuses.AddIfNew(bonus);
-                    }
-                }
-
-                //Then remove those that aren't qualified
-                var removeUnmet = new List<Bonus>();
-                foreach (var bonus in applicableBonuses) {
-                    var condition = _bonusConditions[bonus];
-                    if (condition.UseHungerCore) {
-                        if (!(hunger >= condition.HungerCoreMinimum && hunger <= condition.HungerCoreMaximum))
-                            removeUnmet.AddIfNew(bonus);
-                    }
-
-                    if (condition.UseHappinessCore) {
-                        if (!(happiness >= condition.HappinessCoreMinimum &&
-                              happiness <= condition.HappinessCoreMaximum))
-                            removeUnmet.AddIfNew(bonus);
-                    }
-
-                    if (condition.UseBothCores) {
-                        if (!(hunger >= condition.HungerCoreMinimum && hunger <= condition.HungerCoreMaximum
-                                                                    && happiness >= condition.HappinessCoreMinimum &&
-                                                                    happiness <= condition.HappinessCoreMaximum))
-                            removeUnmet.AddIfNew(bonus);
-                    }
-                }
-
-                removeUnmet.ForEach(bonus => applicableBonuses.Remove(bonus));
-                return applicableBonuses;
-            }
-        private void OnValidate() {
-            foreach (var bonus in _bonusConditions.Keys) {
-                var bonusConditions = new List<string>();
-                if (_bonusConditions[bonus].UseHungerCore) bonusConditions.Add("Hunger");
-                if (_bonusConditions[bonus].UseHappinessCore) bonusConditions.Add("Happiness");
-                if (_bonusConditions[bonus].UseBothCores) bonusConditions.Add("Both Cores");
-
-                if (bonusConditions.Count > 1) {
-                    Debug.LogWarning($"A bonus({bonus.GetType()}) has more than 1 bonus condition: {string.Join(" and ", bonusConditions)}");
-                }
-            }
+        public List<Bonus> GetApplicableBonuses(Dictionary<CoreType, float> cores) {
+            return _bonusConditions
+                .Where(b => _bonusConditions
+                    .TryGetValue(b.Key, out BonusCondition bonusCondition) && bonusCondition.IsApplicable(cores))
+                .Select(b => b.Key)
+                .ToList();
         }
+        
+        private void OnValidate() { }
 
 
         [Serializable]
         public class BonusCondition {
-            [SerializeField] public bool UseHungerCore;
+        //     [SerializeField] public bool UseHungerCore;
+        //
+        //     [ConditionalField("UseHungerCore", inverse: false, true)] [SerializeField]
+        //     public float HungerCoreMinimum;
+        //
+        //     [ConditionalField("UseHungerCore", inverse: false, true)] [SerializeField]
+        //     public float HungerCoreMaximum;
+        //
+        //     [SerializeField] public bool UseHappinessCore;
+        //
+        //     [ConditionalField("UseHappinessCore", inverse: false, true)] [SerializeField]
+        //     public float HappinessCoreMinimum;
+        //
+        //     [ConditionalField("UseHappinessCore", inverse: false, true)] [SerializeField]
+        //     public float HappinessCoreMaximum;
+        //
+        //     [SerializeField] public bool UseBothCores;
+        //
+        //     [ConditionalField("UseBothCores", inverse: false, true)] [SerializeField]
+        //     public float BothCoresMinimum;
+        //
+        //     [ConditionalField("UseBothCores", inverse: false, true)] [SerializeField]
+        //     public float BothCoresMaximum;
+    
+            [SerializeField] public SerializedDictionary<CoreType, float> Conditions;
 
-            [ConditionalField("UseHungerCore", inverse: false, true)] [SerializeField]
-            public float HungerCoreMinimum;
+            public bool IsApplicable(Dictionary<CoreType, float> currentCores) {
+                foreach (var core in Conditions.Keys) {
+                    var value = Conditions.GetValueOrDefault(core);
+                    var currentCoreValue = currentCores.FirstOrDefault(c => c.Key == core).Value;
+                    if (value == 0f) continue;
+                    if (value > currentCoreValue) return false;
+                }
+                return true;
+            }
 
-            [ConditionalField("UseHungerCore", inverse: false, true)] [SerializeField]
-            public float HungerCoreMaximum;
-
-            [SerializeField] public bool UseHappinessCore;
-
-            [ConditionalField("UseHappinessCore", inverse: false, true)] [SerializeField]
-            public float HappinessCoreMinimum;
-
-            [ConditionalField("UseHappinessCore", inverse: false, true)] [SerializeField]
-            public float HappinessCoreMaximum;
-
-            [SerializeField] public bool UseBothCores;
-
-            [ConditionalField("UseBothCores", inverse: false, true)] [SerializeField]
-            public float BothCoresMinimum;
-
-            [ConditionalField("UseBothCores", inverse: false, true)] [SerializeField]
-            public float BothCoresMaximum;
+            public bool IsApplicable(IWorker worker) =>
+                IsApplicable(worker.CurrentCores);
         }
     }
 }

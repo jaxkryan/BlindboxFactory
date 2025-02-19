@@ -9,13 +9,15 @@ namespace Script.HumanResource.Worker {
         Dictionary<CoreType, float> CurrentCores { get; }
         // float CurrentHunger { get; }
         // float CurrentHappiness { get; }
-        Dictionary<CoreType, CoreDrain> CoreDrains { get; }
+        // Dictionary<CoreType, CoreDrain> CoreDrains { get; }
         // CoreDrain HungerDrain { get; }
         // CoreDrain HappinessDrain { get; }
-        void DrainCores(DrainType drainType);
-        void RefillCore(CoreType core, float amount);
+        // void DrainCores(DrainType drainType);
+        // void RefillCore(CoreType core, float amount);
         // void RefillHunger(float amount);
         // void RefillHappiness(float amount);
+        Dictionary<CoreType, float> MaximumCore { get; }
+        void UpdateCore(CoreType core, float amount);
         event Action<CoreType, float> onCoreChanged;
         // event Action<float> onHungerChanged;
         // event Action<float> onHappinessChanged;

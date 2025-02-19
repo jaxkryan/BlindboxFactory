@@ -1,5 +1,6 @@
 using System;
 using Script.HumanResource.Worker;
+using Script.HumanResource.Worker.Workers;
 
 namespace Script.Machine {
     [Serializable]

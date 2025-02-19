@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MyBox;
 using Script.Controller;
+using Script.HumanResource.Worker;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -31,20 +33,23 @@ public class WorkerNeedsContentUI : MonoBehaviour {
         _portrait.sprite = workers?.First().Portrait;
         
         var needs = controller.WorkerNeedsList.GetValueOrDefault(type);
-        _happinessBar.value = needs.HappinessNeeds;
-        _hungerBar.value = needs.HungerNeeds;
+        _happinessBar.value = needs.FirstOrDefault(c => c.Key == CoreType.Happiness).Value;
+        _hungerBar.value = needs.FirstOrDefault(c => c.Key == CoreType.Hunger).Value;
 
+        var needFloat = new Dictionary<CoreType, float>();
+        needs.ForEach(n => needFloat.Add(n.Key, n.Value));
+        
         var happinessBonusText = "";
         var hungerBonusText = "";
         var bonusManager = workers.First().BonusManager;
-        foreach (var bonus in bonusManager.GetApplicableBonuses(needs.HappinessNeeds, needs.HungerNeeds)) {
+        foreach (var bonus in bonusManager.GetApplicableBonuses(needFloat)) {
             var condition = bonusManager.BonusConditions[bonus];
 
-            if (condition.UseHungerCore || condition.UseBothCores) {
+            if (condition.Conditions.ContainsKey(CoreType.Hunger)) {
                 hungerBonusText += $"{bonus.Description}\n";
             }
-            if (condition.UseHappinessCore || condition.UseBothCores) {
-                hungerBonusText += $"{bonus.Description}\n";
+            if (condition.Conditions.ContainsKey(CoreType.Happiness)) {
+                happinessBonusText += $"{bonus.Description}\n";
             }
         }
         _happinessBonus.text = happinessBonusText;
