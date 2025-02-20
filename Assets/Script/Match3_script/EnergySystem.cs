@@ -5,12 +5,20 @@ using System.Net;
 using System.Net.Sockets;
 using TMPro;
 using System.IO;
+using System.Collections.Generic;
 
 [Serializable]
 public class EnergySaveData
 {
+    public string id;
     public int currentEnergy;
     public long lastEnergyTimeTicks;
+}
+
+[Serializable]
+public class EnergySaveDataCollection
+{
+    public List<EnergySaveData> energyData = new List<EnergySaveData>();
 }
 
 public class EnergySystem : MonoBehaviour
@@ -24,6 +32,10 @@ public class EnergySystem : MonoBehaviour
     public Slider energySlider;
     public TextMeshProUGUI energyText;
     public TextMeshProUGUI timerText;
+
+    [Header("System ID")]
+    [Tooltip("Unique identifier for this energy system instance.")]
+    public string systemId = "defaultID";
 
     // Time variables
     private DateTime lastEnergyTime; // The time when energy last regenerated
@@ -49,19 +61,7 @@ public class EnergySystem : MonoBehaviour
         energySlider.maxValue = maxEnergy;
 
         // Load saved energy and last update time from JSON file.
-        if (File.Exists(saveFilePath))
-        {
-            string json = File.ReadAllText(saveFilePath);
-            EnergySaveData data = JsonUtility.FromJson<EnergySaveData>(json);
-            currentEnergy = data.currentEnergy;
-            lastEnergyTime = new DateTime(data.lastEnergyTimeTicks);
-        }
-        else
-        {
-            // If no save exists, use default values.
-            currentEnergy = currentEnergy;
-            lastEnergyTime = GetCurrentNetworkTime();
-        }
+        LoadEnergyState();
 
         // Offline energy calculation.
         DateTime currentTime = GetCurrentNetworkTime();
@@ -69,7 +69,7 @@ public class EnergySystem : MonoBehaviour
         {
             // If the current network time is before the saved time, assume cheating.
             cheatDetected = true;
-            Debug.LogWarning("Time cheat detected! No offline energy gain.");
+            Debug.LogWarning("Time cheat detected! No offline energy gain for system: " + systemId);
         }
         else if (!cheatDetected && currentEnergy < maxEnergy)
         {
@@ -88,7 +88,7 @@ public class EnergySystem : MonoBehaviour
 
     void Update()
     {
-        // If we don't have full energy and no cheat was detected, try to regenerate energy.
+        // Regenerate energy if not full and no cheat was detected.
         if (currentEnergy < maxEnergy && !cheatDetected)
         {
             DateTime currentTime = GetCurrentNetworkTime();
@@ -152,31 +152,40 @@ public class EnergySystem : MonoBehaviour
                 lastEnergyTime = GetCurrentNetworkTime();
             }
             UpdateUI();
+            SaveEnergy();
             return true;
         }
         return false;
     }
 
-    public void Use5Energy()
+    // Public method to load energy state using the systemId.
+    public void LoadEnergyState()
     {
-        bool playable = SpendEnergy(5);
-        if (playable)
-            Debug.Log("Joining game");
-        else
-            Debug.Log("Not enough energy!");
-    }
+        if (string.IsNullOrEmpty(saveFilePath))
+        {
+            saveFilePath = Path.Combine(Application.persistentDataPath, "energyTimerJSON.json");
+        }
 
-    public void PlayMatch3()
-    {
-        if (currentEnergy > 0)
+        if (File.Exists(saveFilePath))
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("Match3_Scene");
-            Debug.Log("Joining game");
+            EnergySaveData loadedData = LoadEnergyData(systemId);
+            if (loadedData != null)
+            {
+                currentEnergy = loadedData.currentEnergy;
+                lastEnergyTime = new DateTime(loadedData.lastEnergyTimeTicks);
+            }
+            else
+            {
+                // If no data is found for this id, initialize the lastEnergyTime.
+                lastEnergyTime = GetCurrentNetworkTime();
+            }
         }
         else
         {
-            Debug.Log("Not enough energy!");
+            // No file exists, initialize default values.
+            lastEnergyTime = GetCurrentNetworkTime();
         }
+        UpdateUI();
     }
 
     // Save energy data when the application quits or pauses.
@@ -189,13 +198,68 @@ public class EnergySystem : MonoBehaviour
 
     void SaveEnergy()
     {
-        EnergySaveData data = new EnergySaveData();
+        // Load the current collection (if exists) or create a new one.
+        EnergySaveDataCollection collection = new EnergySaveDataCollection();
+        if (File.Exists(saveFilePath))
+        {
+            string json = File.ReadAllText(saveFilePath);
+            collection = JsonUtility.FromJson<EnergySaveDataCollection>(json);
+            if (collection == null || collection.energyData == null)
+            {
+                collection = new EnergySaveDataCollection();
+            }
+        }
+
+        // Try to find an existing entry with this systemId.
+        EnergySaveData data = collection.energyData.Find(x => x.id == systemId);
+        if (data == null)
+        {
+            data = new EnergySaveData();
+            data.id = systemId;
+            collection.energyData.Add(data);
+        }
         data.currentEnergy = currentEnergy;
         data.lastEnergyTimeTicks = lastEnergyTime.Ticks;
-        string json = JsonUtility.ToJson(data, true);
-        File.WriteAllText(saveFilePath, json);
+
+        string outputJson = JsonUtility.ToJson(collection, true);
+        File.WriteAllText(saveFilePath, outputJson);
     }
 
+    EnergySaveData LoadEnergyData(string id)
+    {
+        if (File.Exists(saveFilePath))
+        {
+            string json = File.ReadAllText(saveFilePath);
+            EnergySaveDataCollection collection = JsonUtility.FromJson<EnergySaveDataCollection>(json);
+            if (collection != null && collection.energyData != null)
+            {
+                return collection.energyData.Find(x => x.id == id);
+            }
+        }
+        return null;
+    }
+    public void Use5Energy()
+    {
+        bool playable = SpendEnergy(5);
+        if (playable)
+            Debug.Log("Joining game with system: " + systemId);
+        else
+            Debug.Log("Not enough energy in system: " + systemId);
+    }
+
+    public void PlayMatch3()
+    {
+        if (currentEnergy > 0)
+        {
+            MinigameLevelMove.currentSystemId = systemId;
+            UnityEngine.SceneManagement.SceneManager.LoadScene("Match3_Scene");
+            Debug.Log("Joining game with system: " + systemId);
+        }
+        else
+        {
+            Debug.Log("Not enough energy in system: " + systemId);
+        }
+    }
     // Returns the current network time using the offset from the initial NTP query.
     DateTime GetCurrentNetworkTime()
     {

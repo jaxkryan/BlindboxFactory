@@ -9,23 +9,40 @@ public class MinigameLevelMove : MinigameLevel
     [SerializeField] private GameObject winPanel;
     [SerializeField] private TextMeshProUGUI winMessage;
     [SerializeField] private Button winButton;
-    //[SerializeField] private TextMeshProUGUI movesText; // UI to show remaining moves
+    //[SerializeField] private TextMeshProUGUI movesText; // Optional UI to show remaining moves
 
+    public static string currentSystemId;
     void Start()
     {
         type = LevelType.MOVES;
         energySystem = FindObjectOfType<EnergySystem>();
 
-        Debug.Log("Game Started | Current Energy: " + energySystem.currentEnergy);
+        if (energySystem != null)
+        {
+            // (Optionally) assign the desired ID for this minigame session.
+            // For example, this could be passed from a GameManager.
+            energySystem.systemId = currentSystemId != null? currentSystemId : "none";
 
-        if (winPanel != null) winPanel.SetActive(false);
+            // Reload the energy state for this systemId.
+            energySystem.LoadEnergyState();
+            //Debug.Log("Minigame loaded energy for system (" + energySystem.systemId + "): " + energySystem.currentEnergy);
+        }
+        else
+        {
+            Debug.LogError("No EnergySystem found!");
+        }
+        Debug.Log("Current energy system: " + currentSystemId);
+        if (winPanel != null)
+            winPanel.SetActive(false);
 
+        // Optionally update UI text.
         //UpdateMovesText();
     }
 
     void Update()
     {
-        //UpdateMovesText(); // Continuously update move count based on energy
+        // Optionally update moves text UI continuously.
+        //UpdateMovesText();
     }
 
     public override void OnMove()
@@ -40,11 +57,12 @@ public class MinigameLevelMove : MinigameLevel
         }
     }
 
+    // Optional helper to update moves display UI.
     //void UpdateMovesText()
     //{
-    //    if (movesText != null)
+    //    if (movesText != null && energySystem != null)
     //    {
-    //        movesText.text = "Moves: " + energySystem.CurrentEnergy;
+    //        movesText.text = "Moves: " + energySystem.currentEnergy;
     //    }
     //}
 
@@ -59,7 +77,7 @@ public class MinigameLevelMove : MinigameLevel
                 winMessage.text = "Congratulations! You won!";
 
             if (winButton != null)
-                winButton.onClick.AddListener(() => { Debug.Log("TODO"); });
+                winButton.onClick.AddListener(() => { Debug.Log("TODO: Next steps"); });
         }
         else
         {

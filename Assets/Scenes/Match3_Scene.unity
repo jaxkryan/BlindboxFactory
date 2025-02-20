@@ -2531,9 +2531,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75015a847004bd74fb525234f4974ed0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  energyBar: {fileID: 583633885}
+  maxEnergy: 25
+  currentEnergy: 0
+  regenTime: 10
+  energySlider: {fileID: 583633885}
   energyText: {fileID: 666248982}
   timerText: {fileID: 1371486178}
+  systemId: 
 --- !u!114 &1266869500
 MonoBehaviour:
   m_ObjectHideFlags: 0

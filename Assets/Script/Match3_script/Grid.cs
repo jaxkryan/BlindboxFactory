@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using System.IO; // For file I/O
 
 public class Grids : MonoBehaviour
 {
@@ -44,6 +45,29 @@ public class Grids : MonoBehaviour
     private float halfX;
 
     public TextMeshProUGUI resetText;
+
+    // -------------------- Save/Load Data Classes --------------------
+
+    [System.Serializable]
+    public class GridSaveData
+    {
+        public int xDim;
+        public int yDim;
+        public List<PieceSaveData> pieces;
+    }
+
+    [System.Serializable]
+    public class PieceSaveData
+    {
+        public int x;
+        public int y;
+        public PieceType type;
+        public int color; // Stores the color as an int (corresponding to ColorPiece.ColorType)
+    }
+
+
+    // -------------------- Unity Lifecycle --------------------
+
     private void Awake()
     {
         piecePrefabDict = new Dictionary<PieceType, GameObject>(piecePrefabs.Length);
@@ -86,9 +110,26 @@ public class Grids : MonoBehaviour
             }
         }
 
+        // Try to load a saved game state if one exists.
+        LoadGame();
+
         StartCoroutine(Fill());
     }
 
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause)
+        {
+            SaveGame();
+        }
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveGame();
+    }
+
+    // -------------------- Grid Utility Methods --------------------
 
     public Vector2 GetWorldPosition(int x, int y)
     {
@@ -100,11 +141,20 @@ public class Grids : MonoBehaviour
         return new Vector2(boardOrigin.x + x * tileSize, boardOrigin.y + y * tileSize);
     }
 
+    public GamePiece SpawnNewPiece(int x, int y, PieceType type)
+    {
+        GameObject newPiece = Instantiate(piecePrefabDict[type], GetWorldPosition(x, y), Quaternion.identity, transform);
+        newPiece.transform.localScale = new Vector3(0.19f, 0.19f, 1); // Scale the tile properly
+        pieces[x, y] = newPiece.GetComponent<GamePiece>();
+        pieces[x, y].Init(x, y, this, type);
+        return pieces[x, y];
+    }
+
+    // -------------------- Game Logic Methods --------------------
 
     public IEnumerator Fill()
     {
         Debug.Log("Filling the pool");
-        // Continue filling while falling pieces exist or matches are cleared.
         while (true)
         {
             yield return new WaitForSeconds(fillTime);
@@ -120,7 +170,6 @@ public class Grids : MonoBehaviour
             bool clearedMatches = ClearAllValidMatches();
             Debug.Log("Matches cleared!");
 
-            // When nothing falls and no matches are cleared, check for valid moves.
             if (!clearedMatches)
             {
                 if (!HasValidMoves())
@@ -183,16 +232,6 @@ public class Grids : MonoBehaviour
         return movedPiece;
     }
 
-
-    public GamePiece SpawnNewPiece(int x, int y, PieceType type)
-    {
-        GameObject newPiece = Instantiate(piecePrefabDict[type], GetWorldPosition(x, y), Quaternion.identity, transform);
-        newPiece.transform.localScale = new Vector3(1, 1, 1); // Scale the tile properly
-        pieces[x, y] = newPiece.GetComponent<GamePiece>();
-        pieces[x, y].Init(x, y, this, type);
-        return pieces[x, y];
-    }
-
     public bool IsAdjacent(GamePiece piece1, GamePiece piece2)
     {
         return (piece1.X == piece2.X && Mathf.Abs(piece1.Y - piece2.Y) == 1) ||
@@ -226,6 +265,9 @@ public class Grids : MonoBehaviour
 
                 StartCoroutine(Fill());
                 level.OnMove();
+
+                // Save game state after a successful swap.
+                SaveGame();
             }
             else
             {
@@ -433,7 +475,6 @@ public class Grids : MonoBehaviour
         return needsRefill;
     }
 
-
     public bool ClearPiece(int x, int y)
     {
         Debug.Log("Clear piece at " + x + ", " + y);
@@ -445,8 +486,6 @@ public class Grids : MonoBehaviour
         }
         return false;
     }
-
-    //Checks for a valid move by temporarily swapping two pieces and seeing if a match is made.
 
     private bool CheckSwapForMatch(int x1, int y1, int x2, int y2)
     {
@@ -466,8 +505,6 @@ public class Grids : MonoBehaviour
         return validMove;
     }
 
-    //Scans the board for any adjacent swap that would yield a match.
-    //Only rightward and downward checks are performed to avoid redundancy.
     private bool HasValidMoves()
     {
         for (int x = 0; x < xDim; x++)
@@ -498,7 +535,6 @@ public class Grids : MonoBehaviour
         return false;
     }
 
-    //Resets the board by destroying all pieces and reinitializing the grid.
     private void ResetBoard()
     {
         // Clear the existing board
@@ -543,4 +579,73 @@ public class Grids : MonoBehaviour
     {
         gameOver = true;
     }
+
+    // -------------------- Save/Load Methods --------------------
+
+    public void SaveGame()
+    {
+        GridSaveData saveData = new GridSaveData();
+        saveData.xDim = xDim;
+        saveData.yDim = yDim;
+        saveData.pieces = new List<PieceSaveData>();
+
+        for (int x = 0; x < xDim; x++)
+        {
+            for (int y = 0; y < yDim; y++)
+            {
+                PieceSaveData pData = new PieceSaveData();
+                pData.x = x;
+                pData.y = y;
+                pData.type = pieces[x, y].Type; // Assumes your GamePiece has a public property "Type"
+
+                // If the piece is colored, save its color
+                if (pieces[x, y].IsColored())
+                {
+                    pData.color = (int)pieces[x, y].ColorComponent.Color;
+                }
+                saveData.pieces.Add(pData);
+            }
+        }
+
+        string json = JsonUtility.ToJson(saveData);
+        string path = Application.persistentDataPath + "/grid_save.json";
+        System.IO.File.WriteAllText(path, json);
+        Debug.Log("Game saved to: " + path);
+    }
+
+
+    public void LoadGame()
+    {
+        string path = Application.persistentDataPath + "/grid_save.json";
+        if (System.IO.File.Exists(path))
+        {
+            string json = System.IO.File.ReadAllText(path);
+            GridSaveData saveData = JsonUtility.FromJson<GridSaveData>(json);
+
+            if (saveData.xDim != xDim || saveData.yDim != yDim)
+            {
+                Debug.LogError("Saved grid dimensions do not match current grid dimensions.");
+                return;
+            }
+
+            foreach (PieceSaveData pData in saveData.pieces)
+            {
+                // Replace the existing piece with the saved piece.
+                Destroy(pieces[pData.x, pData.y].gameObject);
+                GamePiece newPiece = SpawnNewPiece(pData.x, pData.y, pData.type);
+
+                // If the piece should have a color, set it using the saved value.
+                if (newPiece.IsColored())
+                {
+                    newPiece.ColorComponent.SetColor((ColorPiece.ColorType)pData.color);
+                }
+            }
+            Debug.Log("Game loaded from: " + path);
+        }
+        else
+        {
+            Debug.Log("No saved game found at " + path);
+        }
+    }
+
 }
