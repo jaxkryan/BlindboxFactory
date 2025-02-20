@@ -7,6 +7,16 @@ using UnityEngine;
 namespace Script.Machine {
     [Serializable]
     public abstract class MachineBase : MonoBehaviour, IMachine{
+        public float ProgressionPerSec {
+            get {
+                var avg = 0f;
+                _progressQueue.ForEach(p => avg = (p + avg ) / 2);
+                return avg;
+            }
+        }
+
+        private Queue<float> _progressQueue = new ();
+        public float EstimateCompletionTime { get => (MaxProgress - CurrentProgress)/ProgressionPerSec; }
         public bool IsClosed { get => _isClosed; set => _isClosed = value; }
         [SerializeField] private bool _isClosed;
         public IEnumerable<MachineSlot> Slots { get => _slot; set => _slot = value.ToList(); }
@@ -24,16 +34,16 @@ namespace Script.Machine {
         private float _currentProgress;
 
         public float MaxProgress {
-            get => _maxProgress;
+            get => Product.MaxProgress;
         }
         [SerializeField] float _maxProgress;
-        public IEnumerable<IWorker> Workers { get => _slot.Select(s => s.Worker).Where(w => w != null); }
+        public IEnumerable<IWorker> Workers { get => _slot.Select(s => s.CurrentWorker).Where(w => w != null); }
 
         private void Awake() {
             WorkDetails.ForEach(d => d.Machine = this);
         }
 
-        public void AddWorker(IWorker worker) {
+        public void AddWorker(IWorker worker, MachineSlot slot) {
             if (Workers.Count() >= Slots.Count()) {
                 Debug.LogWarning($"Machine({name}) is full.");
                 return;
@@ -50,10 +60,16 @@ namespace Script.Machine {
                 Debug.LogWarning($"Machine({name}) is closed.");
                 return;
             }
-            Slots.First(s => s.Worker == null).Worker = worker;
-            WorkDetails.Where(d => d.Slot >= Workers.Count() && !d.IsRunning).ForEach(d => d.Start());
+
+            if (Slots.All(s => s != slot)) {
+                Debug.LogWarning($"Slots don't belong to machine({name}).");
+            }
+            slot.SetCurrentWorker(worker);
+            WorkDetails.Where(d => d.CanStart()).ForEach(d => d.Start());
             onWorkerChanged?.Invoke();
         }
+
+        public void AddWorker(IWorker worker) => AddWorker(worker, Slots.First(s => s.CurrentWorker == null));
 
         public void RemoveWorker(IWorker worker) {
             if (!Workers.Contains(worker)) {
@@ -62,8 +78,8 @@ namespace Script.Machine {
                 Debug.LogWarning($"Worker{str} is not working on machine({str}).");
                 return;
             }
-            Slots.Where(s => s.Worker?.Equals(worker) ?? false).ForEach(s => s.Worker = default);
-            WorkDetails.Where(d => d.Slot < Workers.Count() && d.IsRunning).ForEach(d => d.Stop());
+            Slots.Where(s => s.CurrentWorker?.Equals(worker) ?? false).ForEach(s => s.SetCurrentWorker());
+            WorkDetails.Where(d => d.CanStop()).ForEach(d => d.Stop());
             onWorkerChanged?.Invoke();
         }
 
@@ -82,6 +98,8 @@ namespace Script.Machine {
         public void IncreaseProgress(float progress) {
             CurrentProgress += progress;
             onProgress?.Invoke(progress);
+            _progressQueue.Enqueue(progress);
+            if (_progressQueue.Count() > 10) _progressQueue.Dequeue();
         }
 
         public event Action<float> onProgress = delegate { };
