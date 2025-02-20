@@ -13,6 +13,7 @@ namespace Script.Machine {
                 _progressQueue.ForEach(p => avg = (p + avg) / 2);
                 return avg;
             }
+            set => _progressQueue = new Queue<float>(new []{value}) ;
         }
 
         private Timer _progressPerSecTimer;
@@ -45,6 +46,7 @@ namespace Script.Machine {
                 CreateProduct();
             }
         }
+        
 
         private float _currentProgress;
 
@@ -58,12 +60,12 @@ namespace Script.Machine {
             get => _slot.Select(s => s.CurrentWorker).Where(w => w != null);
         }
 
-        private void Awake() {
+        protected virtual void Awake() {
             WorkDetails.ForEach(d => d.Machine = this);
             _progressPerSecTimer = new CountdownTimer(1);
         }
 
-        private void Start() {
+        protected virtual void Start() {
             _progressPerSecTimer.OnTimerStop += () => {
                 var diff = 0f;
                 if (CurrentProgress < _progressQueue.Last())
@@ -78,7 +80,7 @@ namespace Script.Machine {
             _progressPerSecTimer.Start();
         }
 
-        public void AddWorker(IWorker worker, MachineSlot slot) {
+        public virtual void AddWorker(IWorker worker, MachineSlot slot) {
             if (Workers.Count() >= Slots.Count()) {
                 Debug.LogWarning($"Machine({name}) is full.");
                 return;
@@ -103,9 +105,9 @@ namespace Script.Machine {
             onWorkerChanged?.Invoke();
         }
 
-        public void AddWorker(IWorker worker) => AddWorker(worker, Slots.First(s => s.CurrentWorker == null));
+        public virtual void AddWorker(IWorker worker) => AddWorker(worker, Slots.First(s => s.CurrentWorker == null));
 
-        public void RemoveWorker(IWorker worker) {
+        public virtual void RemoveWorker(IWorker worker) {
             if (!Workers.Contains(worker)) {
                 string str = "";
                 if (worker is MonoBehaviour monoWorker) str = $"({monoWorker.name})";
@@ -124,11 +126,12 @@ namespace Script.Machine {
 
         [SerializeReference, SubclassSelector] private List<WorkDetail> _workDetails;
 
-        public IProduct Product {
+        public virtual IProduct Product {
             get => _product;
+            set => _product = value;
         }
 
-        [SerializeField] private IProduct _product;
+        private IProduct _product;
         public event Action<IProduct> onCreateProduct = delegate { };
 
         public virtual IProduct CreateProduct() {
