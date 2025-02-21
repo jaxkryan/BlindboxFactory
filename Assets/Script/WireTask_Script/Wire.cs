@@ -2,38 +2,56 @@ using UnityEngine;
 
 public class Wire : MonoBehaviour
 {
-    public SpriteRenderer wireEnd;
-    public GameObject lightOn;
-    Vector3 startPoint;
-    Vector3 startPosition;
+    public LineRenderer lineRenderer; // Reference to LineRenderer
+    public GameObject lightOn; // Light effect when connected
+    public Transform wireStart; // Assignable start position in the editor
+    public Transform wireEnd; // End of the wire that moves
 
-    // Start is called before the first frame update
+    private bool isDragging = false;
+
+    public Color wireColor = Color.white; // Default wire color
+    public Color connectedColor = Color.green; // Color when connected
+
     void Start()
     {
-        startPoint = transform.parent.position;
-        startPosition = transform.position;
+        if (wireStart == null)
+        {
+            Debug.LogError("Wire Start Transform is not assigned!");
+            return;
+        }
+
+        lineRenderer.positionCount = 2;
+        lineRenderer.SetPosition(0, wireStart.position);
+        lineRenderer.SetPosition(1, wireStart.position); // Start with both points at the start position
+
+        // Set the initial color
+        lineRenderer.startColor = wireColor;
+        lineRenderer.endColor = wireColor;
     }
 
-    // Unity Message | 0 references
+    private void OnMouseDown()
+    {
+        isDragging = true;
+    }
+
     private void OnMouseDrag()
     {
-        // move position to world point
+        if (!isDragging) return;
+
+        // Move position to world point
         Vector3 newPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         newPosition.z = 0;
 
-        //check any connection
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(newPosition, .2f);
-        foreach(Collider2D collider in colliders)
+        // Check for a valid connection
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(newPosition, 0.2f);
+        foreach (Collider2D collider in colliders)
         {
-            if(collider.gameObject != gameObject)
+            if (collider.gameObject != gameObject)
             {
-                UpdateWire(collider.transform.position);
-
-                //check color
-                if (transform.parent.name.Equals(collider.transform.parent.name))
+                // Connect to the matching wire
+                if (wireStart.parent.name.Equals(collider.transform.parent.name))
                 {
                     WireTaskMain.Instance.SwitchChange(1);
-
                     collider.GetComponent<Wire>()?.Done();
                     Done();
                 }
@@ -42,30 +60,33 @@ public class Wire : MonoBehaviour
             }
         }
 
-        UpdateWire(newPosition);
+        // Update the wire position while dragging
+        wireEnd.position = newPosition;
+        UpdateWire();
     }
+
+    private void OnMouseUp()
+    {
+        isDragging = false;
+        wireEnd.position = wireStart.position; // Reset if no connection
+        UpdateWire();
+    }
+
     void Done()
     {
         lightOn.SetActive(true);
+        isDragging = false;
+
+        // Change wire color when connected
+        lineRenderer.startColor = connectedColor;
+        lineRenderer.endColor = connectedColor;
+
         Destroy(this);
     }
-    private void OnMouseUp()
+
+    void UpdateWire()
     {
-        UpdateWire(startPosition);
+        lineRenderer.SetPosition(0, wireStart.position);
+        lineRenderer.SetPosition(1, wireEnd.position);
     }
-
-    void UpdateWire(Vector3 newPosition)
-    {
-        //update position
-        transform.position = newPosition;
-
-        //update direction
-        Vector3 direction = newPosition - startPoint;
-        transform.right= direction * transform.lossyScale.x;
-
-        //update scale
-        float dist = Vector2.Distance(startPoint, newPosition);
-        wireEnd.size = new Vector2(dist, wireEnd.size.y);
-    }
-
 }

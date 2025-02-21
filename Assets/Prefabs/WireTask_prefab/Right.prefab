@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2240293036583608453}
   - component: {fileID: 1853639331848468079}
+  - component: {fileID: 2335122551677084844}
   m_Layer: 0
   m_Name: Right
   m_TagString: Untagged
@@ -17,16 +18,15 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &2240293036583608453
-Transform:
+--- !u!224 &2240293036583608453
+RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 817280428172953393}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.67, y: -1.16, z: 0.067407876}
+  m_LocalPosition: {x: 0, y: 0, z: 0.067407876}
   m_LocalScale: {x: -1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -37,6 +37,11 @@ Transform:
   - {fileID: 700982073801480121}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -0.67, y: -1.16}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1853639331848468079
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -49,6 +54,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8c0bd75a8fadac4998af8461b1d949a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2335122551677084844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 817280428172953393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 2
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 1
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1001 &1706199848148643463
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -88,6 +119,26 @@ PrefabInstance:
     - target: {fileID: 5867545878015959309, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
       propertyPath: m_Color.r
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.g
+      value: 0.854902
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.r
+      value: 0.9568628
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: connectedColor.g
+      value: 0.854902
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: connectedColor.r
+      value: 0.9568628
       objectReference: {fileID: 0}
     - target: {fileID: 8152367839687329194, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
       propertyPath: m_LocalPosition.x
@@ -179,6 +230,18 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0.28778648
       objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.r
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8152367839687329194, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.488
@@ -268,6 +331,26 @@ PrefabInstance:
     - target: {fileID: 5867545878015959309, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
       propertyPath: m_Color.r
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.r
+      value: 0.9333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: connectedColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: connectedColor.r
+      value: 0.9333334
       objectReference: {fileID: 0}
     - target: {fileID: 8152367839687329194, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
       propertyPath: m_LocalPosition.x
@@ -359,6 +442,26 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.b
+      value: 0.9843138
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.g
+      value: 0.08235294
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.r
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: connectedColor.b
+      value: 0.9843138
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: connectedColor.g
+      value: 0.08235294
+      objectReference: {fileID: 0}
     - target: {fileID: 8152367839687329194, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.488
@@ -448,6 +551,30 @@ PrefabInstance:
     - target: {fileID: 5867545878015959309, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
       propertyPath: m_Color.r
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.b
+      value: 0.60784316
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: wireColor.r
+      value: 0.8862746
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: connectedColor.b
+      value: 0.60784316
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: connectedColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339738548513865771, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
+      propertyPath: connectedColor.r
+      value: 0.8862746
       objectReference: {fileID: 0}
     - target: {fileID: 8152367839687329194, guid: dbd8eabdb9cfaa841b93a2e23d806b46, type: 3}
       propertyPath: m_LocalPosition.x
