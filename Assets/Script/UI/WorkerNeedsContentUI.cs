@@ -4,8 +4,11 @@ using System.Linq;
 using MyBox;
 using Script.Controller;
 using Script.HumanResource.Worker;
+using Script.Machine;
+using Script.Machine.WorkDetails;
 using TMPro;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.UI;
 
 public class WorkerNeedsContentUI : MonoBehaviour {
@@ -17,10 +20,13 @@ public class WorkerNeedsContentUI : MonoBehaviour {
     [SerializeField] TextMeshProUGUI _happinessBonus;
     [SerializeField] Slider _hungerBar;
     [SerializeField] TextMeshProUGUI _hungerBonus;
+    [SerializeField] Slider _restBar;
+    [SerializeField] TextMeshProUGUI _restBonus;
 
     public WorkerType WorkerType { get; private set; }
     public int HappinessValue {get => (int)_happinessBar.value;}
     public int HungerValue {get => (int)_hungerBar.value;}
+    public int RestValue {get => (int)_restBar.value;}
 
     public void Setup(WorkerController controller, WorkerType type) {
         if (!controller.WorkerList.TryGetValue(type, out var workers)) {
@@ -41,22 +47,55 @@ public class WorkerNeedsContentUI : MonoBehaviour {
         
         var happinessBonusText = "";
         var hungerBonusText = "";
-        var bonusManager = workers.First().BonusManager;
-        foreach (var bonus in bonusManager.GetApplicableBonuses(needFloat)) {
-            var condition = bonusManager.BonusConditions[bonus];
-
+        var restBonusText = "";
+        
+        foreach (var bonus in workers.First().Bonuses.Where(b => b.Condition.IsApplicable(b.Worker))) {
+            var condition = bonus.Condition;
+        
             if (condition.Conditions.ContainsKey(CoreType.Hunger)) {
                 hungerBonusText += $"{bonus.Description}\n";
             }
             if (condition.Conditions.ContainsKey(CoreType.Happiness)) {
                 happinessBonusText += $"{bonus.Description}\n";
             }
+            if (condition.Conditions.ContainsKey(CoreType.Rest)) {
+                restBonusText += $"{bonus.Description}\n";
+            }
         }
         _happinessBonus.text = happinessBonusText;
         _hungerBonus.text = hungerBonusText;
+        _restBonus.text = restBonusText;
 
-        throw new NotImplementedException(nameof(_cost));
+        float GetGoldCost(CoreType core, WorkerType worker) {
+        //Calculating the estimated cost for each core
+        //Get all workers of the worker type
+        var workers = GameController.Instance.WorkerController.WorkerList.GetValueOrDefault(worker);
+        if (workers is null || workers.Count == 0) return 0f;
+        
+        var machines = 
+            GameController.Instance.MachineController.RecoveryMachines.Where(m =>
+                m.Value.Any(recovery => recovery.Worker == worker && recovery.Core == core)).Select(m => m.Key).ToList();
+        if (machines.Count == 0) return 0f;
+        foreach (var w in workers) {
+            MachineBase closest;
+            float dist = float.MaxValue;
+            //Find the nearest building that increase that core
+            foreach (var m in machines) {
+                NavMeshPath path = new();
+                if (!w.Agent.CalculatePath(m.transform.position, path)) continue;
+                if (path.GetLength() > dist) continue;
+                
+                closest = m;
+                dist = path.GetLength();
+            }
+            
+            //Get its operational cost
+            closest.WorkDetails.Where(d => d is ResourceConsumptionWorkDetail)
+                
+            //Add to the total sum
+        }
 
+        }
         string ToName(string name) {
             string separate = "";
             foreach (var c in name) {

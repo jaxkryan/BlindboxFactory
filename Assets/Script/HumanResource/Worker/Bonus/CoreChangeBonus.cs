@@ -6,15 +6,17 @@ using UnityEngine;
 namespace Script.HumanResource.Worker {
     [Serializable]
     public class CoreChangeBonus : Bonus{
-        #warning Add Name and Description
-        public override string Name { get; }
-        public override string Description { get; }
-
+        public override string Description { get => _description.DescriptionFormatter(
+            ); }
+        
+        [TextArea]
+        [SerializeField] private string _description;
+        
         private Timer _timer;
         [SerializedDictionary("Core", "Amount")]
         public SerializedDictionary<CoreType, float> CoreChanges;
 
-        public float TimeInterval;
+        [SerializeField][Min(0.1f)] public float TimeInterval = 1f;
 
         public override void OnStart() {
             base.OnStart();

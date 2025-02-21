@@ -77,5 +77,8 @@ namespace Script.Controller {
                 return true;
             }
         }
+
+        public override void Load() { throw new NotImplementedException(); }
+        public override void Save() { throw new NotImplementedException(); }
     }
 }

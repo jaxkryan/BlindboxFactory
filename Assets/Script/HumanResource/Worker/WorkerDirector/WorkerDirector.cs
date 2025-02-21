@@ -104,8 +104,8 @@ namespace Script.HumanResource.Worker {
             
             bf.AddBelief($"{_worker.Name}Idle", () => !_navMeshAgent.hasPath);
             bf.AddBelief($"{_worker.Name}Walking", () => _navMeshAgent.hasPath);
-            _worker.BonusManager.BonusConditions.Select(b => b.Key).ForEach(bonus => {
-                var condition = _worker.BonusManager.BonusConditions.GetValueOrDefault(bonus);
+            _worker.Bonuses.ForEach(bonus => {
+                var condition = bonus.Condition;
                 bf.AddBelief($"{_worker.Name}HasBonus: {bonus.Name}", () => condition.IsApplicable(_worker));
             });
             bf.AddBelief($"{_worker.Name}HasWorkableMachine", () => _workableMachines(this).Any());

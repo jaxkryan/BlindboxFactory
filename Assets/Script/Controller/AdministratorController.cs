@@ -87,6 +87,9 @@ namespace Script.HumanResource.Administrator {
             _assignedAdministrators.ForEach(admin => admin.OnDismiss());
         }
 
+        public override void Load() { throw new NotImplementedException(); }
+        public override void Save() { throw new NotImplementedException(); }
+
         public override void OnStart() {
             base.OnStart();
             

@@ -17,20 +17,19 @@ namespace Script.HumanResource.Worker {
         // void RefillHunger(float amount);
         // void RefillHappiness(float amount);
         Dictionary<CoreType, float> MaximumCore { get; }
-        void UpdateCore(CoreType core, float amount);
+        void UpdateCore(CoreType core, float amount, bool trigger = true);
         event Action<CoreType, float> onCoreChanged;
         // event Action<float> onHungerChanged;
         // event Action<float> onHappinessChanged;
         IMachine Machine{ get; }
-        void DoWork();
+        MachineSlot WorkingSlot { get; }
+        void StartWorking(MachineSlot slot);
         void StopWorking();
         event Action onWorking;
         event Action onStopWorking;
-        BonusManager BonusManager { get; }
         HashSet<Bonus> Bonuses { get; }
         void AddBonus(Bonus bonus);
         void RemoveBonus(Bonus bonus);
-        string Id { get; }
         string Name { get; }
         string Description { get; }
         Sprite Portrait { get; }

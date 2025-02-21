@@ -4,9 +4,10 @@ using System.Linq;
 using AYellowpaper.SerializedCollections;
 using Script.Controller;
 using Script.Gacha.Base;
+using Script.Gacha.Shard;
 using UnityEngine;
 
-namespace Script.Gacha.Shard {
+namespace Script.Controller {
     public interface IShardController {
         IShardInventory Inventory { get; }
         Dictionary<ILoot, IEnumerable<(IShard Shard, int Quantity)>> ShardDictionary { get; }
@@ -22,6 +23,7 @@ namespace Script.Gacha.Shard {
         public int DefaultShardQuantity { get; }
         
         public IEnumerable<IShard> ShatterItem(ILoot item, int quantity) {
+            #warning Unimplemented
             throw new System.NotImplementedException();
             if (!ShardDictionary.TryGetValue(item, out var shardQuantity)) return GetShards((DefaultShard, DefaultShardQuantity));
             return GetShards(shardQuantity.ToArray());
@@ -39,5 +41,8 @@ namespace Script.Gacha.Shard {
                 return ret;
             }
         }
+
+        public override void Load() { throw new NotImplementedException(); }
+        public override void Save() { throw new NotImplementedException(); }
     }
 }
