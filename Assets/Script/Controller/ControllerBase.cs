@@ -8,5 +8,6 @@ namespace Script.Controller {
         public virtual void OnDisable() { }
         public abstract void Load();
         public abstract void Save();
+        public virtual void OnValidate() { }
     }
 }

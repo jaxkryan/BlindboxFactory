@@ -22,6 +22,7 @@ namespace Script.Machine {
                 Debug.LogError("Work detail cannot be started.");
                 return;
             }
+            IsRunning = true;
             OnStart();
         }
 
@@ -36,6 +37,7 @@ namespace Script.Machine {
                 Debug.LogError("Work detail cannot be stopped.");
                 return;
             }
+            IsRunning = false;
             OnStop();
         }
 

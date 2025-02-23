@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Script.HumanResource.Administrator;
@@ -9,6 +10,7 @@ namespace Script.Controller {
         public WorkerController WorkerController = new ();
         public ShardController ShardController = new ();
         public AdministratorController AdministratorController = new();
+        public ResourceController ResourceController = new();
 
         private List<ControllerBase> _controllers => typeof(GameController).GetFields()
                 .Where(f => f.FieldType.IsSubclassOf(typeof(ControllerBase)))
@@ -28,6 +30,8 @@ namespace Script.Controller {
         private void OnDisable() => _controllers.ForEach(c => c.OnDisable());
         private void Start() => _controllers.ForEach(c => c.OnStart());
         private void Update() => _controllers.ForEach(c => c.OnUpdate(Time.deltaTime));
+
+        private void OnValidate() => _controllers.ForEach(c => c.OnValidate());
 
         private void Load() { }
         
