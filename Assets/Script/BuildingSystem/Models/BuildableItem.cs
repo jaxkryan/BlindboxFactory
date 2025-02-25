@@ -9,10 +9,6 @@ namespace BuildingSystem.Models
         [field: SerializeField]
         public string Name { get; private set; }
         [field: SerializeField]
-        public TileBase Tile { get; private set; }
-        [field: SerializeField]
-        public Vector3 TileOffSet { get; private set; }
-        [field: SerializeField]
         public Sprite PreviewSprite { get; private set; }
         [field: SerializeField]
         public GameObject gameObject { get; private set; }
