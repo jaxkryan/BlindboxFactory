@@ -5,10 +5,10 @@ using UnityEngine;
 using UnityEngine.AI;
 
 [RequireComponent(typeof(NavMeshAgent))]
-[RequireComponent(typeof(AnimationController))]
+[RequireComponent(typeof(Animator))]
 public abstract class GoapAgent : MonoBehaviour {
     protected NavMeshAgent _navMeshAgent;
-    protected AnimationController _animation;
+    protected Animator _animation;
     protected Rigidbody _rb;
 
     protected GameObject _target;
@@ -28,7 +28,7 @@ public abstract class GoapAgent : MonoBehaviour {
 
     protected virtual void Awake() {
         _navMeshAgent = GetComponent<NavMeshAgent>();
-        _animation = GetComponent<AnimationController>();
+        _animation = GetComponent<Animator>();
         _rb = GetComponent<Rigidbody>();
         _rb.freezeRotation = true;
         
@@ -47,7 +47,7 @@ public abstract class GoapAgent : MonoBehaviour {
     }
 
     protected virtual void Update() {
-        _animation.SetSpeed(_navMeshAgent.velocity.magnitude);
+        _animation.speed = _navMeshAgent.velocity.magnitude;
         _timers.ForEach(t => t.Tick(Time.deltaTime));
 
         if (CurrentAction == null) {
@@ -100,7 +100,7 @@ public abstract class GoapAgent : MonoBehaviour {
     }
 
     protected virtual void SetupTimers() { }
-    protected virtual void SetupBeliefs() { }
-    protected virtual void SetupActions() { }
-    protected virtual void SetupGoals() { }
+    protected virtual void SetupBeliefs() { Beliefs = new(); }
+    protected virtual void SetupActions() { Actions = new(); }
+    protected virtual void SetupGoals() { Goals = new(); }
 }

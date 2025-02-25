@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Script.Controller;
+using Script.HumanResource.Worker;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -25,7 +26,7 @@ public class WorkerNeedsAutomatedUI : UIScrollable {
         var children = _container.GetComponentsInChildren<WorkerNeedsContentUI>();
         var controller = GameController.Instance.WorkerController;
         children.ForEach(c => 
-            controller.SetNeeds(c.WorkerType, c.HappinessValue, c.HungerValue));
+            controller.SetNeeds(c.WorkerType, (CoreType.Happiness, c.HappinessValue), (CoreType.Hunger, c.HungerValue)));
         
         base.Save();
     }
