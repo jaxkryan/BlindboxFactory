@@ -9,10 +9,10 @@ using Script.HumanResource.Worker;
 using UnityEngine;
 
 namespace Script.HumanResource.Administrator.Policies {
-    [CreateAssetMenu(menuName = "HumanResource/Policies/CoreDrainPolicy")]
-    public class CoreDrainPolicy : Policy {
+    [CreateAssetMenu(menuName = "HumanResource/Policies/CoreChangeOnWorkPolicy")]
+    public class CoreChangeOnWorkPolicy : Policy {
         [SerializedDictionary("Core Type", "Min | Max")]
-        [SerializeField] public SerializedDictionary<CoreType, Vector2> Subtractive; 
+        [SerializeField] public SerializedDictionary<CoreType, Vector2> Additives; 
         [SerializedDictionary("Core Type", "Min | Max")]
         [SerializeField] public SerializedDictionary<CoreType, Vector2> Multiplier; 
         [SerializeField] private bool _forAllWorkers;
@@ -36,12 +36,35 @@ namespace Script.HumanResource.Administrator.Policies {
 
         protected override void ResetValues() {
             //Remove bonus from all workers
-            _appliedWorkers.ForEach(UnapplyBonus);
+            _appliedWorkers.Clone().ForEach(UnapplyBonus);
 
             //Unsubscribe from add and remove workers events
             var controller = GameController.Instance.WorkerController;
             controller.onWorkerAdded -= ApplyBonus;
             controller.onWorkerRemoved -= UnapplyBonus;
+        }
+        
+        
+        
+        protected override string FormatDescription() {
+            var text = "";
+
+            foreach (CoreType core in Enum.GetValues(typeof(CoreType))) {
+                text += _description.DescriptionFormatter(
+                    (() => Additives.ContainsKey(core), new object[] { GetFloatRange(Additives, core) }),
+                    (() => Additives.ContainsKey(core) && Multiplier.ContainsKey(core), new object[]{}),
+                    (() => Multiplier.ContainsKey(core), new object[] { GetFloatRange(Multiplier, core) }),
+                    (() => Additives.ContainsKey(core) || Multiplier.ContainsKey(core), new object[]{ Enum.GetName(typeof(CoreType), core)})
+                    ) + "\n";
+            }
+            
+            return text;
+
+            string GetFloatRange(SerializedDictionary<CoreType, Vector2> dict, CoreType key) {
+                return Mathf.Approximately(dict.GetValueOrDefault(key).x, dict.GetValueOrDefault(key).y)
+                    ? dict.GetValueOrDefault(key).x.ToString(CultureInfo.InvariantCulture)
+                    : $"{dict.GetValueOrDefault(key).x} - {dict.GetValueOrDefault(key).y}";
+            }
         }
 
         private List<IWorker> _appliedWorkers = new();
@@ -59,32 +82,11 @@ namespace Script.HumanResource.Administrator.Policies {
             _appliedWorkers.Remove(worker);
         }
 
-        protected override string FormatDescription() {
-            var text = "";
-
-            foreach (CoreType core in Enum.GetValues(typeof(CoreType))) {
-                text += _description.DescriptionFormatter(
-                    (() => Subtractive.ContainsKey(core), new object[] { GetFloatRange(Subtractive, core) }),
-                    (() => Subtractive.ContainsKey(core) && Multiplier.ContainsKey(core), new object[]{}),
-                    (() => Multiplier.ContainsKey(core), new object[] { GetFloatRange(Multiplier, core) }),
-                    (() => Subtractive.ContainsKey(core) || Multiplier.ContainsKey(core), new object[]{ Enum.GetName(typeof(CoreType), core)})
-                ) + "\n";
-            }
-            
-            return text;
-
-            string GetFloatRange(SerializedDictionary<CoreType, Vector2> dict, CoreType key) {
-                return Mathf.Approximately(dict.GetValueOrDefault(key).x, dict.GetValueOrDefault(key).y)
-                    ? dict.GetValueOrDefault(key).x.ToString(CultureInfo.InvariantCulture)
-                    : $"{dict.GetValueOrDefault(key).x} - {dict.GetValueOrDefault(key).y}";
-            }
-        }
-
         private void OnCoreChanged(IWorker worker, CoreType core, float amount) {
-            if (amount >= 0) return;
+            if (amount <= 0) return;
 
             var changeAmount = 0f;
-            if (Subtractive.TryGetValue(core, out var subtract)) changeAmount += PickRandom(subtract);
+            if (Additives.TryGetValue(core, out var add)) changeAmount += PickRandom(add);
             if (Multiplier.TryGetValue(core, out var multiply)) changeAmount += PickRandom(multiply) * (changeAmount + amount);
             
             worker.CurrentCores[core] += changeAmount;

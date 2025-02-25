@@ -6,7 +6,7 @@ public class WanderStrategy : IActionStrategy {
     readonly float wanderRadius;
 
     public bool CanPerform => !Complete;
-    public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending;
+    public bool Complete => agent.remainingDistance <= 0.5f && !agent.pathPending;
 
     public WanderStrategy(NavMeshAgent agent, float wanderRadius) {
         this.agent = agent;
@@ -14,15 +14,20 @@ public class WanderStrategy : IActionStrategy {
     }
 
     public void Start() {
-        for (int i = 0; i < 5; i++) {
-            Vector3 randomDirection = (UnityEngine.Random.insideUnitSphere * wanderRadius);
-            randomDirection.y = 0;
+        int retry = 10;
+        while (retry > 0) {
+            Vector3 randomDirection = (UnityEngine.Random.insideUnitCircle * wanderRadius);
+            randomDirection.z = 0;
             NavMeshHit hit;
 
-            if (NavMesh.SamplePosition(agent.transform.position + randomDirection, out hit, wanderRadius, 1)) {
+            if (NavMesh.SamplePosition(agent.transform.position + randomDirection, out hit, wanderRadius, 1)
+                && Vector3.Distance(hit.position, agent.transform.position) > wanderRadius / 2) {
+                
                 agent.SetDestination(hit.position);
                 return;
             }
+
+            retry--;
         }
     }
 }

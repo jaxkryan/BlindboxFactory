@@ -11,7 +11,7 @@ namespace Script.Controller {
         public ShardController ShardController = new ();
         public AdministratorController AdministratorController = new();
         public ResourceController ResourceController = new();
-
+        public Grid Grid;
         private List<ControllerBase> _controllers => typeof(GameController).GetFields()
                 .Where(f => f.FieldType.IsSubclassOf(typeof(ControllerBase)))
                 .Where(f => ((ControllerBase)f.GetValue(this)) != null)
@@ -22,6 +22,9 @@ namespace Script.Controller {
             base.Awake();
 
             Load();
+            if (!Grid) {
+                Grid = FindFirstObjectByType<Grid>();
+            }
             _controllers.ForEach(c => c.OnAwake());
         }
 

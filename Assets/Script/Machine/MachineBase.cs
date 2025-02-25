@@ -1,12 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AYellowpaper.SerializedCollections;
 using Script.HumanResource.Worker;
+using Script.Resources;
 using UnityEngine;
 
 namespace Script.Machine {
     [Serializable]
-    public abstract class MachineBase : MonoBehaviour, IMachine {
+    public abstract class MachineBase : MonoBehaviour, IMachine, IBuilding {
+        public int PowerUse { get => _powerUse; set => _powerUse = value; }
+        [SerializeField] private int _powerUse = 0;
+        public Dictionary<Resource, int> ResourceUse {
+            get => _resourceUse; set => _resourceUse = new SerializedDictionary<Resource, int>(value);
+        }
+        [SerializeField] private SerializedDictionary<Resource, int> _resourceUse; 
         public float ProgressionPerSec {
             get {
                 var avg = 0f;
@@ -126,15 +134,17 @@ namespace Script.Machine {
 
         [SerializeReference, SubclassSelector] private List<WorkDetail> _workDetails;
 
-        public virtual IProduct Product {
+        public virtual ProductBase Product {
             get => _product;
             set => _product = value;
         }
 
-        private IProduct _product;
-        public event Action<IProduct> onCreateProduct = delegate { };
+        [SerializeReference, SubclassSelector] private ProductBase _product;
+        public event Action<ProductBase> onCreateProduct = delegate { };
+        public DateTimeOffset PlacedTime { get; }
 
-        public virtual IProduct CreateProduct() {
+        public virtual ProductBase CreateProduct() {
+            _product.OnProductCreated();
             onCreateProduct?.Invoke(_product);
             return _product;
         }

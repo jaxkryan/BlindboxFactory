@@ -15,11 +15,12 @@ namespace Script.Machine {
         void AddWorker(IWorker worker, MachineSlot slot);
         void RemoveWorker(IWorker worker);
         IEnumerable<WorkDetail> WorkDetails { get; }
-        IProduct Product { get; }
-        IProduct CreateProduct();
+        ProductBase Product { get; }
+        ProductBase CreateProduct();
         void IncreaseProgress(float progress);
         event Action<float> onProgress;
         event Action onWorkerChanged;
-        event Action<IProduct> onCreateProduct;
+        event Action<ProductBase> onCreateProduct;
+        DateTimeOffset PlacedTime { get; } 
     }
 }

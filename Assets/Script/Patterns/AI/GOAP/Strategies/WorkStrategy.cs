@@ -31,7 +31,7 @@ public class WorkStrategy : IActionStrategy {
         _worker.onStopWorking += () => _slot.Machine.onCreateProduct -= ConsiderStopWorking;
     }
 
-    private void ConsiderStopWorking(IProduct obj) {
+    private void ConsiderStopWorking(ProductBase obj) {
         var min = new Dictionary<CoreType, float>();
         Enum.GetValues(typeof(CoreType)).Cast<CoreType>()
             .ForEach(c => min[c] = 0);
