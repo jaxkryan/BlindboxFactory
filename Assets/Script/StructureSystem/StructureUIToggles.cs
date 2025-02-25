@@ -7,6 +7,13 @@ public class StructureUIToggles : MonoBehaviour
     [SerializeField] private GameObject InformationPanel;
     [SerializeField] private GameObject UpgradePanel;
 
+    public StructureUIToggles Instance;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
     public void turnOnCraftPanel()
     {
         try

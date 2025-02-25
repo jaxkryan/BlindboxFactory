@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 354032635685995772}
   - component: {fileID: 8990314789321482799}
-  - component: {fileID: 1274389272699899006}
   - component: {fileID: 2158433153328759816}
   m_Layer: 5
   m_Name: Scroll View
@@ -37,8 +36,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -2.0405, y: -257.49072}
-  m_SizeDelta: {x: 457.42, y: 514.9814}
+  m_AnchoredPosition: {x: -3.8136, y: -230.89166}
+  m_SizeDelta: {x: 765.9691, y: 724.2269}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8990314789321482799
 CanvasRenderer:
@@ -48,27 +47,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 217000422684472901}
   m_CullTransparentMesh: 1
---- !u!114 &1274389272699899006
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 217000422684472901}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c5835d3a1a2c194a9141850ece1bad5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemPrefab: {fileID: 7872378139694460556, guid: b380206650ba1b442a0eaf524406a47a, type: 3}
-  contentPanel: {fileID: 1781396785843484931}
-  objects:
-  - {fileID: 1329288535366861687, guid: 0721951ee08afa54f9aa95b778e6484b, type: 3}
-  - {fileID: 7770267316637888571, guid: e6276d13785bdea4da491adf583b5f18, type: 3}
-  - {fileID: 8641476874195026221, guid: 434499c8b27e9f74bb5d563a1c051ec9, type: 3}
-  - {fileID: 8104476687849358625, guid: 33b1df9214de88d4abb6391139314530, type: 3}
-  - {fileID: 0}
-  - {fileID: 0}
 --- !u!114 &2158433153328759816
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -429,7 +407,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -145.72295, y: 538.28}
+  m_AnchoredPosition: {x: -294.53, y: 593}
   m_SizeDelta: {x: 242.2241, y: 83.275}
   m_Pivot: {x: 0.5000002, y: 0.49999988}
 --- !u!222 &6344396922490927704
@@ -698,8 +676,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.00006628, y: 416}
-  m_SizeDelta: {x: 529.59, y: 83.2752}
+  m_AnchoredPosition: {x: -2.0373993, y: 457}
+  m_SizeDelta: {x: 827.21, y: 83.2752}
   m_Pivot: {x: 0.5000002, y: 0.49999988}
 --- !u!222 &486186162085654593
 CanvasRenderer:
@@ -922,8 +900,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 53.151604, y: 269}
-  m_SizeDelta: {x: 347.035, y: 125.5673}
+  m_AnchoredPosition: {x: 73.385, y: 295}
+  m_SizeDelta: {x: 676.36, y: 125.5673}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6163847237029322645
 CanvasRenderer:
@@ -1020,7 +998,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 141.97247, y: 538.2799}
+  m_AnchoredPosition: {x: 288.74, y: 593}
   m_SizeDelta: {x: 245.6451, y: 83.275}
   m_Pivot: {x: 0.5000002, y: 0.49999988}
 --- !u!222 &6630057152698948241
@@ -1438,7 +1416,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 8650241863419434959}
   m_HandleRect: {fileID: 0}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -1691,7 +1669,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.0000030994, y: 294}
+  m_AnchoredPosition: {x: -149, y: 368}
   m_SizeDelta: {x: 480.0037, y: 61.1298}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4027887202755227865
@@ -1917,7 +1895,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -204.7334, y: 269}
+  m_AnchoredPosition: {x: -353.54, y: 295}
   m_SizeDelta: {x: 124.2131, y: 125.56}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8912897505185219900
