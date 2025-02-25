@@ -1,0 +1,133 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using AYellowpaper.SerializedCollections;
+using JetBrains.Annotations;
+using Script.Machine;
+using UnityEngine;
+using UnityEngine.AI;
+
+namespace Script.HumanResource.Worker {
+    [Serializable]
+    [RequireComponent(typeof(WorkerDirector))]
+    public abstract class Worker : MonoBehaviour, IWorker {
+        [Header("Identity")]
+        public string Name { get => _name; set => _name = value; }
+        [SerializeField] private EmployeeName _name;
+        public string Description { get => _description; set => _description = value; }
+        [SerializeField] private string _description;
+        public Sprite Portrait { get => _portrait; set => _portrait = value; }
+        [SerializeField] private Sprite _portrait;
+        public WorkerDirector Director { get => _director; set => _director = value; }
+        private WorkerDirector _director;
+        [Header("Cores")] 
+        public Dictionary<CoreType, float> MaximumCore {
+            get => _maximumCores;
+        }
+        [SerializeField] private SerializedDictionary<CoreType, float> _maximumCores;
+        [SerializeField] private SerializedDictionary<CoreType, float> _startingCores;
+        public Dictionary<CoreType, float> CurrentCores { get => _currentCores; }
+        private Dictionary<CoreType, float> _currentCores;
+        public event Action<CoreType, float> onCoreChanged = delegate { };
+
+        [Header("Work")] 
+        [CanBeNull] public IMachine Machine {get; private set;}
+        [CanBeNull] public MachineSlot WorkingSlot {get; private set;}
+        public HashSet<Bonus> Bonuses { get => _bonuses.ToHashSet();  }
+        [SerializeReference, SubclassSelector] private List<Bonus> _bonuses;
+        public event Action onWorking = delegate { };
+        public event Action onStopWorking = delegate { };
+
+        [Header("Animation")] 
+        [SerializeField] private RuntimeAnimatorController _runtimeAnimator;
+        private static readonly int VerticalMovement = Animator.StringToHash("VerticalMovement");
+        private static readonly int HorizontalMovement = Animator.StringToHash("HorizontalMovement");
+        public Animator Animator {
+            get => GetComponent<Animator>();
+        }
+
+        public NavMeshAgent Agent {
+            get => GetComponent<NavMeshAgent>();
+        } 
+        public void UpdateCore(CoreType core, float amount, bool trigger = true) {
+            var current = _currentCores[core];
+            var max = _maximumCores[core];
+            float NewAmount() => current + amount;
+            if (NewAmount() > max) amount = max - current;
+            if (NewAmount() < 0) amount = current;
+            
+            if (Mathf.Approximately(NewAmount(), current)) return;
+            
+            _currentCores[core] = NewAmount();
+            Bonus.RecalculateBonuses(this);
+            if (trigger) onCoreChanged?.Invoke(core, amount);
+        }
+        
+        public virtual void StartWorking(MachineSlot slot) {
+            if (Machine is not null) {
+                Debug.LogError($"{Name} is already working");
+                return;
+            }
+
+            if (!ReferenceEquals(slot.CurrentWorker, this)) {
+                Debug.LogError($"Machine slot ({slot.Machine}) is not being worked by {Name}");
+                return;
+            }
+            
+            WorkingSlot = slot;
+            Machine = slot.Machine;
+            onWorking?.Invoke();
+        }
+        public virtual void StopWorking() {
+            if (Machine is null || WorkingSlot is null) {
+                Debug.LogError($"{Name} is not working");
+                return;
+            }
+
+            if (!ReferenceEquals(WorkingSlot.CurrentWorker, this)) {
+                Debug.LogError($"Machine slot ({WorkingSlot.Machine}) is being worked by {Name}");
+                return;
+            }
+
+            onStopWorking?.Invoke();
+        }
+        public void AddBonus(Bonus bonus) {
+            bonus.Worker = this;
+            _bonuses.Add(bonus);
+            bonus.OnStart();
+        }
+        public void RemoveBonus(Bonus bonus) {
+            _bonuses.Remove(bonus);
+            bonus.OnStop();
+        }
+
+        private void Awake() {
+            _director = GetComponent<WorkerDirector>();
+            if (_runtimeAnimator) Animator.runtimeAnimatorController = _runtimeAnimator;
+        }
+
+        private void Start() {
+            foreach (CoreType coreType in Enum.GetValues(typeof(CoreType))) {
+                if (!_currentCores.ContainsKey(coreType) && _startingCores.ContainsKey(coreType)) {
+                    _currentCores.Add(coreType, _startingCores[coreType]);
+                }
+            }
+        }
+        
+        private void OnValidate() {
+            if (_startingCores is null) _startingCores = new();
+            if (_maximumCores is null) _maximumCores = new();
+            foreach (CoreType coreType in Enum.GetValues(typeof(CoreType))) {
+                _startingCores.TryAdd(coreType, 0);
+                _maximumCores.TryAdd(coreType, 100);
+            }
+        }
+
+        private void Update() {
+            _bonuses.ForEach(b => b.OnUpdate(Time.deltaTime));
+            
+            Animator.SetFloat(HorizontalMovement, Agent.velocity.x);
+            Animator.SetFloat(VerticalMovement, Agent.velocity.y);
+        }
+    }
+}
