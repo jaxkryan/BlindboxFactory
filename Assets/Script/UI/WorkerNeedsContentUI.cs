@@ -1,9 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MyBox;
 using Script.Controller;
+using Script.HumanResource.Worker;
+using Script.Machine;
+using Script.Machine.WorkDetails;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.UI;
 
 public class WorkerNeedsContentUI : MonoBehaviour {
@@ -20,48 +26,51 @@ public class WorkerNeedsContentUI : MonoBehaviour {
     public int HappinessValue {get => (int)_happinessBar.value;}
     public int HungerValue {get => (int)_hungerBar.value;}
 
+    WorkerController _controller;
+    
     public void Setup(WorkerController controller, WorkerType type) {
-        if (!controller.WorkerList.TryGetValue(type, out var workers)) {
-            Debug.LogError($"Worker type {type} not found");
-            Destroy(gameObject);
-        }
+        _controller = controller;
+        WorkerType = type;
+        UpdateText();
+    }
 
-        _workerType.text = $"{workers.Count}x {ToName(workers.First().GetType().Name)}";
+    public void OnSliderValueChanged() {
+        UpdateText();
+    }
+
+    private void UpdateText() {
+        if (!_controller.WorkerList.TryGetValue(WorkerType, out var workers)) {
+            Debug.LogError($"Worker type {WorkerType} not found");
+            Destroy(gameObject);
+            return;
+        }
+        var needs = _controller.WorkerNeedsList.GetValueOrDefault(WorkerType);
+        var needFloat = new Dictionary<CoreType, float>();
+        needs.ForEach(n => needFloat.Add(n.Key, n.Value));
+
+        _workerType.text = $"{workers.Count}x {workers.First().GetType().Name.ToNormalString(StringExtension.StringCapitalizationSetting.CapitalizeEachWords)}";
         _description.text = workers?.First().Description;
         _portrait.sprite = workers?.First().Portrait;
         
-        var needs = controller.WorkerNeedsList.GetValueOrDefault(type);
-        _happinessBar.value = needs.HappinessNeeds;
-        _hungerBar.value = needs.HungerNeeds;
+        _happinessBar.value = needs.FirstOrDefault(c => c.Key == CoreType.Happiness).Value;
+        _hungerBar.value = needs.FirstOrDefault(c => c.Key == CoreType.Hunger).Value;
 
         var happinessBonusText = "";
         var hungerBonusText = "";
-        var bonusManager = workers.First().BonusManager;
-        foreach (var bonus in bonusManager.GetApplicableBonuses(needs.HappinessNeeds, needs.HungerNeeds)) {
-            var condition = bonusManager.BonusConditions[bonus];
-
-            if (condition.UseHungerCore || condition.UseBothCores) {
+        
+        foreach (var bonus in workers.First().Bonuses.Where(b => b.Condition.IsApplicable(b.Worker))) {
+            var condition = bonus.Condition;
+        
+            if (condition.Conditions.ContainsKey(CoreType.Hunger)) {
                 hungerBonusText += $"{bonus.Description}\n";
             }
-            if (condition.UseHappinessCore || condition.UseBothCores) {
-                hungerBonusText += $"{bonus.Description}\n";
+            if (condition.Conditions.ContainsKey(CoreType.Happiness)) {
+                happinessBonusText += $"{bonus.Description}\n";
             }
         }
         _happinessBonus.text = happinessBonusText;
         _hungerBonus.text = hungerBonusText;
-
-        throw new NotImplementedException(nameof(_cost));
-
-        string ToName(string name) {
-            string separate = "";
-            foreach (var c in name) {
-                if (char.IsUpper(c)) separate += " ";
-                separate += c;
-            }
-            var parts = separate.Split(' ').ToList();
-            if (parts.Last().Equals("Worker")) parts.Remove(parts.Last());
-
-            return string.Join(" ", parts).Trim();
-        }
+        
+#warning Cost
     }
 }

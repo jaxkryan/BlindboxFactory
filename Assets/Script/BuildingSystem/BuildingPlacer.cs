@@ -1,5 +1,4 @@
 using BuildingSystem.Models;
-using GameInput;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -20,12 +19,18 @@ namespace BuildingSystem
         private PreviewLayer _previewLayer;
 
         [SerializeField]
-        private CrossPlatformInputUser _input;
-        [SerializeField]
         public bool _IsBuildingFromInventory { get; private set; } = false;
+
+        [SerializeField]
+        private bool _storeMode = false;
+
+        public bool IsbuildMode = false;
 
         private void Update()
         {
+            Vector3 position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            position.z = 0;
+            
             //if (!IsMouseWithinBuildableRange())
             //{
             //    _previewLayer.ClearPreview();
@@ -39,15 +44,18 @@ namespace BuildingSystem
                 return;
             }
 
-            if (_input.IsInputButtonPressed(InputButton.Secondary))
+            if (_storeMode)
             {
-                try
+                if (Input.GetMouseButtonDown(0))
                 {
-                    _constructionLayer.Destroy(_input.PointerWorldPosition);
-                }
-                catch
-                {
-                    //Debug.Log("position clear");
+                    try
+                    {
+                        _constructionLayer.Stored(position);
+                    }
+                    catch
+                    {
+                        //Debug.Log("position clear");
+                    }
                 }
             }
 
@@ -56,21 +64,21 @@ namespace BuildingSystem
                 return;
             };
 
-            var isSpaceEmpty = _constructionLayer.IsEmpty(_input.PointerWorldPosition,
+            var isSpaceEmpty = _constructionLayer.IsEmpty(position,
                 ActiveBuildable.UseCustomCollisionSpace ? ActiveBuildable.CollisionSpace : default);
 
             _previewLayer.ShowPreview(
                 ActiveBuildable,
-                _input.PointerWorldPosition,
+                position,
                 isSpaceEmpty
                 );
-            if (_input.IsInputButtonPressed(InputButton.Primary) &&
+            if (Input.GetMouseButtonUp(0) &&
                 ActiveBuildable != null &&
                 _constructionLayer != null &&
                 isSpaceEmpty
                 )
             {
-                _constructionLayer.Build(_input.PointerWorldPosition, ActiveBuildable);
+                _constructionLayer.Build(position, ActiveBuildable);
             }
 
 
@@ -99,9 +107,24 @@ namespace BuildingSystem
             _IsBuildingFromInventory = true; 
         }
 
+        public void SetStoreMode(bool isEnabled)
+        {
+            _storeMode = isEnabled;
+        }
+
+        public bool GetStoreMode()
+        {
+            return _storeMode;
+        }
+
         public bool IsBuildingFromInventory()
         {
             return _IsBuildingFromInventory;
+        }
+
+        public bool IsActiveBuildable()
+        {
+            return ActiveBuildable != null;
         }
 
         private bool IsPointerOverUI()

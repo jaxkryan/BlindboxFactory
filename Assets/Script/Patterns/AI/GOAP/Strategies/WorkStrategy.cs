@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Script.Controller;
 using Script.HumanResource.Worker;
 using Script.Machine;
 using UnityEngine;
@@ -8,38 +10,38 @@ public class WorkStrategy : IActionStrategy {
     public bool CanPerform => !Complete;
     public bool Complete { get; private set; }
 
-    private readonly IMachine _machine ;
+    private readonly MachineSlot _slot ;
     readonly IWorker _worker;
     
-    public WorkStrategy(IMachine machine, IWorker worker) {
-        _machine = machine;
+    public WorkStrategy(IWorker worker) {
+        _slot = worker.Director.TargetSlot;
         _worker = worker;
         Complete = false;
     }
 
     public void Start() {
-        _machine.AddWorker(_worker);
+        _slot.Machine.AddWorker(_worker, _slot);
 
-        if (_worker.Machine != _machine) {
+        if (!ReferenceEquals(_worker.Machine, _slot.Machine)) {
             Debug.LogError("Adding worker to machine failed.");
             return;
         }
 
-        _machine.onWorkerChanged += OnWorkerChanged;
-        _machine.onCreateProduct += OnCreateProduct;
-    }
-    
-    public void Stop() {
-        Complete = true;
-        _machine.onWorkerChanged -= OnWorkerChanged;
-        _machine.onCreateProduct -= OnCreateProduct;
+        _slot.Machine.onCreateProduct += ConsiderStopWorking;
+        _worker.onStopWorking += () => _slot.Machine.onCreateProduct -= ConsiderStopWorking;
     }
 
-    private void OnCreateProduct(IProduct product) {
-        _machine.RemoveWorker(_worker);
-    }
-
-    private void OnWorkerChanged() {
-        if (!_machine.Workers.Contains(_worker)) Stop();
+    private void ConsiderStopWorking(IProduct obj) {
+        var min = new Dictionary<CoreType, float>();
+        Enum.GetValues(typeof(CoreType)).Cast<CoreType>()
+            .ForEach(c => min[c] = 0);
+        if (!WorkerDirector
+                .ContinueAfterProductCreated(
+                    _worker.CurrentCores
+                    , _worker.Director.CoreChangePerSec
+                    , _worker.MaximumCore
+                    , min
+                    , 0f)) 
+            _slot.Machine.RemoveWorker(_worker);
     }
 }
