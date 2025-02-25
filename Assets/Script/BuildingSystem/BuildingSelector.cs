@@ -17,6 +17,16 @@ public class BuildingSelector : MonoBehaviour
     [SerializeField] private GameObject generalUI;
     [SerializeField] private Button InventoryButton;
     [SerializeField] private GameObject InventoryUI;
+    [SerializeField] private Button StoreModeButton;
+
+    private void ToggleStoreMode()
+    {
+        bool newMode = !_buildingPlacer.GetStoreMode();
+        _buildingPlacer.SetStoreMode(newMode);
+        StoreModeButton.GetComponentInChildren<TMP_Text>().text = $"Store Mode: {(newMode ? "ON" : "OFF")}";
+        _buildingPlacer.SetActiveBuildable(null);
+        _buildingPlacer.ClearPreview();
+    }
     private void Start()
     {
         Debug.Log("Starting PopulateScrollView...");
@@ -30,10 +40,19 @@ public class BuildingSelector : MonoBehaviour
         {
             InventoryButton.onClick.AddListener(OpenInventory);
         }
+
+        if (StoreModeButton != null)
+        {
+            StoreModeButton.GetComponentInChildren<TMP_Text>().text = 
+                $"Store Mode: {(_buildingPlacer.GetStoreMode() ? "ON" : "OFF")}";
+            
+            StoreModeButton.onClick.AddListener(ToggleStoreMode);
+        }
     }
 
     private void ClosePanel()
     {
+        _buildingPlacer.IsbuildMode = false;
         Debug.Log("clear ActiveBuildable");
         buildingSelectionUI.SetActive(false);  
         generalUI.SetActive(true);
@@ -43,6 +62,7 @@ public class BuildingSelector : MonoBehaviour
 
     public void OpenPanel()
     {
+        _buildingPlacer.IsbuildMode = true;
         Debug.Log("open Panel Building Selection, clear General UI");
         buildingSelectionUI.SetActive(true);   
         generalUI.SetActive(false);            
@@ -50,6 +70,7 @@ public class BuildingSelector : MonoBehaviour
 
     public void OpenInventory()
     {
+        _buildingPlacer.IsbuildMode = true;
         _buildingPlacer.ClearPreview();
         _buildingPlacer.SetActiveBuildable(null);
         buildingSelectionUI.SetActive(false);
@@ -89,7 +110,7 @@ public class BuildingSelector : MonoBehaviour
             Image buttonImage = newButton.GetComponentsInChildren<Image>()
                 .FirstOrDefault(img => img.gameObject.name == "PreviewImg");
             buttonText.text = buildable.name;
-            buttonImage.sprite = buildable.PreviewSprite;
+            buttonImage.sprite = buildable.gameObject.GetComponent<SpriteRenderer>().sprite;
 
             // Assign click event
             newButton.onClick.AddListener(() => SelectBuildable(buildable));
@@ -100,5 +121,7 @@ public class BuildingSelector : MonoBehaviour
     {
         Debug.Log("Selected Buildable: " + buildable.name);
         _buildingPlacer.SetActiveBuildable(buildable);
+        _buildingPlacer.SetStoreMode(false);
+        StoreModeButton.GetComponentInChildren<TMP_Text>().text = "Store Mode: OFF";
     }
 }

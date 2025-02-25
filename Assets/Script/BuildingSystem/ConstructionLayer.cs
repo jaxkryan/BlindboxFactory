@@ -18,19 +18,9 @@ namespace BuildingSystem
         private CollisionLayer _collisionLayer;
         public void Build(Vector3 worldCoords, BuildableItem item)
         {
+            worldCoords.z = 0;
             GameObject itemObject = null;
             var coords = _tilemap.WorldToCell(worldCoords);
-            if(item.Tile != null)
-            {
-                var tileChangeData = new TileChangeData(
-                    coords,
-                    item.Tile,
-                    Color.white,
-                    Matrix4x4.Translate(Vector3.zero)
-                    //Matrix4x4.Translate(item.TileOffSet)
-                    );
-                _tilemap.SetTile(tileChangeData, false);
-            }
             if (item.gameObject != null)
             {
                 itemObject = Instantiate(
@@ -39,6 +29,8 @@ namespace BuildingSystem
                     //_tilemap.CellToWorld(coords) + _tilemap.cellSize / 2 + item.TileOffSet,
                     Quaternion.identity
                     );
+                int sortingOrder = Mathf.FloorToInt(-worldCoords.y * 100) + Mathf.FloorToInt(worldCoords.x * 10);
+                itemObject.GetComponent<SpriteRenderer>().sortingOrder = sortingOrder;
             }
             var buildable = new Buildable(item, coords, _tilemap, itemObject);
             if (item.UseCustomCollisionSpace)
@@ -68,7 +60,7 @@ namespace BuildingSystem
             }
         }
 
-        //public void Destroy(Vector3 worldCoords)
+        //public void Stored(Vector3 worldCoords)
         //{
         //    var coords = _tilemap.WorldToCell(worldCoords);
 
@@ -79,10 +71,10 @@ namespace BuildingSystem
         //        UnRegisterBuildableCollisionSpace(buildable);
         //    }
         //    _buildables.Remove(coords);
-        //    buildable.Destroy();
+        //    buildable.Stored();
         //}
 
-        public void Destroy(Vector3 worldCoords)
+        public void Stored(Vector3 worldCoords)
         {
             var coords = _tilemap.WorldToCell(worldCoords);
 
@@ -108,6 +100,11 @@ namespace BuildingSystem
             _buildables.Remove(coords);
             buildable.Destroy();
             FindObjectOfType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
+        }
+
+        public Dictionary<Vector3Int, Buildable> GetBuildables()
+        {
+            return _buildables;
         }
 
         public Dictionary<BuildableItem, int> GetStoredBuildables()

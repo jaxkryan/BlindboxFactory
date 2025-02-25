@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Script.HumanResource.Worker;
 
 namespace Script.Controller {
@@ -15,27 +16,37 @@ namespace Script.Controller {
 
         private Dictionary<WorkerType, HashSet<Worker>> _workerList;
 
-        public ReadOnlyDictionary<WorkerType, (int HappinessNeeds, int HungerNeeds)> WorkerNeedsList {
-            get => new ReadOnlyDictionary<WorkerType, (int HappinessNeeds, int HungerNeeds)>(_workerNeedsList);
+        public ReadOnlyDictionary<WorkerType, Dictionary<CoreType, int>> WorkerNeedsList {
+            get => new(_workerNeedsList);
         }
 
-        private Dictionary<WorkerType, (int HappinessNeeds, int HungerNeeds)> _workerNeedsList;
+        private Dictionary<WorkerType, Dictionary<CoreType, int>> _workerNeedsList;
 
         public WorkerController(Dictionary<WorkerType, HashSet<Worker>> workerList,
-            Dictionary<WorkerType, (int HappinessNeeds, int HungerNeeds)> workerNeedsList) {
+            Dictionary<WorkerType, Dictionary<CoreType, int>> workerNeedsList) {
             _workerList = workerList;
             _workerNeedsList = workerNeedsList;
         }
 
         public WorkerController() : this(new Dictionary<WorkerType, HashSet<Worker>>(),
-            new Dictionary<WorkerType, (int HappinessNeeds, int HungerNeeds)>()) { }
+            new Dictionary<WorkerType, Dictionary<CoreType, int>>()) { }
 
         public event Action<Worker> onWorkerAdded = delegate { };
         public event Action<Worker> onWorkerRemoved = delegate { };
 
-        public void SetNeeds(WorkerType type, int happinessNeeds, int hungerNeeds) {
-            if (!_workerNeedsList.ContainsKey(type)) _workerNeedsList.Add(type, (happinessNeeds, hungerNeeds));
-            else _workerNeedsList[type] = (happinessNeeds, hungerNeeds);
+        public void SetNeeds(WorkerType type, params (CoreType core, int need)[] needs) {
+            if (!_workerNeedsList.ContainsKey(type)) _workerNeedsList.Add(type, ToDictionary(needs));
+            else _workerNeedsList[type] = ToDictionary(needs);
+
+            Dictionary<CoreType, int> ToDictionary((CoreType core, int need)[] needs) {
+                var dicts = Enum.GetValues(typeof(CoreType)).Cast<CoreType>().ToDictionary(c => c, c => 0);
+
+                needs.ForEach(n => {
+                    dicts[n.core] += n.need;
+                });
+
+                return dicts;
+            }
         }
 
         public void AddWorker<TWorker>(TWorker worker) where TWorker : Worker {
@@ -66,5 +77,8 @@ namespace Script.Controller {
                 return true;
             }
         }
+
+        public override void Load() { throw new NotImplementedException(); }
+        public override void Save() { throw new NotImplementedException(); }
     }
 }

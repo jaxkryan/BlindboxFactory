@@ -5,7 +5,12 @@ using TMPro;
 using BuildingSystem.Models;
 using BuildingSystem;
 using System.Linq;
+
 // using UnityEditor.Build.Reporting;
+
+
+//using UnityEditor.AddressableAssets.Build.DataBuilders;
+
 
 public class StoredBuildablesUI : MonoBehaviour
 {
@@ -18,6 +23,18 @@ public class StoredBuildablesUI : MonoBehaviour
     [SerializeField] private GameObject generalUI;
     [SerializeField] private Button ShopButton;
     [SerializeField] private GameObject ShopUI;
+    [SerializeField] private Button StoreModeButton;
+
+    BuildingSelector _buildingSelector;
+
+    private void ToggleStoreMode()
+    {
+        bool newMode = !_buildingPlacer.GetStoreMode();
+        _buildingPlacer.SetStoreMode(newMode);
+        StoreModeButton.GetComponentInChildren<TMP_Text>().text = $"Store Mode: {(newMode ? "ON" : "OFF")}";
+        _buildingPlacer.SetActiveBuildable(null);
+        _buildingPlacer.ClearPreview();
+    }
 
     private Dictionary<BuildableItem, Button> _buttons = new();
 
@@ -29,6 +46,7 @@ public class StoredBuildablesUI : MonoBehaviour
 
     private void Start()
     {
+        _buildingSelector = GetComponent<BuildingSelector>();
         UpdateStoredBuildablesUI();
 
         if (ShopButton != null)
@@ -41,10 +59,19 @@ public class StoredBuildablesUI : MonoBehaviour
             exitButton.onClick.AddListener(ClosePanel);
         }
 
+        if(StoreModeButton != null)
+        {
+            StoreModeButton.GetComponentInChildren<TMP_Text>().text =
+                $"Store Mode: {(_buildingPlacer.GetStoreMode() ? "ON" : "OFF")}";
+
+            StoreModeButton.onClick.AddListener(ToggleStoreMode);
+        }
+
     }
 
     private void ClosePanel()
     {
+        _buildingPlacer.IsbuildMode = false;
         Debug.Log("clear ActiveBuildable");
         InventoryUI.SetActive(false);
         generalUI.SetActive(true);
@@ -54,6 +81,7 @@ public class StoredBuildablesUI : MonoBehaviour
 
     public void OpenShop()
     {
+        _buildingPlacer.IsbuildMode = true;
         _buildingPlacer.ClearPreview();
         _buildingPlacer.SetActiveBuildable(null);
         InventoryUI.SetActive(false);
@@ -62,6 +90,7 @@ public class StoredBuildablesUI : MonoBehaviour
 
     public void UpdateStoredBuildablesUI()
     {
+        _buildingPlacer.IsbuildMode = true;
         Debug.Log("Updating UI...");
         foreach (Transform child in _contentParent)
         {
@@ -93,8 +122,16 @@ public class StoredBuildablesUI : MonoBehaviour
 
             buttonText.text = $"{buildableItem.name} x{count}";
             buttonImage.sprite = buildableItem.PreviewSprite;
-            newButton.onClick.AddListener(() => FindObjectOfType<BuildingPlacer>().SetBuildableFromInventory(buildableItem));
+            newButton.onClick.AddListener(() => SelectBuildable(buildableItem));
             _buttons[buildableItem] = newButton;
         }
+    }
+
+    private void SelectBuildable(BuildableItem buildable)
+    {
+        Debug.Log("Selected Buildable: " + buildable.name);
+        _buildingPlacer.SetBuildableFromInventory(buildable);
+        _buildingPlacer.SetStoreMode(false);
+        StoreModeButton.GetComponentInChildren<TMP_Text>().text = "Store Mode: OFF";
     }
 }

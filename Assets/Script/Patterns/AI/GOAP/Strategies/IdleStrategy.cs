@@ -12,4 +12,5 @@ public class IdleStrategy : IActionStrategy {
 
     public void Start() => timer.Start();
     public void Update(float deltaTime) => timer.Tick(deltaTime);
+    public void Stop() => timer.Stop();
 }
