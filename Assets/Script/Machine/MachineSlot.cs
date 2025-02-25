@@ -1,7 +1,6 @@
-#nullable enable
-using System;
-using System.Collections.Generic;
+// #nullable enable
 using System.Linq;
+using JetBrains.Annotations;
 using MyBox;
 using Script.Controller;
 using Script.HumanResource.Worker;
@@ -10,8 +9,8 @@ using UnityEngine.Serialization;
 
 namespace Script.Machine {
     public class MachineSlot : MonoBehaviour {
-        public IWorker? CurrentWorker {get; private set;}
-        public IWorker? WishListWorker  {get; private set;}
+        [CanBeNull] public IWorker CurrentWorker {get; private set;}
+        [CanBeNull] public IWorker WishListWorker  {get; private set;}
         private CountdownTimer _wishlistTimer;
 
         [FormerlySerializedAs("_wishlistTravel")] [FormerlySerializedAs("_wishlistDistanceCountdown")] [SerializeField] private float _wishlistTravelTimer;
@@ -20,7 +19,7 @@ namespace Script.Machine {
         [SerializeField] private CollectionWrapperList<WorkerType> _forWorker;
         public MachineBase Machine { get; private set; }
 
-        public bool SetCurrentWorker(IWorker? worker = null) {
+        public bool SetCurrentWorker([CanBeNull] IWorker worker = null) {
             if (worker != null) {
                 if (CurrentWorker == worker) return true;
                 if (CurrentWorker == null) {
@@ -38,7 +37,9 @@ namespace Script.Machine {
                     return false;
                 }
             }
+            CurrentWorker?.StopWorking();
             CurrentWorker = worker;
+            CurrentWorker?.StartWorking(this);
             return true;
         }
 
@@ -47,7 +48,7 @@ namespace Script.Machine {
             return _forWorker.Value.Any(w => w == IWorker.ToWorkerType(worker));
         }
         
-        public bool SetWishlist(IWorker? worker = null) {
+        public bool SetWishlist([CanBeNull] IWorker worker = null) {
             if (WishListWorker == null && worker != null) {
                 Debug.LogError($"{this.name} slot is wish listed!");
                 return false;

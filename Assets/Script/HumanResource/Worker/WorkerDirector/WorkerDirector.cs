@@ -54,12 +54,12 @@ namespace Script.HumanResource.Worker {
                 else {
                     Enum.GetValues(typeof(CoreType)).Cast<CoreType>().ForEach(c => minimumCores.Add(c, 0.0f));
                 }
-                while (ContinueAfterProductCreated(coreValues, CoreChangePerSec, _worker.MaximumCore, minimumCores, _slot.Machine.Product.MaxProgress, remainingTime)) {
-                    coreValues = EstCoreValuesWhenWorkDone(coreValues, CoreChangePerSec, _slot.Machine.Product.MaxProgress - remainingTime);
-                    estTime += _slot.Machine.Product.MaxProgress;
-                    remainingTime = Mathf.Ceil(remainingTime) - remainingTime + _slot.Machine.Product.MaxProgress;
-                    if ((remainingTime - _slot.Machine.Product.MaxProgress) > 1f)
-                        remainingTime -= Mathf.Floor(remainingTime - _slot.Machine.Product.MaxProgress);
+                while (ContinueAfterProductCreated(coreValues, CoreChangePerSec, _worker.MaximumCore, minimumCores, _slot.Machine.MaxProgress, remainingTime)) {
+                    coreValues = EstCoreValuesWhenWorkDone(coreValues, CoreChangePerSec, _slot.Machine.MaxProgress - remainingTime);
+                    estTime += _slot.Machine.MaxProgress;
+                    remainingTime = Mathf.Ceil(remainingTime) - remainingTime + _slot.Machine.MaxProgress;
+                    if ((remainingTime - _slot.Machine.MaxProgress) > 1f)
+                        remainingTime -= Mathf.Floor(remainingTime - _slot.Machine.MaxProgress);
                 }
 
                 return estTime;
@@ -104,8 +104,8 @@ namespace Script.HumanResource.Worker {
             
             bf.AddBelief($"{_worker.Name}Idle", () => !_navMeshAgent.hasPath);
             bf.AddBelief($"{_worker.Name}Walking", () => _navMeshAgent.hasPath);
-            _worker.BonusManager.BonusConditions.Select(b => b.Key).ForEach(bonus => {
-                var condition = _worker.BonusManager.BonusConditions.GetValueOrDefault(bonus);
+            _worker.Bonuses.ForEach(bonus => {
+                var condition = bonus.Condition;
                 bf.AddBelief($"{_worker.Name}HasBonus: {bonus.Name}", () => condition.IsApplicable(_worker));
             });
             bf.AddBelief($"{_worker.Name}HasWorkableMachine", () => _workableMachines(this).Any());
