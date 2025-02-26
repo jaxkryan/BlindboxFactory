@@ -27,7 +27,6 @@ namespace Script.Machine {
             get => _isClosed;
             set => _isClosed = value;
         }
-
         [SerializeField] private bool _isClosed;
 
         public IEnumerable<MachineSlot> Slots {
