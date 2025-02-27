@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MyBox;
+using Script.Machine.ResourceManager;
+using Script.Resources;
 using UnityEngine;
 
 namespace Script.Machine.Products {
@@ -14,13 +17,18 @@ namespace Script.Machine.Products {
                 return _currentProduct.MaxProgress;
             }
         }
-        private ProductBase _currentProduct;
+        public override List<ResourceUse> ResourceUse {
+            get => GetResourceUse();
+        }
+        protected ProductBase _currentProduct;
 
         public sealed override void OnProductCreated() {
             _currentProduct.OnProductCreated();
             _currentProduct = SelectNextProduct(_currentProduct);
         }
 
+        protected abstract List<ResourceUse> GetResourceUse();
+        
         protected abstract ProductBase SelectNextProduct(ProductBase product = null);
         
         private void OnEnable() {
@@ -32,14 +40,20 @@ namespace Script.Machine.Products {
 
     [Serializable]
     public class ProductLineupListProduct : ProductLineupProduct {
-        [SerializeField] private List<ProductBase> _products;
+        [SerializeReference, SubclassSelector] private CollectionWrapperList<ProductBase> _products;
+
+        protected override List<ResourceUse> GetResourceUse() {
+            var list = new List<ResourceUse>();
+            _products.Value.ForEach(p => list.AddRange(p.ResourceUse));
+            return list;
+        }
 
         protected override ProductBase SelectNextProduct(ProductBase current = null) {
-            if ((_products?.Count ?? 0) == 0) throw new System.Exception("Products lineup cannot be empty");
+            if ((_products?.Value.Count ?? 0) == 0) throw new System.Exception("Products lineup cannot be empty");
 
-            if (current is null || !_products.Contains(current)) return _products.First();
+            if (current is null || !_products.Value.Contains(current)) return _products.Value.First();
             
-            return _products.Count > _products.IndexOf(current) + 1 ? _products.ElementAt(_products.IndexOf(current) + 1) : _products.First();
+            return _products.Value.Count > _products.Value.IndexOf(current) + 1 ? _products.Value.ElementAt(_products.Value.IndexOf(current) + 1) : _products.Value.First();
         }
     }
 }

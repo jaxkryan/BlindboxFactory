@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
+using MyBox;
 using Script.HumanResource.Worker;
 using Script.Machine.Products;
 using Script.Resources;
@@ -12,10 +13,12 @@ namespace Script.Machine {
     public abstract class MachineBase : MonoBehaviour, IMachine, IBuilding {
         public int PowerUse { get => _powerUse; set => _powerUse = value; }
         [SerializeField] private int _powerUse = 0;
-        public Dictionary<Resource, int> ResourceUse {
-            get => _resourceUse; set => _resourceUse = new SerializedDictionary<Resource, int>(value);
+        public List<ResourceManager.ResourceUse> ResourceUse {
+            get => _product.ResourceUse;
         }
-        [SerializeField] private SerializedDictionary<Resource, int> _resourceUse; 
+        [Obsolete]
+        // private ResourceManager.ResourceManager _resourceManager;
+        
         public float ProgressionPerSec {
             get {
                 var avg = 0f;
@@ -72,26 +75,6 @@ namespace Script.Machine {
             get => _slot.Select(s => s.CurrentWorker).Where(w => w != null);
         }
 
-        protected virtual void Awake() {
-            WorkDetails.ForEach(d => d.Machine = this);
-            _progressPerSecTimer = new CountdownTimer(1);
-        }
-
-        protected virtual void Start() {
-            _progressPerSecTimer.OnTimerStop += () => {
-                var diff = 0f;
-                if (CurrentProgress < _progressQueue.Last())
-                    diff = CurrentProgress + (MaxProgress - _progressQueue.Last());
-                else diff = CurrentProgress - _progressQueue.Last();
-
-                _progressQueue.Enqueue(diff);
-                if (_progressQueue.Count > 10) _progressQueue.Dequeue();
-                _progressPerSecTimer.Start();
-            };
-
-            _progressPerSecTimer.Start();
-        }
-
         public virtual void AddWorker(IWorker worker, MachineSlot slot) {
             if (IsClosed) {
                 Debug.LogWarning($"Machine({name}) is closed.");
@@ -145,9 +128,13 @@ namespace Script.Machine {
 
         public virtual ProductBase Product {
             get => _product;
-            set => _product = value;
+            set {
+                onProductChanged?.Invoke(value);
+                _product = value;
+            }
         }
-
+        public event Action<ProductBase> onProductChanged = delegate { };
+    
         [SerializeReference, SubclassSelector] private ProductBase _product;
         public event Action<ProductBase> onCreateProduct = delegate { };
         public DateTimeOffset PlacedTime { get => _placedTime;  }
@@ -156,7 +143,7 @@ namespace Script.Machine {
         public void SetMachinePlacedTime(DateTimeOffset time) => _placedTime = time;
         
         public virtual ProductBase CreateProduct() {
-            _product.OnProductCreated();
+            _product?.OnProductCreated();
             onCreateProduct?.Invoke(_product);
             return _product;
         }
@@ -170,6 +157,37 @@ namespace Script.Machine {
         public event Action<float> onProgress = delegate { };
 
         public event Action onWorkerChanged = delegate { };
+
+        protected virtual void Awake() {
+            WorkDetails.ForEach(d => d.Machine = this);
+            _progressPerSecTimer = new CountdownTimer(1);
+            // _resourceManager = new();
+        }
+
+        protected virtual void Start() {
+            #region Progression
+            _progressPerSecTimer.OnTimerStop += () => {
+                var diff = 0f;
+                if (_progressQueue.Any()) {
+                    var last = _progressQueue.Last();
+                    if (CurrentProgress < last)
+                        diff = CurrentProgress + (MaxProgress - last);
+                    else diff = CurrentProgress - last;
+                }
+
+                _progressQueue.Enqueue(diff);
+                if (_progressQueue.Count > 10) _progressQueue.Dequeue();
+                _progressPerSecTimer.Start();
+            };
+
+            _progressPerSecTimer.Start();
+            #endregion
+
+            #region Resource
+            // _resourceManager.SetResourceUses(ResourceUse.ToArray());
+
+            #endregion
+        }
 
         protected virtual void Update() {
             _progressPerSecTimer.Tick(Time.deltaTime);
