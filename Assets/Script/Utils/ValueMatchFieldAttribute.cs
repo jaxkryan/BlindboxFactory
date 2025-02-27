@@ -1,9 +1,8 @@
 using System;
-using MyBox;
-using MyBox.EditorTools;
 using UnityEngine;
 #if UNITY_EDITOR
-using MyBox.Internal;
+using MyBox;
+using MyBox.EditorTools;
 using UnityEditor;
 #endif
 

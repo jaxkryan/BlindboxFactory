@@ -1,12 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AYellowpaper.SerializedCollections;
 using Script.HumanResource.Worker;
+using Script.Machine.Products;
+using Script.Resources;
 using UnityEngine;
 
 namespace Script.Machine {
-    [Serializable]
-    public abstract class MachineBase : MonoBehaviour, IMachine {
+    [DisallowMultipleComponent]
+    public abstract class MachineBase : MonoBehaviour, IMachine, IBuilding {
+        public int PowerUse { get => _powerUse; set => _powerUse = value; }
+        [SerializeField] private int _powerUse = 0;
+        public Dictionary<Resource, int> ResourceUse {
+            get => _resourceUse; set => _resourceUse = new SerializedDictionary<Resource, int>(value);
+        }
+        [SerializeField] private SerializedDictionary<Resource, int> _resourceUse; 
         public float ProgressionPerSec {
             get {
                 var avg = 0f;
@@ -25,13 +34,17 @@ namespace Script.Machine {
 
         public bool IsClosed {
             get => _isClosed;
-            set => _isClosed = value;
+            set {
+                _isClosed = value;
+                onMachineCloseStatusChanged?.Invoke(value);
+            }
         }
+
+        public event Action<bool> onMachineCloseStatusChanged = delegate { };
         [SerializeField] private bool _isClosed;
 
         public IEnumerable<MachineSlot> Slots {
             get => _slot;
-            set => _slot = value.ToList();
         }
 
         [SerializeField] private List<MachineSlot> _slot;
@@ -67,11 +80,7 @@ namespace Script.Machine {
         protected virtual void Start() {
             _progressPerSecTimer.OnTimerStop += () => {
                 var diff = 0f;
-                if ((_progressQueue?.Count ?? 0) == 0)
-                {
-                    diff = 0f;
-                }
-                else if (CurrentProgress < _progressQueue?.Last())
+                if (CurrentProgress < _progressQueue.Last())
                     diff = CurrentProgress + (MaxProgress - _progressQueue.Last());
                 else diff = CurrentProgress - _progressQueue.Last();
 
@@ -84,6 +93,11 @@ namespace Script.Machine {
         }
 
         public virtual void AddWorker(IWorker worker, MachineSlot slot) {
+            if (IsClosed) {
+                Debug.LogWarning($"Machine({name}) is closed.");
+                return;
+            }
+            
             if (Workers.Count() >= Slots.Count()) {
                 Debug.LogWarning($"Machine({name}) is full.");
                 return;
@@ -104,7 +118,7 @@ namespace Script.Machine {
             if (Slots.All(s => s != slot)) { Debug.LogWarning($"Slots don't belong to machine({name})."); }
 
             slot.SetCurrentWorker(worker);
-            WorkDetails.Where(d => d.CanStart()).ForEach(d => d.Start());
+            WorkDetails.Where(d => d.CanExecute()).ForEach(d => d.Start());
             onWorkerChanged?.Invoke();
         }
 
@@ -119,7 +133,7 @@ namespace Script.Machine {
             }
 
             Slots.Where(s => s.CurrentWorker?.Equals(worker) ?? false).ForEach(s => s.SetCurrentWorker());
-            WorkDetails.Where(d => d.CanStop()).ForEach(d => d.Stop());
+            WorkDetails.Where(d => !d.CanExecute()).ForEach(d => d.Stop());
             onWorkerChanged?.Invoke();
         }
 
@@ -129,15 +143,20 @@ namespace Script.Machine {
 
         [SerializeReference, SubclassSelector] private List<WorkDetail> _workDetails;
 
-        public virtual IProduct Product {
+        public virtual ProductBase Product {
             get => _product;
             set => _product = value;
         }
 
-        private IProduct _product;
-        public event Action<IProduct> onCreateProduct = delegate { };
-
-        public virtual IProduct CreateProduct() {
+        [SerializeReference, SubclassSelector] private ProductBase _product;
+        public event Action<ProductBase> onCreateProduct = delegate { };
+        public DateTimeOffset PlacedTime { get => _placedTime;  }
+        private DateTimeOffset _placedTime = DateTimeOffset.Now;
+        
+        public void SetMachinePlacedTime(DateTimeOffset time) => _placedTime = time;
+        
+        public virtual ProductBase CreateProduct() {
+            _product.OnProductCreated();
             onCreateProduct?.Invoke(_product);
             return _product;
         }
@@ -153,7 +172,7 @@ namespace Script.Machine {
         public event Action onWorkerChanged = delegate { };
 
         protected virtual void Update() {
-            _progressPerSecTimer?.Tick(Time.deltaTime);
+            _progressPerSecTimer.Tick(Time.deltaTime);
             WorkDetails.ForEach(d => d.Update(Time.deltaTime));
         }
     }

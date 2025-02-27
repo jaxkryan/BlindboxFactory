@@ -6,7 +6,8 @@ using Script.HumanResource.Worker;
 
 namespace Script.Controller {
     public enum WorkerType {
-        Worker
+        Worker,
+        FactoryWorker
     }
 
     public class WorkerController : ControllerBase {
