@@ -89,6 +89,8 @@ namespace Script.HumanResource.Worker {
                 return;
             }
 
+            WorkingSlot = null;
+            Machine = null;
             onStopWorking?.Invoke();
         }
         public void AddBonus(Bonus bonus) {

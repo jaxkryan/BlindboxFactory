@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Script.Machine {
+namespace Script.Machine.Machines {
     public class StorageMachine : MachineBase, IStorage {
         public int MaxCapacity {
             get => _maxCapacity;

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
-namespace Script.Machine {
+namespace Script.Machine.Products {
     [Serializable]
     public class PlaceMachineProduct : ProductBase {
         public override float MaxProgress { get => _maxProgress; }
@@ -26,7 +26,7 @@ namespace Script.Machine {
             //Spawn into parent pos + offset
             
             
-            if (_destroyOnComplete) Object.DestroyImmediate(_parent.gameObject);
+            if (_destroyOnComplete) Object.Destroy(_parent.gameObject);
         }
     }
 }

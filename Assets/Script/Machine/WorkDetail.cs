@@ -18,7 +18,7 @@ namespace Script.Machine {
                 Debug.LogError("Work detail is not setup.");
                 return;
             }
-            if (!CanStart()) {
+            if (!CanExecute()) {
                 Debug.LogError("Work detail cannot be started.");
                 return;
             }
@@ -33,7 +33,7 @@ namespace Script.Machine {
                 Debug.LogError("Work detail is not setup.");
                 return;
             }
-            if (!CanStop()) {
+            if (CanExecute()) {
                 Debug.LogError("Work detail cannot be stopped.");
                 return;
             }
@@ -52,18 +52,10 @@ namespace Script.Machine {
         } 
         protected virtual void OnUpdate(float deltaTime) { }
 
-        public virtual bool CanStart() {
+        public virtual bool CanExecute() {
             if (Machine is null) return false;
             if (Machine.Slots.Count() < Slot) return false;
             if (IsRunning) return false;
-            
-            return true;
-        }
-
-        public virtual bool CanStop() {
-            if (Machine is null) return false;
-            if (Machine.Slots.Count() > Slot) return false;
-            if (!IsRunning) return false;
             
             return true;
         }

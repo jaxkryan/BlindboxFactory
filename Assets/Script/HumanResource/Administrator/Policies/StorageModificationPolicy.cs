@@ -3,6 +3,7 @@ using System.Linq;
 using MyBox;
 using Script.Controller;
 using Script.Machine;
+using Script.Machine.Machines;
 using UnityEngine;
 
 namespace Script.HumanResource.Administrator.Policies {

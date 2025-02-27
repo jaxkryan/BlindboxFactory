@@ -4,6 +4,7 @@ using System.Linq;
 using Script.Controller;
 using Script.HumanResource.Worker;
 using Script.Machine;
+using Script.Machine.Products;
 using UnityEngine;
 
 public class WorkStrategy : IActionStrategy {

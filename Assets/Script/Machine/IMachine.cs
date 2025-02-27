@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Script.HumanResource.Worker;
+using Script.Machine.Products;
 
 namespace Script.Machine {
     public interface IMachine {
