@@ -11,7 +11,5 @@ public class BlindBox : IProduct
     {
         throw new System.NotImplementedException();
     }
-    public string boxName;
-    public Sprite boxSprite;
-    public int value;
+    public BoxTypeName boxTypeName;
 }

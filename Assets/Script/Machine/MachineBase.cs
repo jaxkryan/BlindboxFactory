@@ -67,7 +67,11 @@ namespace Script.Machine {
         protected virtual void Start() {
             _progressPerSecTimer.OnTimerStop += () => {
                 var diff = 0f;
-                if (CurrentProgress < _progressQueue.Last())
+                if ((_progressQueue?.Count ?? 0) == 0)
+                {
+                    diff = 0f;
+                }
+                else if (CurrentProgress < _progressQueue?.Last())
                     diff = CurrentProgress + (MaxProgress - _progressQueue.Last());
                 else diff = CurrentProgress - _progressQueue.Last();
 
@@ -149,7 +153,7 @@ namespace Script.Machine {
         public event Action onWorkerChanged = delegate { };
 
         protected virtual void Update() {
-            _progressPerSecTimer.Tick(Time.deltaTime);
+            _progressPerSecTimer?.Tick(Time.deltaTime);
             WorkDetails.ForEach(d => d.Update(Time.deltaTime));
         }
     }

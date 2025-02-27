@@ -9,11 +9,17 @@ public class CraftingMaterialSprite
     public Sprite sprite;
 }
 
-public class BlindBoxMachine : QueueMachine
+[Serializable]
+public class BlindBoxWithNumber : BlindBox
 {
-    [SerializeField]public List<Recipe> recipes;
+    public int number;
+}
+
+public class BlindBoxMachine : QueueMachine<BlindBoxWithNumber>
+{
+    [SerializeField] public List<Recipe> recipes;
     [SerializeField] public int SlotNumber; 
     [SerializeField] public int ProduceSpeed;
-    [SerializeField] public string Description;
     [SerializeField] public int level;
+
 }

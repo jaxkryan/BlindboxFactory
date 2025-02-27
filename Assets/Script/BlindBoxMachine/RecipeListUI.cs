@@ -2,18 +2,43 @@ using UnityEngine;
 
 public class RecipeListUI : MonoBehaviour
 {
-    [SerializeField] private BlindBoxMachine machine;
+    [SerializeField] public BlindBoxMachine machine;
     [SerializeField] private RecipeButton recipeButtonPrefab;
     [SerializeField] private Transform contentParent;
     [SerializeField] private MaterialSpriteManager materialSpriteManager;
 
+    public static RecipeListUI Instance { get; private set; }
     private void Awake()
     {
-        machine = BlindBoxInformationDisplay.Instance.GetCurrentDisplayedObject();
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Debug.Log("Current BlindBoxMachine: " + machine);
 
         if (machine != null)
         {
-            Debug.LogError(machine.name);
+            GenerateButtons();
+        }
+        else
+        {
+            Debug.LogWarning("[RecipeListUI] No BlindBoxMachine assigned yet.");
+        }
+    }
+
+    private void OnEnable()
+    {
+        machine = BlindBoxInformationDisplay.Instance.GetCurrentDisplayedObject();
+        Debug.Log("Current BlindBoxMachine: " + machine);
+
+        if (machine != null)
+        {
             GenerateButtons();
         }
         else
