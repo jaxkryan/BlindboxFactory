@@ -23,12 +23,12 @@ namespace Script.HumanResource.Administrator.Policies {
             machines.ForEach(ApplyBonus);
             
             controller.onMachineAdded += ApplyBonus;
-            controller.onMachineRemoved += ApplyBonus;
+            controller.onMachineRemoved += UnapplyBonus;
         }
 
         protected override void ResetValues() {
             var controller = GameController.Instance.MachineController;
-            _appliedMachines.ForEach(UnapplyBonus);
+            _appliedMachines.Clone().ForEach(UnapplyBonus);
         }
 
         private List<IMachine> _appliedMachines = new();

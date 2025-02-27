@@ -64,6 +64,7 @@ namespace Script.Patterns.AI.GOAP.Strategies {
             //             && _agent.CalculatePath(s.transform.position, new NavMeshPath())))
             //     .ToHashSet();
             var weighted = slots.OrderBy(s => s.Value.Weight);
+            
             //Evaluate options
             foreach (var w in weighted) {
                 //Move down the weighted list until a machine is wish listed

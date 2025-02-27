@@ -8,12 +8,13 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace Script.Machine {
+    [DisallowMultipleComponent]
     public class MachineSlot : MonoBehaviour {
         [CanBeNull] public IWorker CurrentWorker {get; private set;}
         [CanBeNull] public IWorker WishListWorker  {get; private set;}
         private CountdownTimer _wishlistTimer;
 
-        [FormerlySerializedAs("_wishlistTravel")] [FormerlySerializedAs("_wishlistDistanceCountdown")] [SerializeField] private float _wishlistTravelTimer;
+        [SerializeField] private float _wishlistTravelTimer;
         [SerializeField] public bool _forAll;
         [ConditionalField("_forAll", true)]
         [SerializeField] private CollectionWrapperList<WorkerType> _forWorker;
@@ -44,6 +45,8 @@ namespace Script.Machine {
         }
 
         public bool CanAddWorker(IWorker worker) {
+            if (Machine.IsClosed) return false;
+            
             if (_forAll) return true;
             return _forWorker.Value.Any(w => w == IWorker.ToWorkerType(worker));
         }
