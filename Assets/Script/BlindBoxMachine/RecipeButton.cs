@@ -114,15 +114,38 @@ public class RecipeButton : MonoBehaviour
     }
     public void CraftingAdd()
     {
-        BlindBoxWithNumber blindBoxNumberPerCraft = new BlindBoxWithNumber();
+        
+            Debug.Log("[CraftingAdd] Function was called.");
 
+        if (BlindBoxQueueDisplay.Instance == null)
+        {
+            Debug.LogError("[CraftingAdd] BlindBoxQueueDisplay.Instance is NULL!");
+            return;
+        }
+
+        //BlindBoxWithNumber blindBoxNumberPerCraft = new BlindBoxWithNumber();
+
+        //if ((int)numberSlider.value == 0) return;
+
+
+        //blindBoxNumberPerCraft.number = (int)numberSlider.value;
+        //blindBoxNumberPerCraft.boxTypeName = currentrecipe.result.boxTypeName;
+
+        //RecipeListUI.Instance.machine.EnqueueProduct(blindBoxNumberPerCraft);
+        //BlindBoxQueueDisplay.Instance.UpdateQueueUI();
+        var currentBlindBox = RecipeListUI.Instance.machine.currentBlindBox;
+        var amount = RecipeListUI.Instance.machine.amount;
         if ((int)numberSlider.value == 0) return;
 
-
-        blindBoxNumberPerCraft.number = (int)numberSlider.value;
-        blindBoxNumberPerCraft.boxTypeName = currentrecipe.result.boxTypeName;
-
-        RecipeListUI.Instance.machine.EnqueueProduct(blindBoxNumberPerCraft);
+        if (currentBlindBox.boxTypeName == currentrecipe.result.boxTypeName || currentBlindBox == null)
+        {
+            RecipeListUI.Instance.machine.amount += (int)numberSlider.value;
+        }
+        else if(amount == 0)
+        {
+            RecipeListUI.Instance.machine.currentBlindBox = currentrecipe.result;
+            RecipeListUI.Instance.machine.amount = (int)numberSlider.value;
+        }
         BlindBoxQueueDisplay.Instance.UpdateQueueUI();
 
     }

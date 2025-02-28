@@ -1,15 +1,19 @@
 using Script.Machine;
+using Script.Machine.Products;
 using System;
 using UnityEngine;
 
 [Serializable]
-public class BlindBox : IProduct
+public class BlindBox : ProductBase
 {
-    public float MaxProgress => throw new System.NotImplementedException();
+    public override float MaxProgress => 10f;
 
-    public void OnProductCreated()
-    {
-        throw new System.NotImplementedException();
-    }
     public BoxTypeName boxTypeName;
+
+    public override void OnProductCreated()
+    {
+        throw new NotImplementedException();
+    }
+
+
 }
