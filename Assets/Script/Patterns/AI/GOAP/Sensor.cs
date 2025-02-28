@@ -5,7 +5,7 @@ using UnityEngine;
         [SerializeField] private float _detectionRadius = 5f;
         [SerializeField] private float _timerInterval = 1f;
 
-        private SphereCollider _detectionRange;
+        private CircleCollider2D _detectionRange;
         
         public event Action onTargetChanged = delegate { };
         
@@ -20,7 +20,7 @@ using UnityEngine;
         CountdownTimer _timer;
         
         protected virtual void Awake() {
-            _detectionRange = GetComponent<SphereCollider>();
+            _detectionRange = GetComponent<CircleCollider2D>();
             _detectionRange.isTrigger = true;
             _detectionRange.radius = _detectionRadius;
         }

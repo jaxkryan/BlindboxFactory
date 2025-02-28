@@ -178,7 +178,7 @@ namespace Script.HumanResource.Worker {
                 .Build());
             Actions.Add(new AgentAction.Builder("Wander")
                 .WithStrategy(new WanderStrategy(_navMeshAgent, 10f))
-                .AddEffect(Beliefs["Nothing"])
+                .AddEffect(Beliefs[$"{_worker.Name}Walking"])
                 .Build());
             Actions.Add(new AgentAction.Builder($"MoveToMachine")
                 .WithCost(2)

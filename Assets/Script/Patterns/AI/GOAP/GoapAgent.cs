@@ -9,7 +9,7 @@ using UnityEngine.AI;
 public abstract class GoapAgent : MonoBehaviour {
     protected NavMeshAgent _navMeshAgent;
     protected Animator _animation;
-    protected Rigidbody _rb;
+    protected Rigidbody2D _rb;
 
     protected GameObject _target;
     protected Vector3 _destination;
@@ -21,6 +21,8 @@ public abstract class GoapAgent : MonoBehaviour {
     public Dictionary<string, AgentBelief> Beliefs;
     public HashSet<AgentAction> Actions;
     public HashSet<AgentGoal> Goals;
+
+    [SerializeField] protected bool _log;
     
     IGoapPlanner _planner;
     
@@ -29,7 +31,7 @@ public abstract class GoapAgent : MonoBehaviour {
     protected virtual void Awake() {
         _navMeshAgent = GetComponent<NavMeshAgent>();
         _animation = GetComponent<Animator>();
-        _rb = GetComponent<Rigidbody>();
+        _rb = GetComponent<Rigidbody2D>();
         _rb.freezeRotation = true;
         
         _planner = new GoapPlanner();
@@ -51,7 +53,7 @@ public abstract class GoapAgent : MonoBehaviour {
         _timers.ForEach(t => t.Tick(Time.deltaTime));
 
         if (CurrentAction == null) {
-            Debug.Log("Calculating any potential new plan");
+            if (_log) Debug.Log("Calculating any potential new plan");
             CalculatePlan();
         }
 
@@ -59,9 +61,9 @@ public abstract class GoapAgent : MonoBehaviour {
             _navMeshAgent.ResetPath();
 
             CurrentGoal = ActionPlan.AgentGoal;
-            Debug.Log($"Goal: {CurrentGoal.Name} with {ActionPlan.Actions.Count} actions planned.");
+            if (_log) Debug.Log($"Goal: {CurrentGoal.Name} with {ActionPlan.Actions.Count} actions planned.");
             CurrentAction = ActionPlan.Actions.Pop();
-            Debug.Log($"Current action is {CurrentAction.Name}");
+            if (_log) Debug.Log($"Current action is {CurrentAction.Name}");
             CurrentAction.Start();
         }
 
@@ -69,13 +71,13 @@ public abstract class GoapAgent : MonoBehaviour {
             CurrentAction.Update(Time.deltaTime);
 
             if (CurrentAction.Complete) {
-                Debug.Log($"Action: {CurrentAction.Name} is complete.");
+                if (_log) Debug.Log($"Action: {CurrentAction.Name} is complete.");
                 CurrentAction.Stop(); 
                 CurrentAction = null;
 
 
                 if (ActionPlan.Actions.Any()) {
-                    Debug.Log("Plan complete.");
+                    if (_log) Debug.Log("Plan complete.");
                     _lastGoal = CurrentGoal;
                     CurrentGoal = null;
                 }
@@ -89,13 +91,20 @@ public abstract class GoapAgent : MonoBehaviour {
         HashSet<AgentGoal> goalsToCheck = Goals;
 
         if (CurrentGoal != null) {
-            Debug.Log("Current goal exists, checking goals with higher priority");
-            goalsToCheck = new HashSet<AgentGoal>(Goals.Where(g => g.Priority > priority));
+            if (_log) Debug.Log("Current goal exists, checking goals with higher priority");
+            goalsToCheck = new HashSet<AgentGoal>(Goals.Where(g => g.Priority >= priority)
+                .Where(g => g != CurrentGoal)
+                .OrderByDescending(g => g.Priority));
         }
 
         var potentialPlan = _planner.Plan(this, goalsToCheck, _lastGoal);
         if (potentialPlan != null) {
             ActionPlan = potentialPlan;
+        }
+        else {
+            CurrentAction = null;
+            CurrentGoal = null;
+            ActionPlan = null;
         }
     }
 

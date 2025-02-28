@@ -89,6 +89,8 @@ namespace Script.HumanResource.Worker {
                 return;
             }
 
+            WorkingSlot = null;
+            Machine = null;
             onStopWorking?.Invoke();
         }
         public void AddBonus(Bonus bonus) {
@@ -102,7 +104,10 @@ namespace Script.HumanResource.Worker {
         }
 
         private void Awake() {
+            Agent.updateRotation = false;
+            Agent.updateUpAxis = false;
             _director = GetComponent<WorkerDirector>();
+            _currentCores = new();
             if (_runtimeAnimator) Animator.runtimeAnimatorController = _runtimeAnimator;
         }
 
