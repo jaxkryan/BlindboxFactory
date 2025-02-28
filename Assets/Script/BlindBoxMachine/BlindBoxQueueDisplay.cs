@@ -6,9 +6,6 @@ using TMPro;
 public class BlindBoxQueueDisplay : MonoBehaviour
 {
     public static BlindBoxQueueDisplay Instance { get; private set; }
-
-    [SerializeField] public Transform contentParent;
-    [SerializeField] GameObject itemPrefab;
     [SerializeField] TMP_Text currentText;
     [SerializeField] Image currentImage;
 
@@ -42,27 +39,54 @@ public class BlindBoxQueueDisplay : MonoBehaviour
     //    UpdateQueueUI();
     //}
 
+    //public void UpdateQueueUI()
+    //{
+    //    // Clear previous items
+    //    foreach (Transform child in contentParent)
+    //    {
+    //        Destroy(child.gameObject);
+    //    }
+
+    //    var blindboxMachine = BlindBoxInformationDisplay.Instance.GetCurrentDisplayedObject();
+
+    //    // Populate the ScrollView with queued items
+    //    foreach (var item in blindboxMachine.GetProductQueue())
+    //    {
+    //        GameObject newItemUI = Instantiate(itemPrefab, contentParent);
+
+    //        BoxData boxData = boxTypeManager.GetBoxData(item.boxTypeName);
+    //        newItemUI.transform.Find("Text").GetComponent<TMP_Text>().text = $"Box: {item.boxTypeName} \n {item.number}";
+    //        newItemUI.transform.Find("Image").GetComponent<Image>().sprite = boxData.sprite;
+    //    }
+
+    //    if (blindboxMachine.GetCurrentProduct() == null)
+    //    {
+    //        currentText.gameObject.SetActive(false);
+    //        currentImage.gameObject.SetActive(false);
+    //    }
+    //    else
+    //    {
+    //        currentText.gameObject.SetActive(true);
+    //        currentImage.gameObject.SetActive(true);
+
+    //        BoxData currentBoxData = boxTypeManager.GetBoxData(blindboxMachine.GetCurrentProduct().boxTypeName);
+    //        currentText.text = $"Box: {blindboxMachine.GetCurrentProduct().boxTypeName} " +
+    //            $"\n {blindboxMachine.GetCurrentProduct().number}";
+    //        currentImage.sprite = currentBoxData.sprite;
+    //    }
+
+
+    //}
+
     public void UpdateQueueUI()
     {
-        // Clear previous items
-        foreach (Transform child in contentParent)
-        {
-            Destroy(child.gameObject);
-        }
+        var blindboxMachine = BlindBoxInformationDisplay.Instance.GetCurrentDisplayedObject();
 
-        var queueMachine = BlindBoxInformationDisplay.Instance.GetCurrentDisplayedObject();
+        Debug.Log($"Box: {blindboxMachine.currentBlindBox.boxTypeName} " +
+                $"\n {blindboxMachine.amount}");
 
-        // Populate the ScrollView with queued items
-        foreach (var item in queueMachine.GetProductQueue())
-        {
-            GameObject newItemUI = Instantiate(itemPrefab, contentParent);
 
-            BoxData boxData = boxTypeManager.GetBoxData(item.boxTypeName);
-            newItemUI.transform.Find("Text").GetComponent<TMP_Text>().text = $"Box: {item.boxTypeName} \n {item.number}";
-            newItemUI.transform.Find("Image").GetComponent<Image>().sprite = boxData.sprite;
-        }
-
-        if (queueMachine.GetCurrentProduct() == null)
+        if (blindboxMachine.amount == 0)
         {
             currentText.gameObject.SetActive(false);
             currentImage.gameObject.SetActive(false);
@@ -72,22 +96,12 @@ public class BlindBoxQueueDisplay : MonoBehaviour
             currentText.gameObject.SetActive(true);
             currentImage.gameObject.SetActive(true);
 
-            BoxData currentBoxData = boxTypeManager.GetBoxData(queueMachine.GetCurrentProduct().boxTypeName);
-            currentText.text = $"Box: {queueMachine.GetCurrentProduct().boxTypeName} " +
-                $"\n {queueMachine.GetCurrentProduct().number}";
+            BoxData currentBoxData = boxTypeManager.GetBoxData(blindboxMachine.currentBlindBox.boxTypeName);
+            currentText.text = $"Box: {blindboxMachine.currentBlindBox.boxTypeName} " +
+                $"\n {blindboxMachine.amount}";
             currentImage.sprite = currentBoxData.sprite;
         }
-
-        
     }
 
-    private void DebugQueue()
-    {
-        Debug.Log("Current Queue Contents:");
 
-        foreach (var item in RecipeListUI.Instance.machine.GetProductQueue())
-        {
-            Debug.Log($"BoxType: {item.boxTypeName}, Number: {item.number}");
-        }
-    }
 }

@@ -1036,10 +1036,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b5c8a04908cde243b4b42004e5d134e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _powerUse: 0
+  _resourceUse:
+    _serializedList: []
   _isClosed: 0
   _slot: []
   _maxProgress: 0
   _workDetails: []
+  _product:
+    rid: -2
+  currencBlindBox:
+    boxTypeName: 0
+  amount: 0
   recipes:
   - materials:
     - material: 0
@@ -1070,12 +1078,13 @@ MonoBehaviour:
       amount: 4
     result:
       boxTypeName: 1
-  SlotNumber: 0
-  ProduceSpeed: 0
+  maxAmount: 0
   level: 0
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
 --- !u!212 &1518176329254882740
 SpriteRenderer:
   m_ObjectHideFlags: 0
