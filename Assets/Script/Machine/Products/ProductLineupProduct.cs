@@ -40,20 +40,20 @@ namespace Script.Machine.Products {
 
     [Serializable]
     public class ProductLineupListProduct : ProductLineupProduct {
-        [SerializeReference, SubclassSelector] private CollectionWrapperList<ProductBase> _products;
+        [SerializeReference, SubclassSelector] private List<ProductBase> _products;
 
         protected override List<ResourceUse> GetResourceUse() {
             var list = new List<ResourceUse>();
-            _products.Value.ForEach(p => list.AddRange(p.ResourceUse));
+            _products.ForEach(p => list.AddRange(p.ResourceUse));
             return list;
         }
 
         protected override ProductBase SelectNextProduct(ProductBase current = null) {
-            if ((_products?.Value.Count ?? 0) == 0) throw new System.Exception("Products lineup cannot be empty");
+            if ((_products?.Count ?? 0) == 0) throw new System.Exception("Products lineup cannot be empty");
 
-            if (current is null || !_products.Value.Contains(current)) return _products.Value.First();
+            if (current is null || !_products.Contains(current)) return _products.First();
             
-            return _products.Value.Count > _products.Value.IndexOf(current) + 1 ? _products.Value.ElementAt(_products.Value.IndexOf(current) + 1) : _products.Value.First();
+            return _products.Count > _products.IndexOf(current) + 1 ? _products.ElementAt(_products.IndexOf(current) + 1) : _products.First();
         }
     }
 }

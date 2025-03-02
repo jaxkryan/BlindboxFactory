@@ -12,12 +12,21 @@ namespace Script.Machine.ResourceManager {
         public int Amount { get => _amount; }
         [SerializeField]private int _amount;
         protected MachineBase _machine;
+        private bool _started = false;
 
-        public virtual void Start(MachineBase machine) {
+        public void Start(MachineBase machine) {
+            if (_started) return;
             _machine = machine;
+            OnStart();
         }
 
-        public virtual void Stop() { }
+        protected abstract void OnStart();
+
+        public void Stop() {
+            if (!_started) return;
+            OnStop();   
+        }
+        protected abstract void OnStop();
 
         protected virtual void UseResource() {
             var controller = GameController.Instance.ResourceController;
@@ -34,17 +43,13 @@ namespace Script.Machine.ResourceManager {
 
     [Serializable]
     public class ResourceUseOnProductCreated : ResourceUse {
-        public override void Start(MachineBase machine) {
-            base.Start(machine);
-
+        protected override void OnStart() {
             _machine.onCreateProduct += OnCreateProduct;
         }
         
         private void OnCreateProduct(ProductBase product) => UseResource();
 
-        public override void Stop() {
-            base.Stop();
-            
+        protected override void OnStop() {
             _machine.onCreateProduct -= OnCreateProduct;
         }
     }
@@ -56,9 +61,7 @@ namespace Script.Machine.ResourceManager {
 
         private Timer _timer;
         
-        public override void Start(MachineBase machine) {
-            base.Start(machine);
-
+        protected override void OnStart() {
             if (_timer is null) {
                 _timer = new CountdownTimer(TimeInterval);
                 _timer.OnTimerStop += OnTimerStop;
@@ -71,9 +74,7 @@ namespace Script.Machine.ResourceManager {
             _timer.Start();
         }
 
-        public override void Stop() {
-            base.Stop();
-            
+        protected override void OnStop() {
             _timer.Pause();
         }
     }

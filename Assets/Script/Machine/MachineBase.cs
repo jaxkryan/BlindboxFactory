@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AYellowpaper.SerializedCollections;
-using MyBox;
 using Script.HumanResource.Worker;
 using Script.Machine.Products;
-using Script.Resources;
+using Script.Machine.ResourceManager;
 using UnityEngine;
 
 namespace Script.Machine {
@@ -14,10 +12,11 @@ namespace Script.Machine {
         public int PowerUse { get => _powerUse; set => _powerUse = value; }
         [SerializeField] private int _powerUse = 0;
         public List<ResourceManager.ResourceUse> ResourceUse {
-            get => _product.ResourceUse;
+            get => _product?.ResourceUse;
         }
-        [Obsolete]
-        // private ResourceManager.ResourceManager _resourceManager;
+        private ResourceManager.ResourceManager _resourceManager;
+
+        [SerializeField] public Vector2Int BuildingDimension;
         
         public float ProgressionPerSec {
             get {
@@ -68,8 +67,6 @@ namespace Script.Machine {
         public float MaxProgress {
             get => Product.MaxProgress;
         }
-
-        [SerializeField] float _maxProgress;
 
         public IEnumerable<IWorker> Workers {
             get => _slot.Select(s => s.CurrentWorker).Where(w => w != null);
@@ -143,12 +140,21 @@ namespace Script.Machine {
         public void SetMachinePlacedTime(DateTimeOffset time) => _placedTime = time;
         
         public virtual ProductBase CreateProduct() {
+            _resourceManager.TryConsumeResources(1, out _);
             _product?.OnProductCreated();
             onCreateProduct?.Invoke(_product);
             return _product;
         }
 
         public void IncreaseProgress(float progress) {
+            if (_resourceManager is not null && !_resourceManager.HasResourcesForWork(out _)) {
+                _resourceManager.UnlockResource();
+                _resourceManager.SetResourceUses(ResourceUse.ToArray());
+                if (!_resourceManager.TryPullResource(1, out _)) {
+                    Debug.LogError($"Machine {name} does not have enough resource to work.");
+                    return;
+                }
+            }
             CurrentProgress += progress;
             onProgress?.Invoke(progress);
             _progressQueue.Enqueue(progress);
@@ -161,7 +167,15 @@ namespace Script.Machine {
         protected virtual void Awake() {
             WorkDetails.ForEach(d => d.Machine = this);
             _progressPerSecTimer = new CountdownTimer(1);
-            // _resourceManager = new();
+            _resourceManager = new();
+        }
+
+        private void OnEnable() {
+            ResourceUse?.ForEach(r => r.Start(this));
+        }
+
+        private void OnDisable() {            
+            ResourceUse?.ForEach(r => r.Stop());
         }
 
         protected virtual void Start() {
@@ -184,8 +198,14 @@ namespace Script.Machine {
             #endregion
 
             #region Resource
-            // _resourceManager.SetResourceUses(ResourceUse.ToArray());
+            _resourceManager?.SetResourceUses(ResourceUse.ToArray());
+            onProductChanged += product => {
+                Debug.Log("Product changed to " + nameof(product));
+                _resourceManager?.UnlockResource();
+                _resourceManager?.SetResourceUses(product.ResourceUse.ToArray());
+            };
 
+            ResourceUse?.ForEach(r => r.Start(this));
             #endregion
         }
 

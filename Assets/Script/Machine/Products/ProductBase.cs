@@ -11,4 +11,12 @@ namespace Script.Machine.Products {
         public abstract List<ResourceUse> ResourceUse { get; }
         public abstract void OnProductCreated();
     }
+
+    [Serializable]
+    public abstract class SingleProductBase : ProductBase {
+        public override float MaxProgress { get => _maxProgress; }
+        [SerializeField] private float _maxProgress = 100f;
+        public override List<ResourceUse> ResourceUse { get => _resourceUse; }
+        [SerializeReference, SubclassSelector] private List<ResourceUse> _resourceUse = new();
+    }
 }
