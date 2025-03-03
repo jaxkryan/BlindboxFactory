@@ -2022,9 +2022,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d372bfa5db23b5a4c9fd393ca27031d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minZoom: 2
-  maxZoom: 8
-  zoomSpeed: 0.5
+  minZoom: 4
+  maxZoom: 20
+  zoomSpeed: 0.01
   dragSpeed: 0.01
 --- !u!1 &423761073
 GameObject:
@@ -2060,7 +2060,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 2.3839722, y: 8.909485}
+  m_AnchoredPosition: {x: 2.3839722, y: 8.909424}
   m_SizeDelta: {x: -124.77, y: -552.662}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &423761075
@@ -5013,6 +5013,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: _product
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: maxAmount
       value: 100
       objectReference: {fileID: 0}
@@ -5033,16 +5037,72 @@ PrefabInstance:
       value: Assembly-CSharp Script.Machine.WorkDetails.IncreaseProgressWorkDetail
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: 'managedReferences[7910668475171602522]'
+      value: Assembly-CSharp BlindBox
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: 'managedReferences[7910668475171602523]'
+      value: Assembly-CSharp BlindBox
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: 'managedReferences[7910668475171602524]'
+      value: Assembly-CSharp Script.Machine.Products.ProductLineupListProduct
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: 'managedReferences[7910668475171602525]'
+      value: Assembly-CSharp Script.Machine.Products.KitchenMealProduct
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: 'managedReferences[7910668475171602526]'
+      value: Assembly-CSharp BlindBox
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: managedReferences[2312622124450185216].Slot
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668475171602525]._amount
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668475171602525]._storage
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668475171602522].boxTypeName
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668475171602523].boxTypeName
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668475171602526].boxTypeName
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668475171602525]._maxProgress
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: managedReferences[2312622124450185216].IntervalSeconds
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668475171602524]._products.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: managedReferences[2312622124450185216].ProgressionPerInterval
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: 'managedReferences[7910668475171602524]._products.Array.data[0]'
+      value: 7910668475171602526
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668475171602525]._resourceUse.Array.size
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8284014283406218547, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: m_SizeDelta.x

@@ -11,12 +11,23 @@ public struct BoxData
 
 public class BoxTypeManager : MonoBehaviour
 {
-    public List<BoxData> boxDataList = new List<BoxData>();  // Assign in Inspector
+    public static BoxTypeManager Instance { get; private set; }
+
+    public List<BoxData> boxDataList = new List<BoxData>();
     private Dictionary<BoxTypeName, BoxData> boxTypeDictionary;
 
-    void Awake()
+    private void Awake()
     {
-        // Convert list to dictionary at runtime
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+
         boxTypeDictionary = new Dictionary<BoxTypeName, BoxData>();
         foreach (var data in boxDataList)
         {
