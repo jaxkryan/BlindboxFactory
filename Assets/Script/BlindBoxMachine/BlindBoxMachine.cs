@@ -1,16 +1,19 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class BlindBoxMachine : MonoBehaviour
+[Serializable]
+public class CraftingMaterialSprite
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    public CraftingMaterial material;
+    public Sprite sprite;
+}
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+public class BlindBoxMachine : QueueMachine
+{
+    [SerializeField]public List<Recipe> recipes;
+    [SerializeField] public int SlotNumber; 
+    [SerializeField] public int ProduceSpeed;
+    [SerializeField] public string Description;
+    [SerializeField] public int level;
 }
