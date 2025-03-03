@@ -53,7 +53,7 @@ namespace Script.Controller {
 
         public IEnumerable<MachineBase> FindWorkableMachines([CanBeNull] IEnumerable<MachineBase> machines = null) {
             if (machines == null) machines = Machines;
-            return machines.Where(m => m.Slots.Count() > m.Workers.Count());
+            return machines.Where(m => !m.IsClosed && m.HasResourceForWork && m.Slots.Count() > m.Workers.Count());
         }
 
         public IEnumerable<MachineBase> FindWorkableMachines(IWorker worker, [CanBeNull] IEnumerable<MachineBase> machines = null) =>

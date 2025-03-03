@@ -11,16 +11,16 @@ public class WorkStrategy : IActionStrategy {
     public bool CanPerform => !Complete;
     public bool Complete { get; private set; }
 
-    private readonly MachineSlot _slot ;
+    private MachineSlot _slot ;
     readonly IWorker _worker;
     
     public WorkStrategy(IWorker worker) {
-        _slot = worker.Director.TargetSlot;
         _worker = worker;
         Complete = false;
     }
 
     public void Start() {
+        _slot = _worker.Director.TargetSlot;
         _slot.Machine.AddWorker(_worker, _slot);
 
         if (!ReferenceEquals(_worker.Machine, _slot.Machine)) {

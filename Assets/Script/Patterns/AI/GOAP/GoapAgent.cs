@@ -16,7 +16,16 @@ public abstract class GoapAgent : MonoBehaviour {
     protected AgentGoal _lastGoal;
     public AgentGoal CurrentGoal;
     public ActionPlan ActionPlan;
-    public AgentAction CurrentAction;
+    public AgentAction CurrentAction {
+        get => _currentAction;
+        set {
+            _current = value?.Name;
+            _currentAction = value;
+        }
+    }
+
+    [SerializeField] private string _current;
+    public AgentAction _currentAction;
     
     public Dictionary<string, AgentBelief> Beliefs;
     public HashSet<AgentAction> Actions;
@@ -47,64 +56,65 @@ public abstract class GoapAgent : MonoBehaviour {
         SetupActions();
         SetupGoals();
     }
-
-    protected virtual void Update() {
+    void Update() {
+        _timers?.ForEach(t =>t.Tick(Time.deltaTime));
         _animation.speed = _navMeshAgent.velocity.magnitude;
-        _timers.ForEach(t => t.Tick(Time.deltaTime));
-
+        
+        // Update the plan and current action if there is one
         if (CurrentAction == null) {
-            if (_log) Debug.Log("Calculating any potential new plan");
+            Debug.Log("Calculating any potential new plan");
             CalculatePlan();
+
+            if (ActionPlan != null && ActionPlan.Actions.Count > 0) {
+                _navMeshAgent.ResetPath();
+
+                CurrentGoal = ActionPlan.AgentGoal;
+                if (_log) Debug.Log($"Goal: {CurrentGoal.Name} with {ActionPlan.Actions.Count} actions in plan ({string.Join(", ", ActionPlan.Actions.Select(a => a.Name))}).");
+                CurrentAction = ActionPlan.Actions.Pop();
+                if (_log) Debug.Log($"Popped action: {CurrentAction.Name}");
+                // Verify all precondition effects are true
+                if (CurrentAction.Preconditions.All(b => b.Evaluate())) {
+                    CurrentAction.Start();
+                } else {
+                    var condition = CurrentAction.Preconditions.Where(c => !c.Evaluate()).Select(a => a.Name);
+                    if (_log) Debug.Log($"Preconditions not met, clearing current action and goal ({string.Join(", ", condition)})");
+                    CurrentAction = null;
+                    CurrentGoal = null;
+                }
+            }
         }
 
-        if (ActionPlan != null && ActionPlan.Actions.Any()) {
-            _navMeshAgent.ResetPath();
-
-            CurrentGoal = ActionPlan.AgentGoal;
-            if (_log) Debug.Log($"Goal: {CurrentGoal.Name} with {ActionPlan.Actions.Count} actions planned.");
-            CurrentAction = ActionPlan.Actions.Pop();
-            if (_log) Debug.Log($"Current action is {CurrentAction.Name}");
-            CurrentAction.Start();
-        }
-
+        // If we have a current action, execute it
         if (ActionPlan != null && CurrentAction != null) {
             CurrentAction.Update(Time.deltaTime);
 
             if (CurrentAction.Complete) {
-                if (_log) Debug.Log($"Action: {CurrentAction.Name} is complete.");
-                CurrentAction.Stop(); 
+                if (_log) Debug.Log($"{CurrentAction.Name} complete");
+                CurrentAction.Stop();
                 CurrentAction = null;
 
-
-                if (ActionPlan.Actions.Any()) {
-                    if (_log) Debug.Log("Plan complete.");
+                if (ActionPlan.Actions.Count == 0) {
+                    if (_log) Debug.Log("Plan complete");
                     _lastGoal = CurrentGoal;
                     CurrentGoal = null;
                 }
             }
         }
     }
-
     private void CalculatePlan() {
-        var priority = CurrentGoal?.Priority ?? 0;
-
+        var priorityLevel = CurrentGoal?.Priority ?? 0;
+        
         HashSet<AgentGoal> goalsToCheck = Goals;
-
+        
+        // If we have a current goal, we only want to check goals with higher priority
         if (CurrentGoal != null) {
             if (_log) Debug.Log("Current goal exists, checking goals with higher priority");
-            goalsToCheck = new HashSet<AgentGoal>(Goals.Where(g => g.Priority >= priority)
-                .Where(g => g != CurrentGoal)
-                .OrderByDescending(g => g.Priority));
+            goalsToCheck = new HashSet<AgentGoal>(Goals.Where(g => g.Priority > priorityLevel));
         }
-
+        
         var potentialPlan = _planner.Plan(this, goalsToCheck, _lastGoal);
         if (potentialPlan != null) {
             ActionPlan = potentialPlan;
-        }
-        else {
-            CurrentAction = null;
-            CurrentGoal = null;
-            ActionPlan = null;
         }
     }
 

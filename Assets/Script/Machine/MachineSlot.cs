@@ -23,7 +23,7 @@ namespace Script.Machine {
         public bool SetCurrentWorker([CanBeNull] IWorker worker = null) {
             if (worker != null) {
                 if (CurrentWorker == worker) return true;
-                if (CurrentWorker == null) {
+                if (CurrentWorker != null) {
                     Debug.LogError($"{this.name} slot is occupied!");
                     return false;
                 }
@@ -52,15 +52,17 @@ namespace Script.Machine {
         }
         
         public bool SetWishlist([CanBeNull] IWorker worker = null) {
-            if (WishListWorker == null && worker != null) {
-                Debug.LogError($"{this.name} slot is wish listed!");
-                return false;
-            }
+            if (worker != null) {
+                if (WishListWorker != null) {
+                    Debug.LogError($"{this.name} slot is wish listed!");
+                    return false;
+                }
 
-            if (worker != null && !CanAddWorker(worker)) {
-                var type = worker is Worker monoWorker ? $"({monoWorker.name})" : "";
-                Debug.LogError($"{worker.Name}{type} cannot be added to this slot!");
-                return false;
+                if (!CanAddWorker(worker)) {
+                    var type = worker is Worker monoWorker ? $"({monoWorker.name})" : "";
+                    Debug.LogError($"{worker.Name}{type} cannot be added to this slot!");
+                    return false;
+                }
             }
             WishListWorker = worker;
             if (WishListWorker != null) {

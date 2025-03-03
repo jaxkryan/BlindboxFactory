@@ -12,11 +12,13 @@ namespace Script.Machine.ResourceManager {
         public int Amount { get => _amount; }
         [SerializeField]private int _amount;
         protected MachineBase _machine;
+        protected ResourceManager _resourceManager;
         private bool _started = false;
 
-        public void Start(MachineBase machine) {
+        public void Start(MachineBase machine, ResourceManager resourceManager) {
             if (_started) return;
             _machine = machine;
+            _resourceManager = resourceManager;
             OnStart();
         }
 
@@ -29,14 +31,8 @@ namespace Script.Machine.ResourceManager {
         protected abstract void OnStop();
 
         protected virtual void UseResource() {
-            var controller = GameController.Instance.ResourceController;
-            if (!controller.TryGetAmount(_resource, out var amount)) {
-                Debug.LogError($"Cannot get resource amount {_resource}");
-                return;
-            }
-
-            if (!controller.TrySetAmount(_resource, amount - Amount)) {
-                Debug.LogError($"Cannot set resource {_resource} to new amount: {amount - Amount}");
+            if (!_resourceManager.TryConsumeResources(1, out _)) {
+                Debug.LogError($"Cannot consume resources!");
             }
         }
     }

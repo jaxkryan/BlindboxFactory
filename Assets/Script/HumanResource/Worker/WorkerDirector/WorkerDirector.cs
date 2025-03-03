@@ -82,7 +82,8 @@ namespace Script.HumanResource.Worker {
         public MachineSlot TargetSlot {
             get => _slot;
             set {
-                _workMachineSensor.Target = value.gameObject;
+                MachineLocation = value.transform;
+                _workMachineSensor.Target = value.Machine.gameObject;
                 _slot = value;
             }
         }
@@ -117,7 +118,7 @@ namespace Script.HumanResource.Worker {
                         => m.Slots.Any(s => s.WishListWorker != null 
                                             && (Worker)s.WishListWorker == _worker) 
                            && _workMachines(this).Contains(m)));
-            bf.AddBelief($"{_worker.Name}HasNoWishListedMachine", () => GameController.Instance.MachineController.Machines.Any(m => m.Slots.Any(s => s.WishListWorker != null && (Worker)s.WishListWorker == _worker)));
+            bf.AddBelief($"{_worker.Name}HasNoWishListedMachine", () => !GameController.Instance.MachineController.Machines.Any(m => m.Slots.Any(s => s.WishListWorker != null && (Worker)s.WishListWorker == _worker)));
             bf.AddBelief($"{_worker.Name}HasTargetMachine", () => _slot?.Machine is not null);
             
             foreach (CoreType core in Enum.GetValues(typeof(CoreType))) {
@@ -132,14 +133,30 @@ namespace Script.HumanResource.Worker {
                 bf.AddBelief($"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsFulfilled", () => 
                     _worker.CurrentCores[core] < needDict.GetValueOrDefault(core));
                 //Beliefs for machines that improve cores
-                bf.AddBelief($"{_worker.Name}Has{core}RecoveryMachine", () => _recoveryMachines(this, new[]{core}).Any());
-                bf.AddBelief($"{_worker.Name}HasNo{core}RecoveryMachine", () => !_recoveryMachines(this, new[]{core}).Any());
-                bf.AddBelief($"{_worker.Name}WishListedMachineIs{core}RecoveryMachine", 
-                    () => GameController.Instance.MachineController.Machines
-                        .Any(m => m.Slots
-                                      .Any(s => s.WishListWorker != null 
-                                                && (Worker)s.WishListWorker == _worker) 
-                                  && _recoveryMachines(this, new[]{core}).Contains(m)));
+                switch (core) {
+                    case CoreType.Happiness:
+                        bf.AddBelief($"{_worker.Name}Has{core}RecoveryMachine", () => _happinessRecoveryMachines(this).Any());
+                        bf.AddBelief($"{_worker.Name}HasNo{core}RecoveryMachine", () => !_happinessRecoveryMachines(this).Any());
+                        bf.AddBelief($"{_worker.Name}WishListedMachineIs{core}RecoveryMachine", 
+                            () => GameController.Instance.MachineController.Machines
+                                .Any(m => m.Slots
+                                              .Any(s => s.WishListWorker != null 
+                                                        && (Worker)s.WishListWorker == _worker) 
+                                          && _happinessRecoveryMachines(this).Contains(m)));
+                        break;
+                    case CoreType.Hunger:
+                        bf.AddBelief($"{_worker.Name}Has{core}RecoveryMachine", () => _hungerRecoveryMachines(this).Any());
+                        bf.AddBelief($"{_worker.Name}HasNo{core}RecoveryMachine", () => !_hungerRecoveryMachines(this).Any());
+                        bf.AddBelief($"{_worker.Name}WishListedMachineIs{core}RecoveryMachine", 
+                            () => GameController.Instance.MachineController.Machines
+                                .Any(m => m.Slots
+                                              .Any(s => s.WishListWorker != null 
+                                                        && (Worker)s.WishListWorker == _worker) 
+                                          && _hungerRecoveryMachines(this).Contains(m)));
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
             
             bf.AddSensorBelief($"{_worker.Name}AtMachine", _workMachineSensor);
@@ -182,18 +199,19 @@ namespace Script.HumanResource.Worker {
                 .Build());
             Actions.Add(new AgentAction.Builder($"MoveToMachine")
                 .WithCost(2)
-                .WithStrategy(new MoveStrategy(_navMeshAgent, () => _slot.transform.position))
+                .WithStrategy(new MoveToSlotStrategy(_worker))
                 .AddPrecondition(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                .AddEffect(Beliefs[$"{_worker.Name}AtMachine"])
                 .Build());
             Actions.Add(new AgentAction.Builder("WorkAtMachine")
                 .WithCost(3)
                 .WithStrategy(new WorkStrategy(_worker))
-                .AddPrecondition(Beliefs[$"{_worker.Name}WishListedMachineIsWorkMachine"])
+                .AddPrecondition(Beliefs[$"{_worker.Name}AtMachine"])
                 .AddEffect(Beliefs[$"{_worker.Name}Working"])
                 .Build());
 
             Actions.Add(new AgentAction.Builder("ConsiderWorkMachine")
-                .WithStrategy(new WishlistMachineStrategy(_worker, _workMachines(this), _navMeshAgent, 3))
+                .WithStrategy(new WishlistMachineStrategy(_worker, _workMachines, _navMeshAgent, 3))
                 .AddPrecondition(Beliefs[$"{_worker.Name}HasWorkableMachine"])
                 .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
                 .AddEffect(Beliefs[$"{_worker.Name}WishListedAMachine"])
@@ -202,7 +220,7 @@ namespace Script.HumanResource.Worker {
 
             foreach (CoreType core in Enum.GetValues(typeof(CoreType))) {
                 Actions.Add(new AgentAction.Builder($"Consider{core}RecoveryMachine")
-                    .WithStrategy(new WishlistMachineStrategy(_worker, _recoveryMachines(this, new[] { core }),
+                    .WithStrategy(new WishlistMachineStrategy(_worker, _recoveryMachines,
                         _navMeshAgent, 3))
                     .AddPrecondition(Beliefs[$"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsDepleted"])
                     .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
@@ -213,26 +231,38 @@ namespace Script.HumanResource.Worker {
                 Actions.Add(new AgentAction.Builder($"{core}RecoverAtMachine")
                     .WithCost(3)
                     .WithStrategy(new WorkStrategy(_worker))
-                    .AddPrecondition(Beliefs[$"{_worker.Name}WishListedMachineIs{core}RecoveryMachine"])
+                    .AddPrecondition(Beliefs[$"{_worker.Name}AtMachine"])
                     .AddEffect(Beliefs[$"{_worker.Name}Working"])
                     .Build());
             }
         }
         
         Func<WorkerDirector, HashSet<MachineBase>> _workableMachines = (director) => GameController.Instance.MachineController.FindWorkableMachines(director._worker).ToHashSet();
-        Func<WorkerDirector, CoreType[], HashSet<MachineBase>> _recoveryMachines = (director, cores) =>
-            GameController.Instance.MachineController
-                .FindWorkableMachines(
-                    director._worker
-                    , GameController.Instance.MachineController.RecoveryMachines
-                        .Where(m 
-                            => m.Value
-                                .Any(v => v.Worker == IWorker.ToWorkerType(director._worker) && cores.Contains(v.Core)))
-                        .Select(m => m.Key)).ToHashSet();
+
+        private Func<WorkerDirector, HashSet<MachineBase>> _happinessRecoveryMachines = (director) => {
+            var list = new List<MachineBase>();
+            list.AddRange(GameController.Instance.MachineController
+                .FindRecoveryMachine(CoreType.Happiness, director._worker));
+
+            return list.ToHashSet();
+        };
+        private Func<WorkerDirector, HashSet<MachineBase>> _hungerRecoveryMachines = (director) => {
+            var list = new List<MachineBase>();
+            list.AddRange(GameController.Instance.MachineController
+                .FindRecoveryMachine(CoreType.Hunger, director._worker));
+
+            return list.ToHashSet();
+        };
+        private Func<WorkerDirector, HashSet<MachineBase>> _recoveryMachines = (director) => 
+                director._happinessRecoveryMachines.Invoke(director)
+                    .Concat(director._hungerRecoveryMachines.Invoke(director)).ToHashSet();
+        
+        
+        
         Func<WorkerDirector, HashSet<MachineBase>> _workMachines = (director) => 
             director._workableMachines.Invoke(director)
                 .Except(
-                    director._recoveryMachines.Invoke(director, Enum.GetValues(typeof(CoreType)).Cast<CoreType>().ToArray()))
+                    director._recoveryMachines.Invoke(director))
                 .ToHashSet();
     }
 }

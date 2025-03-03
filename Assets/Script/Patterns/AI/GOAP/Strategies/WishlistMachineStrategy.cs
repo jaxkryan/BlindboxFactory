@@ -15,36 +15,41 @@ namespace Script.Patterns.AI.GOAP.Strategies {
         public bool Complete { get; private set; }
 
         private Worker _worker;
-        private HashSet<MachineBase> _machines;
+        private Func<WorkerDirector, HashSet<MachineBase>> _machines;
         private NavMeshAgent _agent;
         private int _retryAttempts;
         private CountdownTimer _timer;
         
-        public WishlistMachineStrategy(Worker worker, HashSet<MachineBase> machines, NavMeshAgent agent, int retryAttempts = 0, float retryTimer = 0.5f) {
+        public WishlistMachineStrategy(Worker worker, Func<WorkerDirector, HashSet<MachineBase>> machines, NavMeshAgent agent, int retryAttempts = 0, float retryTimer = 0.5f) {
             _worker = worker;
             _machines = machines;
             _agent = agent;
             _retryAttempts = retryAttempts;
-            _timer = new CountdownTimer(retryTimer);
+            _timer = new CountdownTimer(retryTimer);            
+            Complete = false;
         }
 
         public void Start() {
             if (TryWishlistMachine() || _retryAttempts <= 0) {
-                Complete = true;
+                Debug.Log($"Wishlisted: {_worker.WorkingSlot?.name ?? "Empty"}");
                 return;
             }
             _timer.OnTimerStop += Retry;
             _timer.Start();
         }
         private void Retry() {
-            if (TryWishlistMachine() || --_retryAttempts <= 0) return;
+            if (TryWishlistMachine() || --_retryAttempts <= 0) {
+                Complete = true;
+                return;
+            }
+            Debug.Log("retry");
             _timer.Start();
         }
 
         private bool TryWishlistMachine() {
             var slots = new Dictionary<MachineSlot, (int Weight, NavMeshPath Path, MachineBase Machine)>();
             
-            foreach (var machine in _machines) {
+            foreach (var machine in _machines(_worker.Director)) {
                 foreach (var slot in machine.Slots) {
                     var path = new NavMeshPath();
                     if (!slot.CanAddWorker(_worker)) continue;
@@ -67,9 +72,12 @@ namespace Script.Patterns.AI.GOAP.Strategies {
             
             //Evaluate options
             foreach (var w in weighted) {
+                Debug.LogWarning(w.Key.name);
                 //Move down the weighted list until a machine is wish listed
                 if (w.Key.SetWishlist(_worker)) {
                     _worker.Director.TargetSlot = w.Key;
+                    
+                    Complete = true;
                     return true;
                 }
             }
@@ -96,6 +104,7 @@ namespace Script.Patterns.AI.GOAP.Strategies {
 
         public void Update(float deltaTime) {
             _timer.Tick(deltaTime);
+            Debug.Log(_timer.Time);
         }
 
         public void Stop() {

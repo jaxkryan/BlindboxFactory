@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Script.Controller;
 using Script.HumanResource.Worker;
 using Script.Machine.Products;
 using Script.Machine.ResourceManager;
@@ -8,6 +9,7 @@ using UnityEngine;
 
 namespace Script.Machine {
     [DisallowMultipleComponent]
+    [RequireComponent(typeof(PolygonCollider2D))]
     public abstract class MachineBase : MonoBehaviour, IMachine, IBuilding {
         public int PowerUse { get => _powerUse; set => _powerUse = value; }
         [SerializeField] private int _powerUse = 0;
@@ -15,6 +17,7 @@ namespace Script.Machine {
             get => _product?.ResourceUse;
         }
         private ResourceManager.ResourceManager _resourceManager;
+        public bool HasResourceForWork => _resourceManager.HasResourcesForWork(out _);
 
         [SerializeField] public Vector2Int BuildingDimension;
         
@@ -147,10 +150,10 @@ namespace Script.Machine {
         }
 
         public void IncreaseProgress(float progress) {
-            if (_resourceManager is not null && !_resourceManager.HasResourcesForWork(out _)) {
+            if (_resourceManager is not null && !HasResourceForWork) {
                 _resourceManager.UnlockResource();
                 _resourceManager.SetResourceUses(ResourceUse.ToArray());
-                if (!_resourceManager.TryPullResource(1, out _)) {
+                if (!HasResourceForWork) {
                     Debug.LogError($"Machine {name} does not have enough resource to work.");
                     return;
                 }
@@ -159,7 +162,7 @@ namespace Script.Machine {
             onProgress?.Invoke(progress);
             _progressQueue.Enqueue(progress);
         }
-
+        
         public event Action<float> onProgress = delegate { };
 
         public event Action onWorkerChanged = delegate { };
@@ -171,7 +174,7 @@ namespace Script.Machine {
         }
 
         private void OnEnable() {
-            ResourceUse?.ForEach(r => r.Start(this));
+            ResourceUse?.ForEach(r => r.Start(this, _resourceManager));
         }
 
         private void OnDisable() {            
@@ -198,15 +201,18 @@ namespace Script.Machine {
             #endregion
 
             #region Resource
-            _resourceManager?.SetResourceUses(ResourceUse.ToArray());
+            _resourceManager.SetResourceUses(ResourceUse.ToArray());
             onProductChanged += product => {
                 Debug.Log("Product changed to " + nameof(product));
-                _resourceManager?.UnlockResource();
-                _resourceManager?.SetResourceUses(product.ResourceUse.ToArray());
+                _resourceManager.UnlockResource();
+                _resourceManager.SetResourceUses(product.ResourceUse.ToArray());
+                _resourceManager.TryPullResource(1, out _);
             };
 
-            ResourceUse?.ForEach(r => r.Start(this));
+            ResourceUse?.ForEach(r => r.Start(this, _resourceManager));
             #endregion
+             
+            GameController.Instance.MachineController.AddMachine(this);
         }
 
         protected virtual void Update() {

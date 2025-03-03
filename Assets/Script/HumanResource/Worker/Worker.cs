@@ -10,6 +10,7 @@ using UnityEngine.AI;
 namespace Script.HumanResource.Worker {
     [Serializable]
     [RequireComponent(typeof(WorkerDirector))]
+    [DisallowMultipleComponent]
     public abstract class Worker : MonoBehaviour, IWorker {
         [Header("Identity")]
         public string Name { get => _name; set => _name = value; }

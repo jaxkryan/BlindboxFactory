@@ -1,4 +1,5 @@
 using System;
+using Script.Machine;
 using UnityEngine;
 
     public class Sensor : MonoBehaviour {
@@ -12,7 +13,19 @@ using UnityEngine;
         public Vector3 TargetPosition => _currentTarget ? _currentTarget.transform.position : Vector3.zero;
         public bool IsTargetInRange => TargetPosition != Vector3.zero;
 
-        public GameObject Target { get; set; }
+        public GameObject Target {
+            get => _target;
+            set {
+                var machine = value.GetComponent<Collider2D>();
+                if (!machine) {
+                    Debug.LogError("Target doesn't have a Collider");
+                    return;
+                }
+                _target = value;
+            }
+        }
+
+        [SerializeField] private GameObject _target;
 
         private GameObject _currentTarget;
         private Vector3 _lastKnownPos = Vector3.zero;
@@ -32,23 +45,29 @@ using UnityEngine;
                  _timer.Start();
              };
              _timer.Start();
+             
+             _isTrue = IsTargetInRange;
         }
 
+        private bool _isTrue;
         protected virtual void Update() {
             _timer.Tick(Time.deltaTime);
+            if (_isTrue != IsTargetInRange) {
+                _isTrue = IsTargetInRange;
+            }
         }
 
-        protected virtual void OnTriggerEnter(Collider other) {
+        protected virtual void OnTriggerEnter2D (Collider2D other) {
             if (!IsTarget(other)) return;
             UpdateTargetPosition(other.gameObject);
         }
 
-        protected virtual void OnTriggerExit(Collider other) {
+        protected virtual void OnTriggerExit2D (Collider2D other) {
             if (!IsTarget(other)) return;
             UpdateTargetPosition();
         }
 
-        protected bool IsTarget(Collider other) => other.gameObject.Equals(Target);
+        protected bool IsTarget(Collider2D other) => other.gameObject.Equals(Target);
 
         void UpdateTargetPosition(GameObject target = null) {
             _currentTarget = target;
