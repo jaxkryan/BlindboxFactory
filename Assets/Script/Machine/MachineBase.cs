@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AYellowpaper.SerializedCollections;
 using Script.HumanResource.Worker;
 using Script.Machine.Products;
-using Script.Machine.ResourceManager;
+using Script.Resources;
 using UnityEngine;
 
 namespace Script.Machine {
@@ -11,13 +12,10 @@ namespace Script.Machine {
     public abstract class MachineBase : MonoBehaviour, IMachine, IBuilding {
         public int PowerUse { get => _powerUse; set => _powerUse = value; }
         [SerializeField] private int _powerUse = 0;
-        public List<ResourceManager.ResourceUse> ResourceUse {
-            get => _product?.ResourceUse;
+        public Dictionary<Resource, int> ResourceUse {
+            get => _resourceUse; set => _resourceUse = new SerializedDictionary<Resource, int>(value);
         }
-        private ResourceManager.ResourceManager _resourceManager;
-
-        [SerializeField] public Vector2Int BuildingDimension;
-        
+        [SerializeField] private SerializedDictionary<Resource, int> _resourceUse; 
         public float ProgressionPerSec {
             get {
                 var avg = 0f;
@@ -68,10 +66,50 @@ namespace Script.Machine {
             get => Product.MaxProgress;
         }
 
+        [SerializeField] float _maxProgress;
+
         public IEnumerable<IWorker> Workers {
             get => _slot.Select(s => s.CurrentWorker).Where(w => w != null);
         }
 
+        protected virtual void Awake() {
+            WorkDetails.ForEach(d => d.Machine = this);
+            _progressPerSecTimer = new CountdownTimer(1);
+        }
+
+        protected virtual void Start()
+        {
+            // Consume energy when machine starts running.
+            if (ElectricGenerator.HasEnoughEnergy(PowerUse))
+            {
+                ElectricGenerator.ConsumeEnergy(PowerUse);
+            }
+            else
+            {
+                Debug.LogWarning($"Machine {name} cannot start due to insufficient energy.");
+                // Optionally, disable the machine or handle the error.
+            }
+
+            // Existing start logic for machine operations:
+            _progressPerSecTimer.OnTimerStop += () => {
+                var diff = 0f;
+                if (CurrentProgress < _progressQueue.Last())
+                    diff = CurrentProgress + (MaxProgress - _progressQueue.Last());
+                else
+                    diff = CurrentProgress - _progressQueue.Last();
+
+                _progressQueue.Enqueue(diff);
+                if (_progressQueue.Count > 10) _progressQueue.Dequeue();
+                _progressPerSecTimer.Start();
+            };
+
+            _progressPerSecTimer.Start();
+        }
+        protected virtual void OnDestroy()
+        {
+            // Release the energy when the machine is destroyed.
+            ElectricGenerator.ReleaseEnergy(PowerUse);
+        }
         public virtual void AddWorker(IWorker worker, MachineSlot slot) {
             if (IsClosed) {
                 Debug.LogWarning($"Machine({name}) is closed.");
@@ -125,13 +163,9 @@ namespace Script.Machine {
 
         public virtual ProductBase Product {
             get => _product;
-            set {
-                onProductChanged?.Invoke(value);
-                _product = value;
-            }
+            set => _product = value;
         }
-        public event Action<ProductBase> onProductChanged = delegate { };
-    
+
         [SerializeReference, SubclassSelector] private ProductBase _product;
         public event Action<ProductBase> onCreateProduct = delegate { };
         public DateTimeOffset PlacedTime { get => _placedTime;  }
@@ -140,21 +174,12 @@ namespace Script.Machine {
         public void SetMachinePlacedTime(DateTimeOffset time) => _placedTime = time;
         
         public virtual ProductBase CreateProduct() {
-            _resourceManager.TryConsumeResources(1, out _);
-            _product?.OnProductCreated();
+            _product.OnProductCreated();
             onCreateProduct?.Invoke(_product);
             return _product;
         }
 
         public void IncreaseProgress(float progress) {
-            if (_resourceManager is not null && !_resourceManager.HasResourcesForWork(out _)) {
-                _resourceManager.UnlockResource();
-                _resourceManager.SetResourceUses(ResourceUse.ToArray());
-                if (!_resourceManager.TryPullResource(1, out _)) {
-                    Debug.LogError($"Machine {name} does not have enough resource to work.");
-                    return;
-                }
-            }
             CurrentProgress += progress;
             onProgress?.Invoke(progress);
             _progressQueue.Enqueue(progress);
@@ -163,51 +188,6 @@ namespace Script.Machine {
         public event Action<float> onProgress = delegate { };
 
         public event Action onWorkerChanged = delegate { };
-
-        protected virtual void Awake() {
-            WorkDetails.ForEach(d => d.Machine = this);
-            _progressPerSecTimer = new CountdownTimer(1);
-            _resourceManager = new();
-        }
-
-        private void OnEnable() {
-            ResourceUse?.ForEach(r => r.Start(this));
-        }
-
-        private void OnDisable() {            
-            ResourceUse?.ForEach(r => r.Stop());
-        }
-
-        protected virtual void Start() {
-            #region Progression
-            _progressPerSecTimer.OnTimerStop += () => {
-                var diff = 0f;
-                if (_progressQueue.Any()) {
-                    var last = _progressQueue.Last();
-                    if (CurrentProgress < last)
-                        diff = CurrentProgress + (MaxProgress - last);
-                    else diff = CurrentProgress - last;
-                }
-
-                _progressQueue.Enqueue(diff);
-                if (_progressQueue.Count > 10) _progressQueue.Dequeue();
-                _progressPerSecTimer.Start();
-            };
-
-            _progressPerSecTimer.Start();
-            #endregion
-
-            #region Resource
-            _resourceManager?.SetResourceUses(ResourceUse.ToArray());
-            onProductChanged += product => {
-                Debug.Log("Product changed to " + nameof(product));
-                _resourceManager?.UnlockResource();
-                _resourceManager?.SetResourceUses(product.ResourceUse.ToArray());
-            };
-
-            ResourceUse?.ForEach(r => r.Start(this));
-            #endregion
-        }
 
         protected virtual void Update() {
             _progressPerSecTimer.Tick(Time.deltaTime);
