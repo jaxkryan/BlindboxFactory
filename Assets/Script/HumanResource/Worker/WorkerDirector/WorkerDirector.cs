@@ -173,7 +173,7 @@ namespace Script.HumanResource.Worker {
             base.SetupActions();
 
             Actions.Add(new AgentAction.Builder("Standing")
-                .WithStrategy(new IdleStrategy(2f))
+                .WithStrategy(new IdleStrategy(0.5f))
                 .AddEffect(Beliefs["Nothing"])
                 .Build());
             Actions.Add(new AgentAction.Builder("Wander")

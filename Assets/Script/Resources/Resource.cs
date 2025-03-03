@@ -8,6 +8,7 @@ namespace Script.Resources {
         Marshmallow,
         Ruby,
         Star,
-        Energy
+        Energy,
+        Meal
     }
 }

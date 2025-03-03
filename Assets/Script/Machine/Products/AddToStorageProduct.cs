@@ -1,12 +1,15 @@
 using System;
+using System.Collections.Generic;
+using AYellowpaper.SerializedCollections;
+using MyBox;
 using Script.Machine.Machines.Canteen;
+using Script.Machine.ResourceManager;
+using Script.Resources;
 using UnityEngine;
 
 namespace Script.Machine.Products {
     [Serializable]
-    public abstract class AddToStorageProduct : ProductBase {
-        public override float MaxProgress { get => _maxProgress; }
-        [SerializeField] private float _maxProgress = 100f; 
+    public abstract class AddToStorageProduct : SingleProductBase {
         public int Amount { get => _amount; set => _amount = value; }
         [SerializeField] private int _amount;
     }

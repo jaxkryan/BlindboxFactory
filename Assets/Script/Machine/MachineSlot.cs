@@ -84,6 +84,13 @@ namespace Script.Machine {
 
         private void Start() {
             _wishlistTimer.OnTimerStop += () => SetWishlist();
+            Machine.onMachineCloseStatusChanged += OnMachineCloseStatusChanged;
+        }
+
+        private void OnMachineCloseStatusChanged(bool status) {
+            if (status) return;
+            SetCurrentWorker();
+            SetWishlist();
         }
     }
 }
