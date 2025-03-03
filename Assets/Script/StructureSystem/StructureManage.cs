@@ -58,17 +58,21 @@ public class StructureManage : MonoBehaviour
                 Debug.LogWarning("[HandleBuildableSelection] The buildable object is null.");
                 return;
             }
-
-            Debug.Log($"[HandleBuildableSelection] Buildable found: {buildableObject.name}");
-
-            blindboxmachineUI.SetActive(true);
-            blindboxmachineUI.transform.Find("Chose Panel").gameObject.SetActive(true);
-            Debug.Log(buildableObject.name);
-            BlindBoxMachine machine = buildableObject.GetComponent<BlindBoxMachine>();
-
-            if (machine != null)
+            if (buildableObject.CompareTag("BoxMachine"))
             {
-                BlindBoxInformationDisplay.Instance.SetCurrentDisplayedObject(machine);
+
+                Debug.Log($"[HandleBuildableSelection] Buildable found: {buildableObject.name}");
+
+                blindboxmachineUI.SetActive(true);
+                blindboxmachineUI.transform.Find("Chose Panel").gameObject.SetActive(true);
+                Debug.Log(buildableObject.name);
+                BlindBoxMachine machine = buildableObject.GetComponent<BlindBoxMachine>();
+
+                if (machine != null)
+                {
+                    BlindBoxInformationDisplay.Instance.SetCurrentDisplayedObject(machine);
+                }
+
             }
         }
         else
