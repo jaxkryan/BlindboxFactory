@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
@@ -77,12 +77,26 @@ namespace Script.Machine {
             _progressPerSecTimer = new CountdownTimer(1);
         }
 
-        protected virtual void Start() {
+        protected virtual void Start()
+        {
+            // Consume energy when machine starts running.
+            if (ElectricGenerator.HasEnoughEnergy(PowerUse))
+            {
+                ElectricGenerator.ConsumeEnergy(PowerUse);
+            }
+            else
+            {
+                Debug.LogWarning($"Machine {name} cannot start due to insufficient energy.");
+                // Optionally, disable the machine or handle the error.
+            }
+
+            // Existing start logic for machine operations:
             _progressPerSecTimer.OnTimerStop += () => {
                 var diff = 0f;
                 if (CurrentProgress < _progressQueue.Last())
                     diff = CurrentProgress + (MaxProgress - _progressQueue.Last());
-                else diff = CurrentProgress - _progressQueue.Last();
+                else
+                    diff = CurrentProgress - _progressQueue.Last();
 
                 _progressQueue.Enqueue(diff);
                 if (_progressQueue.Count > 10) _progressQueue.Dequeue();
@@ -91,7 +105,11 @@ namespace Script.Machine {
 
             _progressPerSecTimer.Start();
         }
-
+        protected virtual void OnDestroy()
+        {
+            // Release the energy when the machine is destroyed.
+            ElectricGenerator.ReleaseEnergy(PowerUse);
+        }
         public virtual void AddWorker(IWorker worker, MachineSlot slot) {
             if (IsClosed) {
                 Debug.LogWarning($"Machine({name}) is closed.");

@@ -1,37 +1,57 @@
 using BuildingSystem.Models;
 using Exception;
+using BuildingSystem.Models;
+using Exception;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Users;
 using UnityEngine.Tilemaps;
+using Script.Machine; // For MachineBase
 
 namespace BuildingSystem
 {
     public class ConstructionLayer : TilemapLayer
     {
         private Dictionary<BuildableItem, int> _storedBuildables = new();
-
         private Dictionary<Vector3Int, Buildable> _buildables = new();
-        [SerializeField]
-        private CollisionLayer _collisionLayer;
+        [SerializeField] private CollisionLayer _collisionLayer;
+
         public void Build(Vector3 worldCoords, BuildableItem item)
         {
             worldCoords.z = 0;
-            GameObject itemObject = null;
             var coords = _tilemap.WorldToCell(worldCoords);
+
+            // Check if the buildable item has a MachineBase component.
+            MachineBase machinePrefab = null;
+            if (item.gameObject != null)
+            {
+                machinePrefab = item.gameObject.GetComponent<MachineBase>();
+                if (machinePrefab != null)
+                {
+                    float requiredEnergy = machinePrefab.PowerUse;
+                    if (!ElectricGenerator.HasEnoughEnergy(requiredEnergy))
+                    {
+                        Debug.LogWarning($"Not enough energy to build machine {item.gameObject.name}.");
+                        return;
+                    }
+                }
+            }
+
+            // Instantiate the buildable object.
+            GameObject itemObject = null;
             if (item.gameObject != null)
             {
                 itemObject = Instantiate(
                     item.gameObject,
                     _tilemap.GetCellCenterLocal(coords),
-                    //_tilemap.CellToWorld(coords) + _tilemap.cellSize / 2 + item.TileOffSet,
                     Quaternion.identity
-                    );
+                );
                 int sortingOrder = Mathf.FloorToInt(-worldCoords.y * 100) + Mathf.FloorToInt(worldCoords.x * 10);
                 itemObject.GetComponent<SpriteRenderer>().sortingOrder = sortingOrder;
             }
+
             var buildable = new Buildable(item, coords, _tilemap, itemObject);
             if (item.UseCustomCollisionSpace)
             {
@@ -48,7 +68,7 @@ namespace BuildingSystem
             {
                 if (_storedBuildables.ContainsKey(item) && _storedBuildables[item] > 1)
                 {
-                    _storedBuildables[item]--;  
+                    _storedBuildables[item]--;
                 }
                 else
                 {
@@ -60,19 +80,15 @@ namespace BuildingSystem
             }
         }
 
-        //public void Stored(Vector3 worldCoords)
-        //{
-        //    var coords = _tilemap.WorldToCell(worldCoords);
+        private void RegisterBuildableCollisionSpace(Buildable buildable)
+        {
+            buildable.IterateCollisionSpace(tileCoord => _buildables.Add(tileCoord, buildable));
+        }
 
-        //    var buildable = _buildables[coords];
-        //    if (buildable.BuildableType.UseCustomCollisionSpace)
-        //    {
-        //        _collisionLayer.SetCollisions(buildable, false);
-        //        UnRegisterBuildableCollisionSpace(buildable);
-        //    }
-        //    _buildables.Remove(coords);
-        //    buildable.Stored();
-        //}
+        private void UnRegisterBuildableCollisionSpace(Buildable buildable)
+        {
+            buildable.IterateCollisionSpace(tileCoord => _buildables.Remove(tileCoord));
+        }
 
         public void Stored(Vector3 worldCoords)
         {
@@ -102,15 +118,8 @@ namespace BuildingSystem
             FindObjectOfType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
         }
 
-        public Dictionary<Vector3Int, Buildable> GetBuildables()
-        {
-            return _buildables;
-        }
-
-        public Dictionary<BuildableItem, int> GetStoredBuildables()
-        {
-            return _storedBuildables;
-        }
+        public Dictionary<Vector3Int, Buildable> GetBuildables() => _buildables;
+        public Dictionary<BuildableItem, int> GetStoredBuildables() => _storedBuildables;
 
         public void RemoveStoredBuildable(BuildableItem item)
         {
@@ -124,8 +133,6 @@ namespace BuildingSystem
             }
         }
 
-
-
         public bool IsEmpty(Vector3 worldCoords, RectInt collisionSpace = default)
         {
             var coords = _tilemap.WorldToCell(worldCoords);
@@ -136,22 +143,27 @@ namespace BuildingSystem
             return !_buildables.ContainsKey(coords) && _tilemap.GetTile(coords) == null;
         }
 
-        private void RegisterBuildableCollisionSpace(Buildable buildable)
-        {
-            buildable.IterateCollisionSpace(tileCoord => _buildables.Add(tileCoord, buildable));
-        }
-
-        private void UnRegisterBuildableCollisionSpace(Buildable buildable)
-        {
-            buildable.IterateCollisionSpace(tileCoord =>
-            {
-                _buildables.Remove(tileCoord);
-            });
-        }
-
         private bool IsRectOccupied(Vector3Int coords, RectInt rect)
         {
             return rect.Iterate(coords, tileCoord => _buildables.ContainsKey(tileCoord));
         }
     }
 }
+
+
+
+//public void Stored(Vector3 worldCoords)
+//{
+//    var coords = _tilemap.WorldToCell(worldCoords);
+
+//    var buildable = _buildables[coords];
+//    if (buildable.BuildableType.UseCustomCollisionSpace)
+//    {
+//        _collisionLayer.SetCollisions(buildable, false);
+//        UnRegisterBuildableCollisionSpace(buildable);
+//    }
+//    _buildables.Remove(coords);
+//    buildable.Stored();
+//}
+
+

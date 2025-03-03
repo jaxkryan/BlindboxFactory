@@ -18,7 +18,6 @@ public class BlindBoxMachine : MachineBase
     public int amount;
     [SerializeField] public List<Recipe> recipes;
     [SerializeField] public int maxAmount;
-    [SerializeField] public int electricConsumption ;
     [SerializeField] public int level;
     private void Update()
     {
