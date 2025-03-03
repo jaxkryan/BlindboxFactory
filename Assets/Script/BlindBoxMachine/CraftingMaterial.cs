@@ -3,7 +3,7 @@ public enum CraftingMaterial
 {
     RAINBOW,
     CLOUD,
-    MARSHMALLOW,
+    GUMMY,
     DIAMOND,
     RUBY,
     STAR

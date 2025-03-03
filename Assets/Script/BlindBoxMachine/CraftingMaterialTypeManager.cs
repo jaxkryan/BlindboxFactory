@@ -35,7 +35,7 @@ public class CraftingMaterialTypeManager : MonoBehaviour
         }
     }
 
-    public CMData GetBoxData(CraftingMaterial cmType)
+    public CMData GetCraftingMaterialData(CraftingMaterial cmType)
     {
         if (boxTypeDictionary.TryGetValue(cmType, out CMData data))
         {

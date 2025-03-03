@@ -8,7 +8,7 @@ public class ColorPiece : MonoBehaviour
     {
         RAINBOW,
         CLOUD,
-        MARSHMALLOW,
+        GUMMY,
         DIAMOND,
         RUBY,
         STAR,

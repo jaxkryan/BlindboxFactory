@@ -5,7 +5,7 @@ namespace Script.Resources {
         Diamond,
         Cloud,
         Rainbow,
-        Marshmallow,
+        Gummy,
         Ruby,
         Star,
         Energy,

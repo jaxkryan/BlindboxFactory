@@ -4,8 +4,9 @@ using Script.Controller;
 
 public class InventoryManager : MonoBehaviour
 {
-    [SerializeField] private Dictionary<BoxTypeName, int> blindBoxInventory = new Dictionary<BoxTypeName, int>();
-    [SerializeField] private Dictionary<CraftingMaterial, int> craftingMaterials = new Dictionary<CraftingMaterial, int>();
+    private Dictionary<BoxTypeName, int> blindBoxInventory = new Dictionary<BoxTypeName, int>();
+    private Dictionary<CraftingMaterial, int> craftingMaterials = new Dictionary<CraftingMaterial, int>();
+
     [SerializeField] private int maxAmount;
     private static InventoryManager instance;
     public static InventoryManager Instance
@@ -31,10 +32,26 @@ public class InventoryManager : MonoBehaviour
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
+            InitializeInventory(); // Initialize default values
         }
         else
         {
             Destroy(gameObject);
+        }
+    }
+
+    private void InitializeInventory()
+    {
+        // Initialize Blind Box Inventory
+        foreach (BoxTypeName boxType in System.Enum.GetValues(typeof(BoxTypeName)))
+        {
+            blindBoxInventory[boxType] = 0;
+        }
+
+        // Initialize Crafting Material Inventory
+        foreach (CraftingMaterial material in System.Enum.GetValues(typeof(CraftingMaterial)))
+        {
+            craftingMaterials[material] = 0;
         }
     }
 
@@ -51,6 +68,7 @@ public class InventoryManager : MonoBehaviour
         }
         return totalCount;
     }
+
     public bool AddBlindBox(BoxTypeName boxType, int amount)
     {
         if (GetTotalInventoryCount() + amount > maxAmount)
@@ -59,19 +77,13 @@ public class InventoryManager : MonoBehaviour
             return false;
         }
 
-        if (blindBoxInventory.ContainsKey(boxType))
-        {
-            blindBoxInventory[boxType] += amount;
-        }
-        else
-        {
-            blindBoxInventory[boxType] = amount;
-        }
+        blindBoxInventory[boxType] += amount;
         return true;
     }
+
     public bool UseBlindBox(BoxTypeName boxType, int amount)
     {
-        if (blindBoxInventory.ContainsKey(boxType) && blindBoxInventory[boxType] >= amount)
+        if (blindBoxInventory[boxType] >= amount)
         {
             blindBoxInventory[boxType] -= amount;
             return true;
@@ -79,16 +91,17 @@ public class InventoryManager : MonoBehaviour
         Debug.LogWarning($"Not enough {boxType} boxes. Available: {GetBlindBoxAmount(boxType)}, Required: {amount}");
         return false;
     }
+
     public int GetBlindBoxAmount(BoxTypeName boxType)
     {
-        return blindBoxInventory.ContainsKey(boxType) ? blindBoxInventory[boxType] : 0;
+        return blindBoxInventory[boxType];
     }
 
     public int GetMaxAmount()
     {
         return maxAmount;
     }
-    
+
     public void AddMaxAmount(int amount)
     {
         maxAmount += amount;
@@ -107,19 +120,13 @@ public class InventoryManager : MonoBehaviour
             return false;
         }
 
-        if (craftingMaterials.ContainsKey(material))
-        {
-            craftingMaterials[material] += amount;
-        }
-        else
-        {
-            craftingMaterials[material] = amount;
-        }
+        craftingMaterials[material] += amount;
         return true;
     }
+
     public bool UseCraftingMaterial(CraftingMaterial material, int amount)
     {
-        if (craftingMaterials.ContainsKey(material) && craftingMaterials[material] >= amount)
+        if (craftingMaterials[material] >= amount)
         {
             craftingMaterials[material] -= amount;
             return true;
@@ -127,10 +134,12 @@ public class InventoryManager : MonoBehaviour
         Debug.LogWarning($"Not enough {material} resources. Available: {GetCraftingMaterialAmount(material)}, Required: {amount}");
         return false;
     }
+
     public int GetCraftingMaterialAmount(CraftingMaterial material)
     {
-        return craftingMaterials.ContainsKey(material) ? craftingMaterials[material] : 0;
+        return craftingMaterials[material];
     }
+
     public void DisplayInventory()
     {
         Debug.Log($"Total Inventory: {GetTotalInventoryCount()}/{maxAmount}");
@@ -156,5 +165,4 @@ public class InventoryManager : MonoBehaviour
     {
         return craftingMaterials;
     }
-
 }
