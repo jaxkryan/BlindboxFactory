@@ -18,7 +18,10 @@ namespace Script.Machine {
         }
         private ResourceManager.ResourceManager _resourceManager;
         public bool HasResourceForWork => _resourceManager.HasResourcesForWork(out _);
-
+        public bool HasEnergyForWork { get; private set; }
+        
+        public void SetMachineHasEnergyForWork(bool hasEnergy) => HasEnergyForWork = hasEnergy;
+        
         [SerializeField] public Vector2Int BuildingDimension;
         
         public float ProgressionPerSec {
@@ -175,6 +178,10 @@ namespace Script.Machine {
 
         private void OnEnable() {
             ResourceUse?.ForEach(r => r.Start(this, _resourceManager));
+        }
+
+        private void OnValidate() {
+            WorkDetails.ForEach(d => d.Machine = this);
         }
 
         private void OnDisable() {            

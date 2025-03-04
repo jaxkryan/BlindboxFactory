@@ -10,7 +10,7 @@ public class AdminSelectionUI : MonoBehaviour {
     [SerializeField] private TextMeshProUGUI _lastName;
     [SerializeField] private TextMeshProUGUI _policies;
     [SerializeField] private GameObject _selectedEffect;
-    public Administrator Administrator { get; private set; }
+    public Mascot Mascot { get; private set; }
     private SelectAdminUI _ui;
 
     public bool IsSelected {
@@ -32,18 +32,18 @@ public class AdminSelectionUI : MonoBehaviour {
 
     public void SelectedAdmin() {
         Debug.Log("Selected admin: " + this.gameObject.name);
-        _ui.OnSelectionClicked(Administrator);
+        _ui.OnSelectionClicked(Mascot);
     }
 
     public void SetReturn(SelectAdminUI ui) => _ui = ui;
 
-    public void SetAdmin(Administrator admin) {
+    public void SetAdmin(Mascot admin) {
         _portrait.sprite = admin.Portrait;
         _firstName.text = admin.Name.FirstName;
         _lastName.text = admin.Name.LastName;
         var policies = "";
         admin.Policies.ForEach(x => policies += x.Description + "\n");
         _policies.text = policies;
-        Administrator = admin;
+        Mascot = admin;
     }
 }

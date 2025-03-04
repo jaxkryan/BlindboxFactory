@@ -5,11 +5,11 @@ using UnityEngine;
 
 namespace Script.HumanResource.Administrator {
     [Serializable]
-    public class AdministratorSetting : ILootboxSettings<Administrator> {
+    public class AdministratorSetting : ILootboxSettings<Mascot> {
         public float Rate { get => _rate; }
         [SerializeField] [Range(0,100)] public float _rate;
-        public IEnumerable<Administrator> ItemPool { get => _itemPool; }
-        [SerializeField] private List<Administrator> _itemPool;
+        public IEnumerable<Mascot> ItemPool { get => _itemPool; }
+        [SerializeField] private List<Mascot> _itemPool;
 
         [SerializeReference, SubclassSelector] public List<IItemRequirement<EmployeeName>> nameRequirements;
         [SerializeReference, SubclassSelector] public List<IItemRequirement<Sprite>> portraitRequirements;

@@ -48,9 +48,9 @@ public abstract class UIList<TItem> : UIScrollable where TItem : class {
 
 }
 
-public class SelectAdminUI : UIList<Administrator> {
-    protected override void OnSelectedChanged(Administrator value) {
-        var selected = _selectionList.FirstOrDefault(s => s.Administrator == value);
+public class SelectAdminUI : UIList<Mascot> {
+    protected override void OnSelectedChanged(Mascot value) {
+        var selected = _selectionList.FirstOrDefault(s => s.Mascot == value);
         _selectionList.Where(s => s != selected).ForEach(s => s.IsSelected = false);
         if (selected != null) selected.IsSelected = true;
     }
@@ -63,8 +63,8 @@ public class SelectAdminUI : UIList<Administrator> {
         children.ForEach(c => Destroy(c.gameObject));
     }
     
-    public event Action<Administrator> onAdminSelected = delegate { };
-    public void OnSelectionClicked(Administrator admin) {
+    public event Action<Mascot> onAdminSelected = delegate { };
+    public void OnSelectionClicked(Mascot admin) {
         Current = admin;
     }
 

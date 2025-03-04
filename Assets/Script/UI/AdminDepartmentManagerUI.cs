@@ -14,7 +14,7 @@ public class AdminDepartmentManagerUI : MonoBehaviour {
     [SerializeField] private Sprite _defaultPortrait;
     [SerializeField] private TextMeshProUGUI _name;
     [SerializeField] private TextMeshProUGUI _policies;
-    [SerializeField] public AdministratorPosition Position;
+    [SerializeField] public MascotType Position;
     [SerializeField] private AdministratorManagerUI _manager;
     [SerializeField] private TextMeshProUGUI _ability;
 
@@ -24,34 +24,34 @@ public class AdminDepartmentManagerUI : MonoBehaviour {
     
     
 
-    public Administrator Administrator {
-        get => _administrator;
+    public Mascot Mascot {
+        get => _mascot;
         set {
             if (value == null) return;
-            _administrator = value;
+            _mascot = value;
             SetUpAdmin();
         }
     }
-    Administrator _administrator;
+    Mascot _mascot;
 
     void Start() { SetUpAdmin(); }
 
     void SetUpAdmin() {
-        _ability.color = Administrator ? Color.grey : Color.green;
+        _ability.color = Mascot ? Color.grey : Color.green;
         
-        _position.text = Enum.GetName(typeof(AdministratorPosition), Position);
-        _portrait.sprite = Administrator?.Portrait ?? _defaultPortrait;
-        _name.text = Administrator?.Name.ToString() ?? string.Empty;
+        _position.text = Enum.GetName(typeof(MascotType), Position);
+        _portrait.sprite = Mascot?.Portrait ?? _defaultPortrait;
+        _name.text = Mascot?.Name.ToString() ?? string.Empty;
         var policies = "";
-        Administrator?.Policies.ForEach(p => policies += p.Description + "\n");
+        Mascot?.Policies.ForEach(p => policies += p.Description + "\n");
         _policies.text = policies;
         
     }
 
     public void OnClickInfo() {
         //Get list of admins from the same department
-        var adminController = GameController.Instance.AdministratorController;
-        var list = adminController?.AdministratorList?.ToList() ?? new List<Administrator>(); 
+        var adminController = GameController.Instance.MascotController;
+        var list = adminController?.MascotsList?.ToList() ?? new List<Mascot>(); 
         //Instantiate new selection window
         if (_manager.SelectionUI is null) return;
         var selectionUI = Instantiate(_manager.SelectionUI, _manager.gameObject.transform.parent);
@@ -59,13 +59,13 @@ public class AdminDepartmentManagerUI : MonoBehaviour {
         selectionUI.List = list;
         selectionUI.Clear();
         selectionUI.Spawn();
-        selectionUI.Current = Administrator;
+        selectionUI.Current = Mascot;
         _manager.gameObject.SetActive(false);
         //Subscribe to the selected event
         selectionUI.onAdminSelected += (administrator) => {
             _manager.gameObject.SetActive(true);
             Destroy(selectionUI.gameObject);
-            Administrator = administrator;
+            Mascot = administrator;
             SetUpAdmin();
         };
     }
