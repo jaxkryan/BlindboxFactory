@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Script.HumanResource.Administrator {
     [CreateAssetMenu(fileName = "AdministratorGacha", menuName = "HumanResource/Administrator/Gacha")]
-    public class AdministratorGacha : ScriptableObject, ILootbox<Administrator, AdministratorSetting> {
+    public class AdministratorGacha : ScriptableObject, ILootbox<Mascot, AdministratorSetting> {
         public int Pulls { get; set; }
         // [SerializeField] private PolicyGacha 
 
@@ -20,7 +20,7 @@ namespace Script.HumanResource.Administrator {
         [SerializeField] public PolicyGacha PolicyGacha;
 
         [CanBeNull]
-        public Administrator Pull() {
+        public Mascot Pull() {
             AdministratorSetting setting;
 
             // var pool = Requirement.Handle(_itemPool).ToList();
@@ -47,7 +47,7 @@ namespace Script.HumanResource.Administrator {
                 Grade.Legendary => LegendarySettings,
                 _ => throw new ArgumentOutOfRangeException()
             };
-            Administrator admin = ScriptableObject.CreateInstance<Administrator>();
+            Mascot admin = ScriptableObject.CreateInstance<Mascot>();
 
             admin.SetGrade(grade);
 
@@ -65,8 +65,8 @@ namespace Script.HumanResource.Administrator {
             return admin;
         }
 
-        public IEnumerable<Administrator> PullMultiple(int times) {
-            var pulledItems = new List<Administrator>();
+        public IEnumerable<Mascot> PullMultiple(int times) {
+            var pulledItems = new List<Mascot>();
             while (times-- > 0) {
                 var pulled = Pull();
                 if (pulled == null) break;
@@ -76,7 +76,7 @@ namespace Script.HumanResource.Administrator {
             return pulledItems;
         }
 
-        public IList<Administrator> PullHistory { get; set; } = new List<Administrator>(); 
+        public IList<Mascot> PullHistory { get; set; } = new List<Mascot>(); 
 
         public AdministratorSetting CommonSettings {
             get => _commonSettings;

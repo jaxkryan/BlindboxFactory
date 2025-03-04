@@ -11,8 +11,9 @@ namespace Script.Controller {
         public MachineController MachineController = new ();
         public WorkerController WorkerController = new ();
         public ShardController ShardController = new ();
-        public AdministratorController AdministratorController = new();
+        public MascotController MascotController = new();
         public ResourceController ResourceController = new();
+        public PowerGridController PowerGridController = new();
         public Grid Grid;
         public Tilemap ConstructionLayer;
         public Tilemap CollisionLayer;

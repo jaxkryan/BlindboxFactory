@@ -18,11 +18,17 @@ namespace Script.Controller {
 
         [SerializeField] SerializedDictionary<MachineBase, List<MachineCoreRecovery>> _recoverMachines;
 
+        public HashSet<MachineBase> FindMachinesOfType(Type type) {
+            if (!type.IsSubclassOf(typeof(MachineBase))) return new();
+            
+            return Machines.Where(m => m.GetType() == type).ToHashSet();
+        }
+        
         public MachineController(List<MachineBase> machines) => Machines = machines.ToHashSet();
         public MachineController() : this(new List<MachineBase>()) { }
 
-        public event Action<IMachine> onMachineAdded = delegate { };
-        public event Action<IMachine> onMachineRemoved = delegate { };
+        public event Action<MachineBase> onMachineAdded = delegate { };
+        public event Action<MachineBase> onMachineRemoved = delegate { };
 
         public void AddMachine(MachineBase machine) {
             Machines.Add(machine);

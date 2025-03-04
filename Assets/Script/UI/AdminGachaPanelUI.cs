@@ -10,7 +10,7 @@ public class AdminGachaPanelUI : MonoBehaviour {
     [SerializeField] private Button _gachaBtn;
     [SerializeField] private AdministratorGacha _adminGacha;
 
-    public event Action<Administrator> onAdminGacha = delegate { };
+    public event Action<Mascot> onAdminGacha = delegate { };
 
     
     private void Awake() {       

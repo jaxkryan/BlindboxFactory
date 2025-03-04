@@ -15,18 +15,22 @@ namespace Script.Machine.ResourceManager {
         public Dictionary<Resource, int> _lockedResources = new();
         private HashSet<ResourceUse> _resourceUse = new();
 
-        public void SetResourceUses(params ResourceUse[] uses) => _resourceUse = LinqUtility.ToHashSet(uses);
+        public void SetResourceUses(params ResourceUse[] uses) => _resourceUse = LinqUtility.ToHashSet(uses.Except(uses.Where(u => u.Resource == Resource.Energy)));
 
         public bool TryConsumeResources(int times, out int actualTimes) {
             actualTimes = 0;
             while (actualTimes < times) {
                 foreach (var resourceUse in _resourceUse) {
+                    if (resourceUse.Resource is Resource.Energy) continue;
+
                     if (!_lockedResources.TryGetValue(resourceUse.Resource, out var lockedAmount)
                         || lockedAmount < resourceUse.Amount) {
                         return actualTimes > 0;
                     }
                 }
                 foreach (var resourceUse in _resourceUse) {
+                    if (resourceUse.Resource is Resource.Energy) continue;
+
                     _lockedResources[resourceUse.Resource] -= resourceUse.Amount;
                 }
                 
@@ -44,6 +48,8 @@ namespace Script.Machine.ResourceManager {
             actualTimes = 0;
             while (actualTimes <= times) {
                 foreach (var resourceUse in _resourceUse) {
+                    if (resourceUse.Resource is Resource.Energy) continue;
+
                     var amount = resourceUse.Amount + resources[resourceUse.Resource];
                     if (controller.TryGetAmount(resourceUse.Resource, out var storedAmount) || storedAmount < amount) {
                         return actualTimes > 0;
@@ -68,6 +74,8 @@ namespace Script.Machine.ResourceManager {
             count = Int32.MaxValue;
 
             foreach (var resourceUse in _resourceUse) {
+                if (resourceUse.Resource is Resource.Energy) continue;
+                
                 if (!_lockedResources.TryGetValue(resourceUse.Resource, out var lockedAmount)) {
                     count = 0;
                     return false;
@@ -90,6 +98,8 @@ namespace Script.Machine.ResourceManager {
                 return locked + oldAmount;
             };
             foreach (var resource in resources) {
+                if (resource is Resource.Energy) continue;
+
                 if (newAmount(resource) > 0) controller.TrySetAmount(resource, newAmount(resource));
                 _lockedResources.Remove(resource);
             }

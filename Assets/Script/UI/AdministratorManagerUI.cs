@@ -10,18 +10,18 @@ public class AdministratorManagerUI : MonoBehaviour {
     [SerializeField] private AdminDepartmentManagerUI Finance;
     [SerializeField] public SelectAdminUI SelectionUI;
 
-    private AdministratorController _adminController;
+    private MascotController _adminController;
 
     private void Awake() {
-        _adminController = GameController.Instance.AdministratorController;
+        _adminController = GameController.Instance.MascotController;
     }
 
     public void Save() {
         try {
-            _adminController.HRAdministrator = Hr.Administrator;
-            _adminController.FacilityAdministrator = Facility.Administrator;
-            _adminController.SupplyAdministrator = Supply.Administrator;
-            _adminController.FinanceAdministrator = Finance.Administrator;
+            _adminController.GeneratorMascot = Hr.Mascot;
+            _adminController.CanteenMascot = Facility.Mascot;
+            _adminController.RestroomMascot = Supply.Mascot;
+            _adminController.MiningMascot = Finance.Mascot;
 
             this.gameObject.SetActive(false);
         }

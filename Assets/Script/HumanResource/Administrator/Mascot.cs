@@ -5,8 +5,7 @@ using Script.Gacha.Base;
 using UnityEngine;
 
 namespace Script.HumanResource.Administrator {
-    [Obsolete]
-    public abstract class Administrator : Gacha.Base.Loot {
+    public abstract class Mascot : Gacha.Base.Loot {
         public EmployeeName Name;
         public Sprite Portrait;
         public IEnumerable<Policy> Policies;
