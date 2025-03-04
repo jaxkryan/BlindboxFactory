@@ -1,10 +1,9 @@
 using BuildingSystem;
 using BuildingSystem.Models;
-using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
-using UnityEngine.UIElements;
 
 public class StructureManage : MonoBehaviour
 {
@@ -15,7 +14,9 @@ public class StructureManage : MonoBehaviour
 
     [SerializeField] private Tilemap _tilemap;
     [SerializeField] private CollisionLayer _collisionLayer;
-    [SerializeField] private GameObject generalUI;
+    [SerializeField] private GameObject blindboxmachineUI;
+
+    public StructureUIToggles uIToggles;
 
     private void Awake()
     {
@@ -61,26 +62,15 @@ public class StructureManage : MonoBehaviour
 
             Debug.Log($"[HandleBuildableSelection] Buildable found: {buildableObject.name}");
 
-            // Check if the buildable object has a Canvas component
-            Transform canvasTransform = buildableObject.transform.Find("Canvas");
-            if (canvasTransform == null)
+            blindboxmachineUI.SetActive(true);
+            blindboxmachineUI.transform.Find("Chose Panel").gameObject.SetActive(true);
+
+            BlindBoxMachine machine = buildableObject.GetComponent<BlindBoxMachine>();
+
+            if (machine != null)
             {
-                Debug.LogWarning("[HandleBuildableSelection] Canvas NOT found inside the Buildable.");
-                return;
+                BlindBoxInformationDisplay.Instance.SetCurrentDisplayedObject(machine);
             }
-
-            Debug.Log("[HandleBuildableSelection] Canvas found.");
-
-            // Try to find the ChosePanel inside the Canvas
-            Transform chosePanel = canvasTransform.Find("Chose Panel");
-            if (chosePanel == null)
-            {
-                Debug.LogWarning("[HandleBuildableSelection] ChosePanel NOT found inside the Canvas.");
-                return;
-            }
-
-            Debug.Log("[HandleBuildableSelection] ChosePanel found, enabling it.");
-            chosePanel.gameObject.SetActive(true);  // Enable the panel
         }
         else
         {
@@ -102,17 +92,6 @@ public class StructureManage : MonoBehaviour
         }
 
         return false;
-    }
-
-    private void OpenDefaultUI()
-    {
-        Debug.Log("Opening default UI...");
-        generalUI?.SetActive(true);
-    }
-
-    private void UnRegisterBuildableCollisionSpace(Buildable buildable)
-    {
-        // Implement how you unregister collision space if necessary
     }
 
 }
