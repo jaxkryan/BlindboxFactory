@@ -1,5 +1,7 @@
 using Script.Machine;
 using Script.Machine.Products;
+using Script.Machine.ResourceManager;
+using Script.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,29 +10,25 @@ using UnityEngine;
 [Serializable]
 public class CraftingMaterialSprite
 {
-    public CraftingMaterial material;
+    public Resource material;
     public Sprite sprite;
 }
 
 public class BlindBoxMachine : MachineBase
 {
-    public BlindBox currentBlindBox;
     public int amount;
-    [SerializeField] public List<Recipe> recipes;
+    [SerializeField] public List<BlindBox> recipes;
     [SerializeField] public int maxAmount;
-    [SerializeField] public int electricConsumption ;
-    [SerializeField] public int level;
-    private void Update()
+    protected override void Update()
     {
-        if (Product == null && amount > 0)
-        {
-            Product = currentBlindBox;
-        }
+        base.Update();
 
         if(CurrentProgress >= MaxProgress)
         {
             CreateProduct();
         }
+
+        Debug.Log(CurrentProgress);
     }
 
     protected override void Start()

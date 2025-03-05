@@ -1,11 +1,12 @@
 using UnityEngine;
 using System.Collections.Generic;
 using Script.Controller;
+using Script.Resources;
 
 public class InventoryManager : MonoBehaviour
 {
     private Dictionary<BoxTypeName, int> blindBoxInventory = new Dictionary<BoxTypeName, int>();
-    private Dictionary<CraftingMaterial, int> craftingMaterials = new Dictionary<CraftingMaterial, int>();
+    private Dictionary<Resource, int> craftingMaterials = new Dictionary<Resource, int>();
 
     [SerializeField] private int maxAmount;
     private static InventoryManager instance;
@@ -49,9 +50,12 @@ public class InventoryManager : MonoBehaviour
         }
 
         // Initialize Crafting Material Inventory
-        foreach (CraftingMaterial material in System.Enum.GetValues(typeof(CraftingMaterial)))
+        foreach (Resource material in System.Enum.GetValues(typeof(Resource)))
         {
-            craftingMaterials[material] = 0;
+            if(material != Resource.Energy && material != Resource.Gold && material != Resource.Meal)
+            {
+                craftingMaterials[material] = 1000;
+            }
         }
     }
 
@@ -112,7 +116,7 @@ public class InventoryManager : MonoBehaviour
         maxAmount -= amount;
     }
 
-    public bool AddCraftingMaterial(CraftingMaterial material, int amount)
+    public bool AddCraftingMaterial(Resource material, int amount)
     {
         if (GetTotalInventoryCount() + amount > maxAmount)
         {
@@ -124,7 +128,7 @@ public class InventoryManager : MonoBehaviour
         return true;
     }
 
-    public bool UseCraftingMaterial(CraftingMaterial material, int amount)
+    public bool UseCraftingMaterial(Resource material, int amount)
     {
         if (craftingMaterials[material] >= amount)
         {
@@ -135,7 +139,7 @@ public class InventoryManager : MonoBehaviour
         return false;
     }
 
-    public int GetCraftingMaterialAmount(CraftingMaterial material)
+    public int GetCraftingMaterialAmount(Resource material)
     {
         return craftingMaterials[material];
     }
@@ -161,7 +165,7 @@ public class InventoryManager : MonoBehaviour
         return blindBoxInventory;
     }
 
-    public Dictionary<CraftingMaterial, int> GetAllCraftingMaterials()
+    public Dictionary<Resource, int> GetAllCraftingMaterials()
     {
         return craftingMaterials;
     }

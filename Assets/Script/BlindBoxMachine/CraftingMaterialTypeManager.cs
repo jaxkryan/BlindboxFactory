@@ -1,10 +1,11 @@
+using Script.Resources;
 using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
 public struct CMData
 {
-    public CraftingMaterial cmType;
+    public Resource cmType;
     public int value;
     public Sprite sprite;
 }
@@ -14,7 +15,7 @@ public class CraftingMaterialTypeManager : MonoBehaviour
     public static CraftingMaterialTypeManager Instance { get; private set; }
 
     public List<CMData> boxDataList = new List<CMData>();
-    private Dictionary<CraftingMaterial, CMData> boxTypeDictionary;
+    private Dictionary<Resource, CMData> boxTypeDictionary;
 
     private void Awake()
     {
@@ -28,14 +29,14 @@ public class CraftingMaterialTypeManager : MonoBehaviour
             Destroy(gameObject);
         }
 
-        boxTypeDictionary = new Dictionary<CraftingMaterial, CMData>();
+        boxTypeDictionary = new Dictionary<Resource, CMData>();
         foreach (var data in boxDataList)
         {
             boxTypeDictionary[data.cmType] = data;
         }
     }
 
-    public CMData GetCraftingMaterialData(CraftingMaterial cmType)
+    public CMData GetCraftingMaterialData(Resource cmType)
     {
         if (boxTypeDictionary.TryGetValue(cmType, out CMData data))
         {

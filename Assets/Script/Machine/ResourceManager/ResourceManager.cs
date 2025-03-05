@@ -68,6 +68,7 @@ namespace Script.Machine.ResourceManager {
             count = Int32.MaxValue;
 
             foreach (var resourceUse in _resourceUse) {
+                if (resourceUse.Amount == 0) continue;
                 if (!_lockedResources.TryGetValue(resourceUse.Resource, out var lockedAmount)) {
                     count = 0;
                     return false;

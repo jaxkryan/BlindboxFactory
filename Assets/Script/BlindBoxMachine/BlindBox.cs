@@ -6,13 +6,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class BlindBox : ProductBase
+public class BlindBox : SingleProductBase
 {
-    public override float MaxProgress => 10f;
-
-    public override List<ResourceUse> ResourceUse => throw new NotImplementedException();
 
     public BoxTypeName boxTypeName;
+
 
     public override void OnProductCreated()
     {

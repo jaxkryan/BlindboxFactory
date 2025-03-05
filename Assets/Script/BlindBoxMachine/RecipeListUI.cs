@@ -5,7 +5,6 @@ public class RecipeListUI : MonoBehaviour
     [SerializeField] public BlindBoxMachine machine;
     [SerializeField] private RecipeButton recipeButtonPrefab;
     [SerializeField] private Transform contentParent;
-    [SerializeField] private MaterialSpriteManager materialSpriteManager;
 
     public static RecipeListUI Instance { get; private set; }
     private void Awake()
@@ -59,8 +58,6 @@ public class RecipeListUI : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        var materialSprites = materialSpriteManager.GetMaterialSprites();
-
         // Generate buttons with specific names
         for (int i = 0; i < machine.recipes.Count; i++)
         {
@@ -72,7 +69,7 @@ public class RecipeListUI : MonoBehaviour
             RecipeButton recipeButton = buttonObj.GetComponent<RecipeButton>();
             if (recipeButton != null)
             {
-                recipeButton.SetupRecipe(machine.recipes[i], materialSprites);
+                recipeButton.SetupRecipe(machine.recipes[i]);
             }
         }
     }

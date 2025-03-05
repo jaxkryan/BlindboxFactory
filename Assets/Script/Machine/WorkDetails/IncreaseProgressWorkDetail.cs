@@ -7,7 +7,6 @@ namespace Script.Machine.WorkDetails {
         [SerializeField] public float ProgressionPerInterval;
         [SerializeField] public float IntervalSeconds;
         protected override void OnStart() {
-            Debug.Log("Starting Work Detail");
             base.OnStart();
             
             _timer = new CountdownTimer(IntervalSeconds);

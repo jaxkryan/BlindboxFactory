@@ -98,7 +98,7 @@ namespace Script.Machine {
             if (Slots.All(s => s != slot)) { Debug.LogWarning($"Slots don't belong to machine({name})."); }
 
             slot.SetCurrentWorker(worker);
-            WorkDetails.Where(d => d.CanExecute()).ForEach(d => d.Start());
+            ReEvaluateWorkDetails();
             onWorkerChanged?.Invoke();
         }
 
@@ -113,8 +113,14 @@ namespace Script.Machine {
             }
 
             Slots.Where(s => s.CurrentWorker?.Equals(worker) ?? false).ForEach(s => s.SetCurrentWorker());
-            WorkDetails.Where(d => !d.CanExecute()).ForEach(d => d.Stop());
+            ReEvaluateWorkDetails();
             onWorkerChanged?.Invoke();
+        }
+
+        private void ReEvaluateWorkDetails()
+        {
+            WorkDetails?.Where(d => d.CanExecute()).ForEach(d => d.Start());
+            WorkDetails?.Where(d => !d.CanExecute()).ForEach(d => d.Stop());
         }
 
         public IEnumerable<WorkDetail> WorkDetails {
@@ -168,6 +174,7 @@ namespace Script.Machine {
             WorkDetails.ForEach(d => d.Machine = this);
             _progressPerSecTimer = new CountdownTimer(1);
             _resourceManager = new();
+            ReEvaluateWorkDetails();
         }
 
         private void OnEnable() {
