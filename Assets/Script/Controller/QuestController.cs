@@ -54,7 +54,7 @@ namespace Script.Controller {
             List<Quest.Quest> quests = new();
             List<Quest.Quest> duplicatedQuests = new();
             
-            Quests.ForEach(q => {
+            Quests?.ForEach(q => {
                 if (quests.Any(regQuest => q.Name == regQuest.Name)) duplicatedQuests.Add(q);
                 quests.Add(q);
             });

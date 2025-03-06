@@ -49,10 +49,12 @@ public class InventoryManager : MonoBehaviour
             blindBoxInventory[boxType] = 0;
         }
 
+
+        List<Resource> _nonCraftingMaterials = new() { Resource.Gold, Resource.Diamond };
         // Initialize Crafting Material Inventory
         foreach (Resource material in System.Enum.GetValues(typeof(Resource)))
         {
-            if(material != Resource.Energy && material != Resource.Gold && material != Resource.Meal)
+            if(!_nonCraftingMaterials.Contains(material))
             {
                 craftingMaterials[material] = 1000;
             }
