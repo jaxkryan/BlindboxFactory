@@ -14,6 +14,7 @@ namespace Script.Controller {
         public MascotController MascotController = new();
         public ResourceController ResourceController = new();
         public PowerGridController PowerGridController = new();
+        public QuestController QuestController = new();
         public Grid Grid;
         public Tilemap ConstructionLayer;
         public Tilemap CollisionLayer;
@@ -39,7 +40,11 @@ namespace Script.Controller {
 
         private void OnDestroy() => _controllers.ForEach(c => c.OnDestroy());
         private void OnEnable() => _controllers.ForEach(c => c.OnEnable());
-        private void OnDisable() => _controllers.ForEach(c => c.OnDisable());
+
+        private void OnDisable() {
+            _controllers.ForEach(c => c.OnDisable());
+            Save();
+        }
 
         private void Start() {
             if (_hasSaveTimer) {
@@ -56,6 +61,8 @@ namespace Script.Controller {
         private void Update() {
             _controllers.ForEach(c => c.OnUpdate(Time.deltaTime));
             _saveTimer?.Tick(Time.deltaTime);
+            if (_saveTimer is not null)Debug.Log(_saveTimer.Time);
+            else Debug.LogError("Save timer is null");
         }
 
         private void OnValidate() => _controllers.ForEach(c => c.OnValidate());
@@ -64,7 +71,9 @@ namespace Script.Controller {
             _controllers.ForEach(c => c.Load());
         }
 
-        private void Save() { _controllers.ForEach(c => c.Save()); }
+        private void Save() {
+            _controllers.ForEach(c => c.Save());
+        }
 
     }
 }

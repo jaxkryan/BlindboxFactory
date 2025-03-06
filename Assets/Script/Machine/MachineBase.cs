@@ -17,7 +17,7 @@ namespace Script.Machine {
             get => _product?.ResourceUse;
         }
         private ResourceManager.ResourceManager _resourceManager;
-        public bool HasResourceForWork => _resourceManager.HasResourcesForWork(out _);
+        public virtual bool HasResourceForWork => _resourceManager.HasResourcesForWork(out _);
         public bool HasEnergyForWork { get; private set; }
         
         public void SetMachineHasEnergyForWork(bool hasEnergy) => HasEnergyForWork = hasEnergy;

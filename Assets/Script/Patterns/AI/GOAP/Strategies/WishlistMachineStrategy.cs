@@ -72,7 +72,6 @@ namespace Script.Patterns.AI.GOAP.Strategies {
             
             //Evaluate options
             foreach (var w in weighted) {
-                Debug.LogWarning(w.Key.name);
                 //Move down the weighted list until a machine is wish listed
                 if (w.Key.SetWishlist(_worker)) {
                     _worker.Director.TargetSlot = w.Key;

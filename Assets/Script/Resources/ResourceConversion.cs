@@ -15,21 +15,21 @@ namespace Script.Resources {
     public static class ConversionExtension {
 
         public static bool TryConversion(this Dictionary<ResourceConversionPair, float> dict, Resource from,
-            Resource to, int amount, out int result, bool tryFindingExchangeRate = true, bool roundDownEachConversion = true) {
-            result = Int32.MaxValue;
+            Resource to, long amount, out long result, bool tryFindingExchangeRate = true, bool roundDownEachConversion = true) {
+            result = long.MaxValue;
             if (!dict.TryGetConversionRates(from, to, out var path, tryFindingExchangeRate)) return false;
             float a = amount;
             foreach (var rate in path.Select(p => p.Weight)) {
                 a = roundDownEachConversion ? MathF.Floor(a * rate) : a * rate;
             }
 
-            result = (int)MathF.Floor(a);
+            result = (long)MathF.Floor(a);
 
             return true;
         }
 
         public static bool TryConversion(this Dictionary<ResourceConversionPair, float> dict,
-            ResourceConversionPair pair, int amount, out int result, bool tryFindingExchangeRate = true, bool roundDownEachConversion = true)
+            ResourceConversionPair pair, long amount, out long result, bool tryFindingExchangeRate = true, bool roundDownEachConversion = true)
             => dict.TryConversion(pair.From, pair.To, amount, out result, roundDownEachConversion);
 
         public static bool TryGetConversionRates(this Dictionary<ResourceConversionPair, float> dict, Resource from, Resource to, out List<(Resource Node, float Weight)> path, bool tryFindingExchangeRate = true) {

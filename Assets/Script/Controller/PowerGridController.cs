@@ -40,8 +40,7 @@ namespace Script.Controller {
 
         public int EnergyUsage =>
             GameController.Instance.MachineController
-                .Machines.SelectMany(m => m.ResourceUse).Where(r => r.Resource == Resource.Energy)
-                .Select(r => r.Amount).Sum();
+                .Machines.Select(m => m.PowerUse).Sum();
         
         private void onMachineAdded(MachineBase machine) {
             ResetMachineEnergyUsage();

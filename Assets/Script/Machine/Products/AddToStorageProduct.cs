@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AYellowpaper.SerializedCollections;
 using MyBox;
+using Script.Controller;
 using Script.Machine.Machines.Canteen;
 using Script.Machine.ResourceManager;
 using Script.Resources;
@@ -21,4 +22,18 @@ namespace Script.Machine.Products {
             _storage.TryChangeMealAmount(Amount);
         }
     }
-}
+    
+    [Serializable]
+    public class AddResourceToStorageProduct : AddToStorageProduct {
+        [SerializeField] public Resource Resource;
+        public override void OnProductCreated() {
+            var controller = GameController.Instance.ResourceController;
+
+            if (!controller.TryGetAmount(Resource, out var amount)) {
+                Debug.LogError($"Resource not found: {Resource}!");
+                return;
+            }
+            controller.TrySetAmount(Resource, amount + Amount);
+        }
+        }
+    }
