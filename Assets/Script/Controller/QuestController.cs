@@ -36,7 +36,7 @@ namespace Script.Controller {
         public void SetData<T>(string key, T value) => QuestData[key] = new Entry<T>(key, value);
 
         public void ReevaluateActiveQuests(Func<Quest.Quest, bool> func) =>
-            ActiveQuests(func).ForEach(q => q.Objectives.ForEach(o => o.Condition(q)));
+            ActiveQuests(func).ForEach(q => q.Objectives.ForEach(o => o.Evaluate(q)));
 
         public IEnumerable<Quest.Quest> ActiveQuests(Func<Quest.Quest, bool> func) => Quests.Where(q => q.State is QuestState.InProgress).Where(func);
         private void RegisterQuestsToEvents() {

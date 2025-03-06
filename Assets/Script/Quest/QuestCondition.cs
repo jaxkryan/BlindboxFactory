@@ -9,7 +9,16 @@ using UnityEngine;
 
 namespace Script.Quest {
     public abstract class QuestCondition : ScriptableObject {
-        public abstract bool Condition(Quest quest);
+        public virtual string Description { get => _description; }
+        [SerializeField] protected string _description;
+
+        public string Progress(Quest quest) {
+            Evaluate(quest);
+            return OnProgressCheck(quest);
+        }
+
+        protected abstract string OnProgressCheck(Quest quest);
+        public abstract bool Evaluate(Quest quest);
     }
 
     [CreateAssetMenu(menuName = "Quest/Condition", fileName = "Machine Built Condition")]
@@ -19,7 +28,30 @@ namespace Script.Quest {
         [Tooltip("For prefabs comparing only")] [SerializeReference]
         public SerializedDictionary<MachineBase, int> BuildMachines;
 
-        public override bool Condition(Quest quest) {
+        protected override string OnProgressCheck(Quest quest) {
+            List<string> list = new List<string>();
+
+            foreach (var pair in BuildMachines) {
+                int value;
+                var machineCount = GameController.Instance.MachineController.Machines
+                    .Count(m => m.name == pair.Key.name);
+                if (!quest.TryGetQuestData(keyName(pair.Key), out value)) {
+                    value = machineCount;
+                }
+
+                var amount = machineCount - value;
+                if (amount < 0) amount = 0;
+                if (amount > pair.Value) amount = pair.Value;
+
+                var str = $"{amount}/{pair.Value}";
+                if (BuildMachines.Count > 1) str = $"{pair.Key.name} {str}";
+                list.Add(str);
+            }
+            
+            return string.Join("\n", list.ToArray());
+        }
+
+        public override bool Evaluate(Quest quest) {
             var machineController = GameController.Instance.MachineController;
             bool passed = true;
             foreach (var machine in BuildMachines) {
@@ -44,7 +76,26 @@ namespace Script.Quest {
         
         [SerializeReference]
         public SerializedDictionary<Resource, long> Resources;
-        public override bool Condition(Quest quest) {
+
+        protected override string OnProgressCheck(Quest quest) {
+            List<string> list = new List<string>();
+
+            foreach (var pair in Resources) {
+                long value;
+                if (!quest.TryGetQuestData(keyName(pair.Key)+"Remaining", out value)) {
+                    value = 0;
+                }
+                
+                if (value > pair.Value) value = pair.Value;
+                var str = $"{value}/{pair.Value}";
+                if (Resources.Count > 1) str = $"{pair.Key} {str}";
+                list.Add(str);
+            }
+            
+            return string.Join("\n", list.ToArray());
+        }
+
+        public override bool Evaluate(Quest quest) {
             var controller = GameController.Instance.ResourceController;
             
             bool passed = true;
@@ -91,7 +142,26 @@ namespace Script.Quest {
         
         [SerializeReference]
         public SerializedDictionary<Resource, long> Resources;
-        public override bool Condition(Quest quest) {
+
+        protected override string OnProgressCheck(Quest quest) {
+            List<string> list = new List<string>();
+
+            foreach (var pair in Resources) {
+                long value;
+                if (!quest.TryGetQuestData(keyName(pair.Key)+"Remaining", out value)) {
+                    value = 0;
+                }
+                
+                if (value > pair.Value) value = pair.Value;
+                var str = $"{value}/{pair.Value}";
+                if (Resources.Count > 1) str = $"{pair.Key} {str}";
+                list.Add(str);
+            }
+            
+            return string.Join("\n", list.ToArray());
+        }
+
+        public override bool Evaluate(Quest quest) {
             var controller = GameController.Instance.ResourceController;
             
             bool passed = true;
@@ -134,15 +204,42 @@ namespace Script.Quest {
 
     [CreateAssetMenu(menuName = "Quest/Condition", fileName = "Resource Amount Condition")]
     public class ResourceAmountQuestCondition : QuestCondition {
-        [SerializeReference] public SerializedDictionary<Resource, int> Resources;
-        public override bool Condition(Quest quest) {
+        [SerializeReference] public SerializedDictionary<Resource, long> Resources;
+
+        protected override string OnProgressCheck(Quest quest) {
+            List<string> list = new List<string>();
+
+            foreach (var pair in Resources) {
+                if (!GameController.Instance.ResourceController.TryGetAmount(pair.Key, out var value)) value = 0;
+
+                if (value > pair.Value) value = pair.Value;
+                var str = $"{value}/{pair.Value}";
+                if (Resources.Count > 1) str = $"{pair.Key} {str}";
+                list.Add(str);
+            }
+            
+            return string.Join("\n", list.ToArray());
+        }
+
+        public override bool Evaluate(Quest quest) {
             var controller = GameController.Instance.ResourceController;
-            return Resources.All(r => controller.TryGetAmount(r.Key, out long amount) && amount >= r.Value);
+            return Resources.All(r => controller.TryGetAmount(r.Key, out var amount) && amount >= r.Value);
         }
     }
 
+    [CreateAssetMenu(menuName = "Quest/Condition", fileName = "Previous Quest Condition")]
     public class PreviousQuestCondition : QuestCondition {
         [SerializeReference] public List<Quest> Quests;
-        public override bool Condition(Quest quest) => Quests.All(q => q.State == QuestState.Complete);
+
+        protected override string OnProgressCheck(Quest quest) {
+            var list = new List<string>();
+
+            foreach (var q in Quests) {
+                list.Add($"{q.Name} {q.State}");
+            }
+
+            return string.Join("\n", list);
+        }
+        public override bool Evaluate(Quest quest) => Quests.All(q => q.State == QuestState.Complete);
     }
 }

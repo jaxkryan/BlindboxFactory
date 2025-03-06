@@ -40,11 +40,11 @@ namespace Script.Quest {
                 oriState = State;
                 switch (oriState) {
                     case QuestState.Locked:
-                        if (Preconditions.All(c => c.Condition(this)))
+                        if (Preconditions.All(c => c.Evaluate(this)))
                             State = QuestState.InProgress;
                         break;
                     case QuestState.InProgress:
-                        if (Objectives.All(o => o.Condition(this)))
+                        if (Objectives.All(o => o.Evaluate(this)))
                             State = QuestState.Complete;
                         OnComplete();
                         break;
