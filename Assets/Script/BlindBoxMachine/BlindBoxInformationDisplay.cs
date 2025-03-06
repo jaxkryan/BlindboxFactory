@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class BlindBoxInformationDisplay : MonoBehaviour
 {
+    [SerializeField]
     public static BlindBoxInformationDisplay Instance { get; private set; }
     public GameObject ChosePanel;
     private BlindBoxMachine currentBlindBoxMachine;
@@ -15,7 +16,7 @@ public class BlindBoxInformationDisplay : MonoBehaviour
         }
         else
         {
-            Destroy(gameObject);
+            Destroy(gameObject); 
             return;
         }
     }
@@ -27,7 +28,6 @@ public class BlindBoxInformationDisplay : MonoBehaviour
 
     public void SetCurrentDisplayedObject(BlindBoxMachine current)
     {
-        Debug.Log("Setting current BlindBoxMachine: " + current);
         currentBlindBoxMachine = current;
     }
 

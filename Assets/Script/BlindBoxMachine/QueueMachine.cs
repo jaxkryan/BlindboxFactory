@@ -1,42 +1,44 @@
-using Script.Machine;
+using System;
 using System.Collections.Generic;
+using Script.HumanResource.Worker;
+using Script.Machine;
+using Unity.VisualScripting;
 using UnityEngine;
 
-public abstract class QueueMachine<T> : MachineBase where T : IProduct
+public abstract class QueueMachine : MachineBase
 {
-    protected Queue<T> productQueue = new Queue<T>();
-    protected T currentProduct;
+    [SerializeField]
+    Queue<IProduct> ProductQueue { get; }
 
-    public virtual void EnqueueProduct(T product)
+    [SerializeField]
+
+
+
+
+    public override IProduct CreateProduct()
     {
-        if (currentProduct == null)
+        IProduct createdProduct = base.CreateProduct();
+
+        if (ProductQueue.Count > 0)
         {
-            currentProduct = product;
+            Product = ProductQueue.Dequeue();
         }
         else
         {
-            productQueue.Enqueue(product);
-        }
-    }
-
-    public virtual T DequeueProduct()
-    {
-        if (productQueue.Count > 0)
-        {
-            currentProduct = productQueue.Dequeue();
-            return currentProduct;
+            Product = null;
         }
 
-        return default;
+        return createdProduct;
     }
 
-    public virtual List<T> GetProductQueue()
+    public virtual IProduct Product
     {
-        return new List<T>(productQueue);
+        get => Product;
+        protected set => Product = value; 
     }
 
-    public virtual T GetCurrentProduct() 
+    public void EnqueueProduct(IProduct product)
     {
-        return currentProduct;    
+        ProductQueue.Enqueue(product);
     }
 }
