@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Script.Controller;
 using Script.HumanResource.Worker;
 using Script.Machine.Products;
-using Script.Machine.ResourceManager;
+using Script.Resources;
 using UnityEngine;
 
 namespace Script.Machine {
@@ -13,8 +13,8 @@ namespace Script.Machine {
     public abstract class MachineBase : MonoBehaviour, IMachine, IBuilding {
         public int PowerUse { get => _powerUse; set => _powerUse = value; }
         [SerializeField] private int _powerUse = 0;
-        public List<ResourceManager.ResourceUse> ResourceUse {
-            get => _product?.ResourceUse;
+        public Dictionary<Resource, int> ResourceUse {
+            get => _resourceUse; set => _resourceUse = new SerializedDictionary<Resource, int>(value);
         }
         private ResourceManager.ResourceManager _resourceManager;
         public virtual bool HasResourceForWork => _resourceManager.HasResourcesForWork(out _);
@@ -74,10 +74,50 @@ namespace Script.Machine {
             get => Product.MaxProgress;
         }
 
+        [SerializeField] float _maxProgress;
+
         public IEnumerable<IWorker> Workers {
             get => _slot.Select(s => s.CurrentWorker).Where(w => w != null);
         }
 
+        protected virtual void Awake() {
+            WorkDetails.ForEach(d => d.Machine = this);
+            _progressPerSecTimer = new CountdownTimer(1);
+        }
+
+        protected virtual void Start()
+        {
+            // Consume energy when machine starts running.
+            if (ElectricGenerator.HasEnoughEnergy(PowerUse))
+            {
+                ElectricGenerator.ConsumeEnergy(PowerUse);
+            }
+            else
+            {
+                Debug.LogWarning($"Machine {name} cannot start due to insufficient energy.");
+                // Optionally, disable the machine or handle the error.
+            }
+
+            // Existing start logic for machine operations:
+            _progressPerSecTimer.OnTimerStop += () => {
+                var diff = 0f;
+                if (CurrentProgress < _progressQueue.Last())
+                    diff = CurrentProgress + (MaxProgress - _progressQueue.Last());
+                else
+                    diff = CurrentProgress - _progressQueue.Last();
+
+                _progressQueue.Enqueue(diff);
+                if (_progressQueue.Count > 10) _progressQueue.Dequeue();
+                _progressPerSecTimer.Start();
+            };
+
+            _progressPerSecTimer.Start();
+        }
+        protected virtual void OnDestroy()
+        {
+            // Release the energy when the machine is destroyed.
+            ElectricGenerator.ReleaseEnergy(PowerUse);
+        }
         public virtual void AddWorker(IWorker worker, MachineSlot slot) {
             if (IsClosed) {
                 Debug.LogWarning($"Machine({name}) is closed.");
@@ -131,13 +171,9 @@ namespace Script.Machine {
 
         public virtual ProductBase Product {
             get => _product;
-            set {
-                onProductChanged?.Invoke(value);
-                _product = value;
-            }
+            set => _product = value;
         }
-        public event Action<ProductBase> onProductChanged = delegate { };
-    
+
         [SerializeReference, SubclassSelector] private ProductBase _product;
         public event Action<ProductBase> onCreateProduct = delegate { };
         public DateTimeOffset PlacedTime { get => _placedTime;  }
@@ -146,8 +182,7 @@ namespace Script.Machine {
         public void SetMachinePlacedTime(DateTimeOffset time) => _placedTime = time;
         
         public virtual ProductBase CreateProduct() {
-            _resourceManager.TryConsumeResources(1, out _);
-            _product?.OnProductCreated();
+            _product.OnProductCreated();
             onCreateProduct?.Invoke(_product);
             return _product;
         }
