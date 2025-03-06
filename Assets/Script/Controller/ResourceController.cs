@@ -13,9 +13,9 @@ namespace Script.Controller {
 
         [SerializeField] private SerializedDictionary<Resource, ResourceData> _resourceData;
 
-        private Dictionary<Resource, int> _resourceAmount = new();
+        private Dictionary<Resource, long> _resourceAmount = new();
 
-        public bool TryGetData(Resource resource, out ResourceData resourceData, out int currentAmount) {
+        public bool TryGetData(Resource resource, out ResourceData resourceData, out long currentAmount) {
             currentAmount = default;
             var ret = _resourceData.TryGetValue(resource, out resourceData) &&
                       TryGetAmount(resource, out currentAmount);
@@ -34,10 +34,10 @@ namespace Script.Controller {
             return false;
         }
 
-        public bool TryGetAmount(Resource resource, out int amount) =>
+        public bool TryGetAmount(Resource resource, out long amount) =>
             _resourceAmount.TryGetValue(resource, out amount);
 
-        public bool TrySetAmount(Resource resource, int amount) {
+        public bool TrySetAmount(Resource resource, long amount) {
             if (!_resourceData.TryGetValue(resource, out var data)) return false;
             if (!TryGetAmount(resource, out var currentAmount)) return false;
             if (!data.IsAmountValid(currentAmount, amount)) return false;
@@ -55,13 +55,13 @@ namespace Script.Controller {
             ConversionNode, float Rate)> conversionPath, bool tryFindExchange = true)
             => _resourceConversion.TryGetConversionRates(from, to, out conversionPath, tryFindExchange);
 
-        public bool TryConversion(ResourceConversionPair resourceConversionPair, int amount, out int result,
+        public bool TryConversion(ResourceConversionPair resourceConversionPair, long amount, out long result,
             bool tryFindingExchangeRate = true, bool roundDownEachConversion = true)
             => _resourceConversion.TryConversion(resourceConversionPair, amount, out result, tryFindingExchangeRate,
                 roundDownEachConversion);
 
         public bool TryConversion(Resource from,
-            Resource to, int amount, out int result, bool tryFindingExchangeRate = true,
+            Resource to, long amount, out long result, bool tryFindingExchangeRate = true,
             bool roundDownEachConversion = true)
             => _resourceConversion.TryConversion(from, to, amount, out result, tryFindingExchangeRate,
                 roundDownEachConversion);

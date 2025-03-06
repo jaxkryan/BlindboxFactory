@@ -46456,6 +46456,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   AutoUnparentOnLoad: 1
+  BoxController:
+    _boxData:
+      _serializedList: []
   MachineController:
     _recoverMachines:
       _serializedList: []
@@ -46463,7 +46466,16 @@ MonoBehaviour:
     _resourceConversion:
       _serializedList: []
     _resourceData:
-      _serializedList: []
+      _serializedList:
+      - Key: 0
+        Value:
+          MaxAmount: 0
+      - Key: 1
+        Value:
+          MaxAmount: 0
+      - Key: 6
+        Value:
+          MaxAmount: 0
   Grid: {fileID: 0}
   ConstructionLayer: {fileID: 0}
   CollisionLayer: {fileID: 0}

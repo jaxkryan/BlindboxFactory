@@ -8,6 +8,7 @@ using UnityEngine.Tilemaps;
 
 namespace Script.Controller {
     public class GameController : PersistentSingleton<GameController> {
+        public BoxController BoxController = new();
         public MachineController MachineController = new ();
         public WorkerController WorkerController = new ();
         public ShardController ShardController = new ();

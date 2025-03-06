@@ -4,9 +4,9 @@ namespace Script.Resources {
         
     [Serializable]
     public struct ResourceData {
-        public int MaxAmount;
+        public long MaxAmount;
 
-        public bool IsAmountValid(int currentAmount, int newAmount) {
+        public bool IsAmountValid(long currentAmount, long newAmount) {
             if (newAmount > MaxAmount) return false;
             if (newAmount < 0) return false;
                 
