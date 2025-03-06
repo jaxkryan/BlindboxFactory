@@ -1,19 +1,19 @@
 using UnityEngine;
 
-public class RecipeListUI : MonoBehaviour
+public class RecipeListUI : PersistentSingleton<RecipeListUI>
 {
-    [SerializeField] private BlindBoxMachine machine;
-    [SerializeField] private RecipeButton recipeButtonPrefab;
-    [SerializeField] private Transform contentParent;
-    [SerializeField] private MaterialSpriteManager materialSpriteManager;
+    [SerializeField] public BlindBoxMachine Machine;
+    [SerializeField] public RecipeButton RecipeButtonPrefab;
+    [SerializeField] public Transform ContentParent;
 
-    private void Awake()
+    protected override void Awake()
     {
-        machine = BlindBoxInformationDisplay.Instance.GetCurrentDisplayedObject();
+        base.Awake();
+        Machine = BlindBoxInformationDisplay.Instance.GetCurrentDisplayedObject();
 
-        if (machine != null)
+        if (Machine != null)
         {
-            Debug.LogError(machine.name);
+            Debug.LogError(Machine.name);
             GenerateButtons();
         }
         else
@@ -29,25 +29,23 @@ public class RecipeListUI : MonoBehaviour
     private void GenerateButtons()
     {
         // Clear existing buttons
-        foreach (Transform child in contentParent)
+        foreach (Transform child in ContentParent)
         {
             Destroy(child.gameObject);
         }
 
-        var materialSprites = materialSpriteManager.GetMaterialSprites();
-
         // Generate buttons with specific names
-        for (int i = 0; i < machine.recipes.Count; i++)
+        for (int i = 0; i < Machine.recipes.Count; i++)
         {
             // Create the button GameObject
-            GameObject buttonObj = Instantiate(recipeButtonPrefab.gameObject, contentParent);
+            GameObject buttonObj = Instantiate(RecipeButtonPrefab.gameObject, ContentParent);
             buttonObj.name = $"RecipeButton_{i}";
 
             // Find and setup the RecipeButton component
             RecipeButton recipeButton = buttonObj.GetComponent<RecipeButton>();
             if (recipeButton != null)
             {
-                recipeButton.SetupRecipe(machine.recipes[i], materialSprites);
+                recipeButton.SetupRecipe(Machine.recipes[i]);
             }
         }
     }
