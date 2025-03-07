@@ -15,7 +15,7 @@ public class MinigameLevelMove : MinigameLevel
     void Start()
     {
         type = LevelType.MOVES;
-        energySystem = FindObjectOfType<EnergySystem>();
+        energySystem = FindFirstObjectByType<EnergySystem>();
 
         if (energySystem != null)
         {

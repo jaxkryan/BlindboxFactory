@@ -43,7 +43,7 @@ namespace BuildingSystem
                 _buildables.Add(coords, buildable);
             }
 
-            var buildingPlacer = FindObjectOfType<BuildingPlacer>();
+            var buildingPlacer = FindFirstObjectByType<BuildingPlacer>();
             if (buildingPlacer != null && buildingPlacer.IsBuildingFromInventory())
             {
                 if (_storedBuildables.ContainsKey(item) && _storedBuildables[item] > 1)
@@ -56,7 +56,7 @@ namespace BuildingSystem
                     buildingPlacer.SetBuildableFromInventory(null);
                     buildingPlacer.ClearPreview();
                 }
-                FindObjectOfType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
+                FindFirstObjectByType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
             }
         }
 
@@ -99,7 +99,7 @@ namespace BuildingSystem
 
             _buildables.Remove(coords);
             buildable.Destroy();
-            FindObjectOfType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
+            FindFirstObjectByType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
         }
 
         public Dictionary<Vector3Int, Buildable> GetBuildables()

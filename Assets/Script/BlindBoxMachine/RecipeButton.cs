@@ -75,7 +75,7 @@ public class RecipeButton : MonoBehaviour
             }
         }
 
-        BoxTypeManager boxTypeManager = FindObjectOfType<BoxTypeManager>();
+        BoxTypeManager boxTypeManager = FindFirstObjectByType<BoxTypeManager>();
 
         BoxData boxData = boxTypeManager.GetBoxData(blindbox.boxTypeName);
         // Setup result and text

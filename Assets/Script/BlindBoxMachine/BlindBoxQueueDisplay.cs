@@ -25,7 +25,7 @@ public class BlindBoxQueueDisplay : MonoBehaviour
 
     void Start()
     {
-        boxTypeManager = FindObjectOfType<BoxTypeManager>();
+        boxTypeManager = FindFirstObjectByType<BoxTypeManager>();
         UpdateQueueUI();
     }
     private void OnEnable()

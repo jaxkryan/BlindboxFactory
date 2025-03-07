@@ -20,8 +20,8 @@ public class StructureManage : MonoBehaviour
 
     private void Awake()
     {
-        _buildingPlacer = FindObjectOfType<BuildingPlacer>();
-        _constructionLayer = FindObjectOfType<ConstructionLayer>();
+        _buildingPlacer = FindFirstObjectByType<BuildingPlacer>();
+        _constructionLayer = FindFirstObjectByType<ConstructionLayer>();
     }
 
     private void Update()
