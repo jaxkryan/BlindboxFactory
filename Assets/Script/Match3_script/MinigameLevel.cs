@@ -1,6 +1,9 @@
+using System;
 using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
+using Script.Controller;
+using Script.Resources;
 
 public class MinigameLevel : MonoBehaviour
 {
@@ -56,30 +59,33 @@ public class MinigameLevel : MonoBehaviour
         grid.GameOver();
     }
 
+    private readonly List<Resource> _nonCraftingResources = new () {
+        Resource.Gold, Resource.Gem, 
+    };
     private void CollectResources()
     {
-        foreach (ColorPiece.ColorType color in System.Enum.GetValues(typeof(ColorPiece.ColorType)))
+        foreach (Resource resource in System.Enum.GetValues(typeof(Resource)))
         {
+            if (!Enum.TryParse<ColorPiece.ColorType>(ToUpper(Enum.GetName(typeof(Resource), resource)), out var color)) continue;
             int amount = ResourceManager.Instance.GetResourceAmount(color);
-            if (amount > 0)
-            {
-                int colorValue = (int)color;
-                Debug.Log($"Color: {color} ({colorValue})");
+            if (amount <= 0) continue;
+            if (_nonCraftingResources.Contains(resource)) continue;
 
-                if (System.Enum.IsDefined(typeof(CraftingMaterial), colorValue))
-                {
-                    CraftingMaterial material = (CraftingMaterial)colorValue;
-                    Debug.Log($"Converted to CraftingMaterial: {material} ({(int)material})");
-                    MaterialManager.Instance.AddMaterial(material, amount);
-                }
-                else
-                {
-                    Debug.LogWarning($"No matching CraftingMaterial for ColorType: {color} ({colorValue})");
-                }
-            }
+            Debug.Log($"Converted to CraftingMaterial: {resource} ({(int)resource})");
+            if (GameController.Instance.ResourceController.TryGetAmount(resource, out var value))
+                GameController.Instance.ResourceController.TrySetAmount(resource, amount + value);
         }
     }
 
+    private Func<string, string> ToUpper =>
+        (str) => {
+            var list = new List<char>();
+            foreach (var c in str) {
+                list.Add(char.ToUpper(c));
+            }
+
+            return string.Join("", list);
+        };
 
 
     public virtual void OnMove()

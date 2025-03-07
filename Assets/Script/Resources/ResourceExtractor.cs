@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using DG.Tweening;
+using Script.Controller;
 using Script.Machine;
+using Script.Resources;
 
 public class ResourceExtractor : MachineBase
 {
     [System.Serializable]
     public class MaterialDropRate
     {
-        public CraftingMaterial material;
+        public Resource material;
         public float dropRate; // Xác suất rơi
         public Sprite materialSprite; // Sprite của nguyên liệu
     }
@@ -24,12 +26,12 @@ public class ResourceExtractor : MachineBase
 
     public List<MaterialDropRate> materialDropRates = new List<MaterialDropRate>
     {
-        new MaterialDropRate { material = CraftingMaterial.RAINBOW, dropRate = 0.20f },
-        new MaterialDropRate { material = CraftingMaterial.CLOUD, dropRate = 0.20f },
-        new MaterialDropRate { material = CraftingMaterial.MARSHMALLOW, dropRate = 0.20f },
-        new MaterialDropRate { material = CraftingMaterial.RUBY, dropRate = 0.15f },
-        new MaterialDropRate { material = CraftingMaterial.DIAMOND, dropRate = 0.15f },
-        new MaterialDropRate { material = CraftingMaterial.STAR, dropRate = 0.10f }
+        new MaterialDropRate { material = Resource.Rainbow, dropRate = 0.20f },
+        new MaterialDropRate { material = Resource.Cloud, dropRate = 0.20f },
+        new MaterialDropRate { material = Resource.Gummy, dropRate = 0.20f },
+        new MaterialDropRate { material = Resource.Ruby, dropRate = 0.15f },
+        new MaterialDropRate { material = Resource.Star, dropRate = 0.15f },
+        new MaterialDropRate { material = Resource.Diamond, dropRate = 0.10f }
     };
 
     public List<QuantityDropRate> quantityDropRates = new List<QuantityDropRate>
@@ -62,11 +64,13 @@ public class ResourceExtractor : MachineBase
 
     private void MineMaterials()
     {
-        CraftingMaterial? selectedMaterial = GetRandomMaterial();
+        Resource? selectedMaterial = GetRandomMaterial();
         if (selectedMaterial.HasValue)
         {
             int quantity = GetRandomQuantity() + (level - 1);
-            MaterialManager.Instance.AddMaterial(selectedMaterial.Value, quantity);
+            if (GameController.Instance.ResourceController.TryGetAmount(selectedMaterial.Value, out var value))
+                GameController.Instance.ResourceController.TrySetAmount(selectedMaterial.Value, quantity + value);
+            else Debug.LogError("Resource controller cannot find resource: " + selectedMaterial.Value);
             Debug.Log($"Mined {quantity} of {selectedMaterial.Value}");
 
             Sprite materialSprite = materialDropRates.First(m => m.material == selectedMaterial.Value).materialSprite;
@@ -74,7 +78,7 @@ public class ResourceExtractor : MachineBase
         }
     }
 
-    private CraftingMaterial? GetRandomMaterial()
+    private Resource? GetRandomMaterial()
     {
         float roll = Random.value;
         float cumulative = 0f;
