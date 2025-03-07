@@ -45,14 +45,42 @@ public class MinigameLevel : MonoBehaviour
     public virtual void GameWin()
     {
         Debug.Log("Game win");
+        CollectResources();
         grid.GameOver();
     }
 
     public virtual void GameLose()
     {
         Debug.Log("Game lose");
+        CollectResources();
         grid.GameOver();
     }
+
+    private void CollectResources()
+    {
+        foreach (ColorPiece.ColorType color in System.Enum.GetValues(typeof(ColorPiece.ColorType)))
+        {
+            int amount = ResourceManager.Instance.GetResourceAmount(color);
+            if (amount > 0)
+            {
+                int colorValue = (int)color;
+                Debug.Log($"Color: {color} ({colorValue})");
+
+                if (System.Enum.IsDefined(typeof(CraftingMaterial), colorValue))
+                {
+                    CraftingMaterial material = (CraftingMaterial)colorValue;
+                    Debug.Log($"Converted to CraftingMaterial: {material} ({(int)material})");
+                    MaterialManager.Instance.AddMaterial(material, amount);
+                }
+                else
+                {
+                    Debug.LogWarning($"No matching CraftingMaterial for ColorType: {color} ({colorValue})");
+                }
+            }
+        }
+    }
+
+
 
     public virtual void OnMove()
     {
@@ -68,7 +96,7 @@ public class MinigameLevel : MonoBehaviour
             ColorPiece.ColorType pieceColor = colorPiece.Color;
             if (pieceColor != ColorPiece.ColorType.ANY && pieceColor != ColorPiece.ColorType.COUNT)
             {
-                ResourceManager.Instance.AddResource(pieceColor, 5);
+                ResourceManager.Instance.AddResource(pieceColor, 1);
                 UpdateResourceTexts();
             }
         }
@@ -87,15 +115,15 @@ public class MinigameLevel : MonoBehaviour
     }
 
     public virtual void OnBigMatch(int matchSize)
-{
-    int extraRewards =  matchSize ;
-
-    // Reward extra resources
-    foreach (ResourceText resourceText in resourceTexts)
     {
-        ResourceManager.Instance.AddResource(resourceText.resourceType, extraRewards);
+        int extraRewards = matchSize - 3;
+
+        // Reward extra resources
+        foreach (ResourceText resourceText in resourceTexts)
+        {
+            ResourceManager.Instance.AddResource(resourceText.resourceType, extraRewards);
+        }
+        UpdateResourceTexts();
     }
-    UpdateResourceTexts();
-}
 
 }
