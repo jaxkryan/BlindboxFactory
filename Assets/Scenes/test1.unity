@@ -989,6 +989,11 @@ TilemapCollider2D:
   m_MaximumTileChangeCount: 1000
   m_ExtrusionFactor: 0
   m_UseDelaunayMesh: 0
+--- !u!224 &126447388 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1781396785843484931, guid: 368dc49b8a360b444b0fbc6b4ae774bc, type: 3}
+  m_PrefabInstance: {fileID: 559246054}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &129633991
 GameObject:
   m_ObjectHideFlags: 0
@@ -1585,8 +1590,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AutoUnparentOnLoad: 1
   Machine: {fileID: 0}
-  RecipeButtonPrefab: {fileID: 0}
-  ContentParent: {fileID: 0}
+  RecipeButtonPrefab: {fileID: 5185960006259959925, guid: 2869a91a39ffd6141a7a4856903e6121, type: 3}
+  ContentParent: {fileID: 126447388}
 --- !u!1001 &305802332
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -45443,6 +45448,17 @@ MonoBehaviour:
   _collisionLayer: {fileID: 1793274764}
   blindboxmachineUI: {fileID: 1215126558}
   uIToggles: {fileID: 1215126562}
+--- !u!114 &943774954 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5596512697443299234, guid: 368dc49b8a360b444b0fbc6b4ae774bc, type: 3}
+  m_PrefabInstance: {fileID: 559246054}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &982225197
 GameObject:
   m_ObjectHideFlags: 0
@@ -46269,8 +46285,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b550752be0efe2e4094544a4b1860725, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentText: {fileID: 0}
-  currentImage: {fileID: 0}
+  currentText: {fileID: 1119486853}
+  currentImage: {fileID: 943774954}
+--- !u!114 &1119486853 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 995866905362790965, guid: 368dc49b8a360b444b0fbc6b4ae774bc, type: 3}
+  m_PrefabInstance: {fileID: 559246054}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1127356321
 GameObject:
   m_ObjectHideFlags: 0
@@ -46437,9 +46464,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   AutoUnparentOnLoad: 1
-  BoxController:
-    _boxData:
-      _serializedList: []
   MachineController:
     _recoverMachines:
       _serializedList: []
@@ -46457,11 +46481,16 @@ MonoBehaviour:
       - Key: 6
         Value:
           MaxAmount: 0
+  QuestController:
+    Quests: []
   Grid: {fileID: 0}
   ConstructionLayer: {fileID: 0}
   CollisionLayer: {fileID: 0}
   _hasSaveTimer: 0
   _timeBetweenSave: 5
+  references:
+    version: 2
+    RefIds: []
 --- !u!4 &1164272406
 Transform:
   m_ObjectHideFlags: 0
