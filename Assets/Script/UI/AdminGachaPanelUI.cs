@@ -38,4 +38,21 @@ public class AdminGachaPanelUI : MonoBehaviour {
 
         onAdminGacha?.Invoke(pulled);
     }
+    
+    public void Gacha_10() {
+        if (_adminGacha is null) {
+            Debug.LogWarning("No administator gacha was selected");
+            return;
+        }
+        _closeBtn.gameObject.SetActive(false);
+        _gachaBtn.gameObject.SetActive(false);
+
+        var pulled = _adminGacha.PullMultiple(10);
+
+        foreach (var item in pulled)
+        {
+
+            onAdminGacha?.Invoke(item);
+        }
+    }
 }

@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using Script.Controller;
 using Script.Gacha.Base;
 using Script.Gacha.Machine;
 using Script.Utils;
 using UnityEngine;
 
 namespace Script.HumanResource.Administrator {
-    [CreateAssetMenu(fileName = "AdministratorGacha", menuName = "HumanResource/Administrator/Gacha")]
+    [CreateAssetMenu(fileName = "AdministratorGacha", menuName = "HumanResource/Administrator/AdministratorGacha")]
     public class AdministratorGacha : ScriptableObject, ILootbox<Mascot, AdministratorSetting> {
         public int Pulls { get; set; }
         // [SerializeField] private PolicyGacha 
@@ -47,7 +48,7 @@ namespace Script.HumanResource.Administrator {
                 Grade.Legendary => LegendarySettings,
                 _ => throw new ArgumentOutOfRangeException()
             };
-            Mascot admin = ScriptableObject.CreateInstance<Mascot>();
+            Mascot admin = ScriptableObject.CreateInstance<CommonMascot>();
 
             admin.SetGrade(grade);
 
@@ -62,6 +63,8 @@ namespace Script.HumanResource.Administrator {
 
             Pulls++;
             PullHistory.Add(admin);
+
+            GameController.Instance.MascotController.AddMascot(admin);
             return admin;
         }
 

@@ -12,9 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 861cf6363abd45258b85d27e1b178b8b, type: 3}
   m_Name: NameRandomizer
   m_EditorClassIdentifier: 
-  _itemPool: []
-  _serializeRequirements: []
+  _itemPool:
+  - _firstName: Skibidi
+    _lastName: John
+  - _firstName: Bunny
+    _lastName: John
+  - _firstName: Lababa
+    _lastName: John
+  _serializeRequirements:
+  - rid: -2
   _useGachaRequirements: 0
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
