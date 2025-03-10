@@ -210,7 +210,7 @@ namespace Script.Machine {
             #region Resource
             _resourceManager.SetResourceUses(ResourceUse.ToArray());
             onProductChanged += product => {
-                Debug.Log("Product changed to " + nameof(product));
+                //Debug.Log("Product changed to " + nameof(product));
                 _resourceManager.UnlockResource();
                 _resourceManager.SetResourceUses(product.ResourceUse.ToArray());
                 _resourceManager.TryPullResource(1, out _);

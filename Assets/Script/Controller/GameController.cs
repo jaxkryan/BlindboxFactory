@@ -9,6 +9,7 @@ using UnityEngine.Tilemaps;
 namespace Script.Controller {
     public class GameController : PersistentSingleton<GameController> {
         public MachineController MachineController = new ();
+        public BoxController BoxController = new ();
         public WorkerController WorkerController = new ();
         public ShardController ShardController = new ();
         public MascotController MascotController = new();
@@ -30,7 +31,6 @@ namespace Script.Controller {
         
         protected override void Awake() {
             base.Awake();
-
             Load();
             if (!Grid) {
                 Grid = FindFirstObjectByType<Grid>();
@@ -61,13 +61,11 @@ namespace Script.Controller {
         private void Update() {
             _controllers.ForEach(c => c.OnUpdate(Time.deltaTime));
             _saveTimer?.Tick(Time.deltaTime);
-            if (_saveTimer is not null)Debug.Log(_saveTimer.Time);
-            else Debug.LogError("Save timer is null");
         }
 
         private void OnValidate() => _controllers.ForEach(c => c.OnValidate());
 
-        private void Load() {
+        private void Load() { 
             _controllers.ForEach(c => c.Load());
         }
 

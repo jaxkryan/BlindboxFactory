@@ -21,14 +21,22 @@ public class BlindBoxMachine : MachineBase
     [SerializeField] public int maxAmount;
     protected override void Update()
     {
-        base.Update();
-
-        if(CurrentProgress >= MaxProgress)
+        if (CurrentProgress >= MaxProgress)
         {
             CreateProduct();
         }
 
-        Debug.Log(CurrentProgress);
+        if (amount == 0)
+        {
+            Product = new Null();
+        }
+
+        if (Product == null)
+        {
+            Product = new Null();
+        }
+
+        base.Update();
     }
 
     protected override void Start()

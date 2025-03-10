@@ -24,7 +24,7 @@ namespace Script.Controller {
         
         public IEnumerable<IShard> ShatterItem(ILoot item, int quantity) {
             #warning Unimplemented
-            throw new System.NotImplementedException();
+            //throw new System.NotImplementedException();
             if (!ShardDictionary.TryGetValue(item, out var shardQuantity)) return GetShards((DefaultShard, DefaultShardQuantity));
             return GetShards(shardQuantity.ToArray());
             
@@ -42,7 +42,11 @@ namespace Script.Controller {
             }
         }
 
-        public override void Load() { throw new NotImplementedException(); }
-        public override void Save() { throw new NotImplementedException(); }
+        public override void Load() { 
+            //throw new NotImplementedException(); 
+        }
+        public override void Save() { 
+            //throw new NotImplementedException(); 
+        }
     }
 }

@@ -72,7 +72,11 @@ namespace Script.Controller {
             public WorkerType Worker;
         }
 
-        public override void Load() { throw new NotImplementedException(); }
-        public override void Save() { throw new NotImplementedException(); }
+        public override void Load() { 
+            //throw new NotImplementedException(); 
+        }
+        public override void Save() { 
+            //throw new NotImplementedException(); 
+        }
     }
 }

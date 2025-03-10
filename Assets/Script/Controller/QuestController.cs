@@ -7,8 +7,10 @@ using UnityEngine;
 namespace Script.Controller {
     [Serializable]
     public class QuestController : ControllerBase {
-        public override void Load() { throw new System.NotImplementedException(); }
-        public override void Save() { throw new System.NotImplementedException(); }
+        public override void Load() { //throw new System.NotImplementedException();
+                                      }
+        public override void Save() { //throw new System.NotImplementedException();
+                                      }
 
         [SerializeField] public List<Quest.Quest> Quests;
         private Dictionary<string, object> QuestData { get; set; } = new();

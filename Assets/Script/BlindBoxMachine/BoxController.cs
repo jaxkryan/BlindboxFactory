@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
 using MyBox;
@@ -19,6 +20,15 @@ public struct BoxMaxAmount
     }
 }
 
+public struct SaleData
+{
+    public int UnitPrice;
+    public int TotalPrice;
+    public DateTime DateTime;
+    public BoxTypeName BoxTypeName;
+    public int Amount;
+}
+
 
 namespace Script.Controller
 {
@@ -28,8 +38,25 @@ namespace Script.Controller
         [SerializeField] private SerializedDictionary<BoxTypeName, BoxMaxAmount> _boxData;
 
         private Dictionary<BoxTypeName, long> _boxAmount = new();
+        
+        public ReadOnlyCollection<SaleData> SaleData => _saleData.AsReadOnly(); 
+        private List<SaleData> _saleData = new();
 
-        private long _wareHouseMaxAmount; 
+        private long _wareHouseMaxAmount;
+
+        public void AddSaleData(int UnitPrice, int TotalPrice, BoxTypeName BoxTypeName, int Amount, DateTime DateTime)
+        {
+            _saleData.Add(new SaleData { UnitPrice = UnitPrice,
+                TotalPrice = TotalPrice,
+                DateTime = DateTime,
+                BoxTypeName = BoxTypeName,
+                Amount = Amount});
+        }
+
+        public void AddSaleData(SaleData SaleData)
+        {
+            _saleData.Add(SaleData);
+        }
 
         public bool TryGetData(BoxTypeName boxType, out BoxMaxAmount boxData, out long currentAmount)
         {
@@ -75,12 +102,12 @@ namespace Script.Controller
 
         public override void Load()
         {
-            throw new System.NotImplementedException();
+            //throw new System.NotImplementedException();
         }
 
         public override void Save()
         {
-            throw new System.NotImplementedException();
+            //throw new System.NotImplementedException();
         }
 
         public override void OnAwake()
@@ -101,5 +128,17 @@ namespace Script.Controller
         {
             return _boxAmount.Sum(b => b.Value);
         }
+
+        public bool TryGetAllBoxAmounts(out Dictionary<BoxTypeName, long> boxAmounts)
+        {
+            if (_boxAmount == null || _boxAmount.Count == 0)
+            {
+                boxAmounts = new Dictionary<BoxTypeName, long>();
+                return false;
+            }
+            boxAmounts = new Dictionary<BoxTypeName, long>(_boxAmount);
+            return true;
+        }
+
     }
 }
