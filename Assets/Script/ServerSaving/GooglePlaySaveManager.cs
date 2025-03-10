@@ -11,22 +11,22 @@ public class GooglePlaySaveManager : MonoBehaviour
     public string googleId => Social.localUser.id;
     public string userId => GetShortUserId(googleId).ToString();
 
-    public static int GetShortUserId(string googleId)
+public static string GetShortUserId(string googleId)
+{
+    unchecked
     {
-        unchecked
+        const int prime = 16777619;
+        int hash = (int)2166136261;
+        foreach (char c in googleId)
         {
-            const int prime = 16777619;
-            int hash = (int)2166136261;
-            foreach (char c in googleId)
-            {
-                hash ^= c;
-                hash *= prime;
-            }
-
-            return Math.Abs(hash) % 1000000000; // Ensure it's a positive 9-digit number
+            hash ^= c;
+            hash *= prime;
         }
-    }
 
+        int result = Math.Abs(hash) % 1000000000; // Ensure it's within 9 digits
+        return result.ToString("D9"); // Ensure it's always 9 digits with leading zeros
+    }
+}
     public void SaveToCloud(int score, Vector3 position)
     {
         ScoreManager scoreManager = FindObjectOfType<ScoreManager>();
