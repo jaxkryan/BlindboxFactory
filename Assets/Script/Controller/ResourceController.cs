@@ -13,7 +13,7 @@ namespace Script.Controller {
 
         [SerializeField] private SerializedDictionary<Resource, ResourceData> _resourceData;
 
-        private Dictionary<Resource, long> _resourceAmount = new() ;
+        [SerializeField]private SerializedDictionary<Resource, long> _resourceAmount = new() ;
 
         public long StorageCapacity {get; private set;}
 
@@ -41,9 +41,8 @@ namespace Script.Controller {
             _resourceAmount.TryGetValue(resource, out amount);
 
         public bool TrySetAmount(Resource resource, long amount) {
-            if (!_resourceData.TryGetValue(resource, out var data)) return false;
             if (!TryGetAmount(resource, out var currentAmount)) return false;
-            if (!data.IsAmountValid(currentAmount, amount)) return false;
+            if (_resourceData.TryGetValue(resource, out var data) && !data.IsAmountValid(currentAmount, amount)) return false;
 
             _resourceAmount[resource] = amount;
             onResourceAmountChanged?.Invoke(resource, currentAmount, amount);

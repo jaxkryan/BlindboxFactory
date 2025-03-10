@@ -5,6 +5,7 @@ using System.Linq;
 using Script.Controller;
 using Script.Resources;
 using Unity.VisualScripting;
+using UnityEngine;
 
 namespace Script.Machine.ResourceManager {
     public class ResourceManager {
@@ -42,10 +43,10 @@ namespace Script.Machine.ResourceManager {
 
             var controller = GameController.Instance.ResourceController;
             actualTimes = 0;
-            while (actualTimes <= times) {
+            while (actualTimes < times) {
                 foreach (var resourceUse in _resourceUse) {
-                    var amount = resourceUse.Amount + resources[resourceUse.Resource];
-                    if (controller.TryGetAmount(resourceUse.Resource, out var storedAmount) || storedAmount < amount) {
+                    var amount = resourceUse.Amount;
+                    if (!controller.TryGetAmount(resourceUse.Resource, out var storedAmount) || storedAmount < amount) {
                         return actualTimes > 0;
                     }
 
@@ -55,6 +56,10 @@ namespace Script.Machine.ResourceManager {
                 resources.ForEach(r => {
                     if (_lockedResources.ContainsKey(r.Key)) _lockedResources[r.Key] += r.Value;
                     else _lockedResources.Add(r.Key, r.Value);
+
+                    if (controller.TryGetAmount(r.Key, out var storedAmount))
+                        controller.TrySetAmount(r.Key, storedAmount - r.Value);
+
                 });
 
                 actualTimes++;
@@ -66,7 +71,6 @@ namespace Script.Machine.ResourceManager {
 
         public bool HasResourcesForWork(out int count) {
             count = Int32.MaxValue;
-
             foreach (var resourceUse in _resourceUse) {
                 if (!_lockedResources.TryGetValue(resourceUse.Resource, out var lockedAmount)) {
                     count = 0;
@@ -86,10 +90,11 @@ namespace Script.Machine.ResourceManager {
             var controller = GameController.Instance.ResourceController;
             Func<Resource, long> newAmount = (resource) => {
                 if (!_lockedResources.TryGetValue(resource, out var locked)) locked = 0;
-                if (controller.TryGetAmount(resource, out var oldAmount)) oldAmount = 0;
+                if (!controller.TryGetAmount(resource, out var oldAmount)) oldAmount = 0;
                 return locked + oldAmount;
             };
             foreach (var resource in resources) {
+                Debug.LogWarning($"Resource {resource}, Unlock: {newAmount(resource)}");
                 if (newAmount(resource) > 0) controller.TrySetAmount(resource, newAmount(resource));
                 _lockedResources.Remove(resource);
             }
