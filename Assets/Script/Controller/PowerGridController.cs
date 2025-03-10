@@ -7,8 +7,10 @@ using UnityEngine;
 
 namespace Script.Controller {
     public class PowerGridController : ControllerBase{
-        public override void Load() { throw new System.NotImplementedException(); }
-        public override void Save() { throw new System.NotImplementedException(); }
+        public override void Load() { //throw new System.NotImplementedException(); 
+        }
+        public override void Save() { //throw new System.NotImplementedException(); 
+        }
 
         public override void OnStart() {
             base.OnStart();

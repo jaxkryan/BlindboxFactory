@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Script.Controller;
 
 public class InventoryUIManager : MonoBehaviour
 {
@@ -22,23 +22,30 @@ public class InventoryUIManager : MonoBehaviour
         }
 
         // Get Inventory Data
-        InventoryManager inventory = InventoryManager.Instance;
-
+        GameController inventory = GameController.Instance;
+        inventory.ResourceController.TryGetAllResourceAmounts(out var materials);
 
         // Display Crafting Materials
-        foreach (var material in inventory.GetAllCraftingMaterials())
+        foreach (var material in materials)
         {
+            if(material.Key == Script.Resources.Resource.Gold ||
+                material.Key == Script.Resources.Resource.Gem)
+            {
+                continue;
+            }
             CreateInventoryItem(material.Key.ToString(), CraftingMaterialTypeManager.Instance.GetCraftingMaterialData(material.Key).sprite, material.Value);
         }
 
+        inventory.BoxController.TryGetAllBoxAmounts(out var boxes);
+
         // Display Blind Boxes
-        foreach (var box in inventory.GetAllBlindBoxes())
+        foreach (var box in boxes)
         {
             CreateInventoryItem(box.Key.ToString(), BoxTypeManager.Instance.GetBoxData(box.Key).sprite, box.Value);
         }
     }
 
-    private void CreateInventoryItem(string itemName, Sprite itemSprite, int amount)
+    private void CreateInventoryItem(string itemName, Sprite itemSprite, long amount)
     {
         GameObject item = Instantiate(inventoryItemPrefab, gridParent);
         item.transform.Find("ItemName").GetComponent<TMP_Text>().text = itemName;
@@ -46,9 +53,11 @@ public class InventoryUIManager : MonoBehaviour
         item.transform.Find("ItemAmount").GetComponent<TMP_Text>().text = FormatNumber(amount);
     }
 
-    private string FormatNumber(int number)
+    private string FormatNumber(long number)
     {
-        if (number >= 1_000_000_000)
+        if (number >= 1_000_000_000_000)
+            return (number / 1_000_000_000_000f).ToString("0.##") + "T";
+        else if (number >= 1_000_000_000)
             return (number / 1_000_000_000f).ToString("0.##") + "B";
         else if (number >= 1_000_000)
             return (number / 1_000_000f).ToString("0.##") + "M";

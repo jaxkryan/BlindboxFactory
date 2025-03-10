@@ -9,6 +9,8 @@ public class BlindBoxAmountPerCraft : MonoBehaviour
     [SerializeField]
     public TMP_Text valueText;
 
+    public int maxAmount;
+
     void Start()
     {
         slider.onValueChanged.AddListener(UpdateValueText);

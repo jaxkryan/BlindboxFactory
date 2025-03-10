@@ -6,7 +6,7 @@ public class BlindBoxInformationDisplay : MonoBehaviour
     [SerializeField]
     public static BlindBoxInformationDisplay Instance { get; private set; }
     public GameObject ChosePanel;
-    private BlindBoxMachine currentBlindBoxMachine;
+    public BlindBoxMachine currentBlindBoxMachine;
 
     private void Awake()
     {

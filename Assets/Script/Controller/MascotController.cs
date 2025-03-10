@@ -89,9 +89,9 @@ namespace Script.HumanResource.Administrator {
             _assignedMascots.ForEach(admin => admin.OnDismiss());
         }
 
-        public override void Load() { throw new NotImplementedException(); }
+        public override void Load() { /*throw new NotImplementedException();*/ }
         #warning saved mascot list, each assigned mascot
-        public override void Save() { throw new NotImplementedException(); }
+        public override void Save() { /*throw new NotImplementedException();*/ }
 
         public override void OnStart(){
             base.OnStart();

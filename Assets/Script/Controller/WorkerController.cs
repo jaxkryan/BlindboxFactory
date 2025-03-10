@@ -79,7 +79,11 @@ namespace Script.Controller {
             }
         }
 
-        public override void Load() { throw new NotImplementedException(); }
-        public override void Save() { throw new NotImplementedException(); }
+        public override void Load() { 
+            //throw new NotImplementedException(); 
+        }
+        public override void Save() { 
+            //throw new NotImplementedException(); 
+        }
     }
 }
