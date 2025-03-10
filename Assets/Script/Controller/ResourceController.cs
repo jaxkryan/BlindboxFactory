@@ -13,7 +13,7 @@ namespace Script.Controller {
 
         [SerializeField] private SerializedDictionary<Resource, ResourceData> _resourceData;
 
-        private Dictionary<Resource, long> _resourceAmount = new();
+        private Dictionary<Resource, long> _resourceAmount = new() ;
 
         public long StorageCapacity {get; private set;}
 
@@ -73,12 +73,24 @@ namespace Script.Controller {
             => _resourceConversion.TryConversion(from, to, amount, out result, tryFindingExchangeRate,
                 roundDownEachConversion);
 
-        public override void Load() {
-            throw new System.NotImplementedException();
+        public override void OnStart()
+        {
+            Debug.Log("run Start");
+            base.OnStart();
+            Load();
         }
 
-        public override void Save() {
-            throw new System.NotImplementedException();
+        public override void Load() {
+            Debug.Log("run Load");
+            foreach (Resource resource in Enum.GetValues(typeof(Resource)))
+            {
+                _resourceAmount[resource] = 10000;
+            }
+        }
+
+        public override void Save()
+        {
+            //throw new System.NotImplementedException();
         }
 
         public override void OnAwake() {
@@ -102,6 +114,17 @@ namespace Script.Controller {
                 var ex = new ArgumentException($"Cannot convert from {conversion.Key.From} to {conversion.Key.To}");
                 Debug.LogException(ex);
             }
+        }
+
+        public bool TryGetAllResourceAmounts(out Dictionary<Resource, long> resourceAmounts)
+        {
+            if (_resourceAmount == null || _resourceAmount.Count == 0)
+            {
+                resourceAmounts = new Dictionary<Resource, long>();
+                return false;
+            }
+            resourceAmounts = new Dictionary<Resource, long>(_resourceAmount);
+            return true;
         }
     }
 }

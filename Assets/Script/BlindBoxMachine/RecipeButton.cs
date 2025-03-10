@@ -1,3 +1,6 @@
+using Script.Controller;
+using Script.Machine.ResourceManager;
+using Script.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +28,7 @@ public class RecipeButton : MonoBehaviour
     private void Update()
     {
         UpdateArrows();
+        numberSlider.maxValue = caculateMaxAmount();
     }
 
     void UpdateArrows()
@@ -39,6 +43,35 @@ public class RecipeButton : MonoBehaviour
         leftArrow.SetActive(canScroll && normalizedPos > 0.01f);
         rightArrow.SetActive(canScroll && normalizedPos < 0.99f);
     }
+
+    private int caculateMaxAmount()
+    {
+        var maxAmount = 0;
+        GameController.Instance.ResourceController.TryGetAllResourceAmounts(out var resourceAmount);
+        var machineLimited = BlindBoxInformationDisplay.Instance.currentBlindBoxMachine.maxAmount;
+        var resouceLimited = CalculateMinResouce(resourceAmount, currentBlindBox.ResourceUse);
+        return Math.Min(machineLimited,resouceLimited);
+    }
+
+    private int CalculateMinResouce(Dictionary<Resource, long> resourceAmount, List<ResourceUse> recipe)
+    {
+        int maxAmount = int.MaxValue;
+
+        foreach (var item in recipe)
+        {
+            if (resourceAmount.TryGetValue(item.Resource, out long availableAmount))
+            {
+                maxAmount = Math.Min(maxAmount, (int)(availableAmount / item.Amount));
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        return maxAmount;
+    }
+
     public void SetupRecipe(BlindBox blindbox)
     {
         currentBlindBox = blindbox;
