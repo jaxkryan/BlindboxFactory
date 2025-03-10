@@ -156,8 +156,9 @@ namespace Script.Machine {
             if (_resourceManager is not null && !HasResourceForWork) {
                 _resourceManager.UnlockResource();
                 _resourceManager.SetResourceUses(ResourceUse.ToArray());
+                _resourceManager.TryPullResource(1, out _);
                 if (!HasResourceForWork) {
-                    Debug.LogError($"Machine {name} does not have enough resource to work.");
+                    Debug.LogError($"Machine {name} does not have enough resource to work. {Product.GetType()}");
                     return;
                 }
             }
@@ -223,7 +224,7 @@ namespace Script.Machine {
         }
 
         protected virtual void Update() {
-            _progressPerSecTimer.Tick(Time.deltaTime);
+            _progressPerSecTimer?.Tick(Time.deltaTime);
             WorkDetails.ForEach(d => d.Update(Time.deltaTime));
         }
     }

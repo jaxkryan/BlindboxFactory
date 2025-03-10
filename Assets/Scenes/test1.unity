@@ -1920,9 +1920,6 @@ MonoBehaviour:
   - boxType: 2
     value: 100
     sprite: {fileID: 623971307636158878, guid: a04b271efc63bd14e88deda643fd1e53, type: 3}
-  - boxType: 2
-    value: 100
-    sprite: {fileID: 4420241338929710546, guid: 956df3db941515240afd5812a8afc78e, type: 3}
 --- !u!114 &325851440
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1936,22 +1933,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   boxDataList:
-  - cmType: 3
-    value: 100
-    sprite: {fileID: 1485745076247685343, guid: 956df3db941515240afd5812a8afc78e, type: 3}
   - cmType: 2
+    value: 100
+    sprite: {fileID: -1460342257632746070, guid: 956df3db941515240afd5812a8afc78e, type: 3}
+  - cmType: 3
     value: 100
     sprite: {fileID: -3491570356248207512, guid: 956df3db941515240afd5812a8afc78e, type: 3}
   - cmType: 4
     value: 100
-    sprite: {fileID: 3481018892922865857, guid: 956df3db941515240afd5812a8afc78e, type: 3}
-  - cmType: 1
-    value: 100
-    sprite: {fileID: -1460342257632746070, guid: 956df3db941515240afd5812a8afc78e, type: 3}
+    sprite: {fileID: 1485745076247685343, guid: 956df3db941515240afd5812a8afc78e, type: 3}
   - cmType: 5
     value: 100
-    sprite: {fileID: -6367428789302381587, guid: 956df3db941515240afd5812a8afc78e, type: 3}
+    sprite: {fileID: 3481018892922865857, guid: 956df3db941515240afd5812a8afc78e, type: 3}
   - cmType: 6
+    value: 100
+    sprite: {fileID: -6367428789302381587, guid: 956df3db941515240afd5812a8afc78e, type: 3}
+  - cmType: 7
     value: 100
     sprite: {fileID: -2341263756088440218, guid: 956df3db941515240afd5812a8afc78e, type: 3}
 --- !u!1 &418622514
@@ -3124,11 +3121,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5063111946384183796, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.102348804
+      value: -0.034
       objectReference: {fileID: 0}
     - target: {fileID: 5063111946384183796, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -3.1588442
+      value: -3.318
       objectReference: {fileID: 0}
     - target: {fileID: 5063111946384183796, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3172,11 +3169,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: _product
-      value: 7910668519338934391
+      value: 7910668632747933989
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: _isClosed
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: maxAmount
+      value: 2000000000
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: 'managedReferences[7910668519338934380]'
@@ -3231,6 +3232,14 @@ PrefabInstance:
       value: Assembly-CSharp Script.Machine.ResourceManager.ResourceUseOnProductCreated
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: 'managedReferences[7910668632747933802]'
+      value: Assembly-CSharp Script.Machine.Products.AddResourceToStorageProduct
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: 'managedReferences[7910668632747933989]'
+      value: Assembly-CSharp BlindBox
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: managedReferences[7910668519338934385]._core
       value: 0
       objectReference: {fileID: 0}
@@ -3255,6 +3264,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668632747933802]._amount
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: managedReferences[7910668519338934382]._storage
       value: 
       objectReference: {fileID: 0}
@@ -3267,12 +3280,28 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668632747933802].Resource
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: managedReferences[7910668519338934383]._building
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: managedReferences[7910668519338934392]._resource
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668519338934394]._resource
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668519338934396]._resource
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668519338934397]._resource
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: managedReferences[7910668519338934383]._hasOffset
@@ -3300,6 +3329,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: managedReferences[7910668519338934391].boxTypeName
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668632747933989].boxTypeName
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
@@ -3341,6 +3374,14 @@ PrefabInstance:
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: managedReferences[7910668519338934391]._maxProgress
       value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668632747933802]._maxProgress
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668632747933989]._maxProgress
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: managedReferences[7910668519338934383]._destroyOnComplete
@@ -3413,6 +3454,14 @@ PrefabInstance:
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: managedReferences[7910668519338934391]._resourceUse.Array.size
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668632747933802]._resourceUse.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7910668632747933989]._resourceUse.Array.size
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: 'managedReferences[7910668519338934391]._resourceUse.Array.data[0]'
@@ -46484,6 +46533,8 @@ MonoBehaviour:
       - Key: 6
         Value:
           MaxAmount: 0
+    _resourceAmount:
+      _serializedList: []
   QuestController:
     Quests: []
   Grid: {fileID: 0}
@@ -46881,6 +46932,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ChosePanel: {fileID: 918589607}
+  currentBlindBoxMachine: {fileID: 0}
 --- !u!114 &1215126564
 MonoBehaviour:
   m_ObjectHideFlags: 0
