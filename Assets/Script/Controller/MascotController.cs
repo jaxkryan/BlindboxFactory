@@ -81,7 +81,7 @@ namespace Script.HumanResource.Administrator {
                 return;
             }
 
-            Debug.Log($"✅ Adding Mascot: {mascot.name} | Type: {mascot.Policies.ToString()} | Rarity: {mascot.Grade}");
+            Debug.Log($"✅ Adding Mascot: {mascot.name} | Type: {mascot.Policies} | Rarity: {mascot.Grade}");
 
             _mascotsList ??= new HashSet<Mascot>(); // Ensure the list is not null
             _mascotsList.Add(mascot);

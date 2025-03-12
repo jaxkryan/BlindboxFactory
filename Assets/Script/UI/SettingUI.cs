@@ -13,7 +13,7 @@ public class SettingPreferences
     public int language = 0; // 0 = English, 1 = Vietnamese
 }
 
-public class SettingMenu : MonoBehaviour
+public class SettingUI : MonoBehaviour
 {
     public AudioMixer audioMixer;
     public Slider musicSlider;
@@ -22,14 +22,16 @@ public class SettingMenu : MonoBehaviour
 
     private string savePath;
     private SettingPreferences settings;
+    private Vector3 originalPosition; // To store the panel's original position
 
     private void Awake()
     {
         savePath = Path.Combine(Application.persistentDataPath, "SettingPreference.json");
         LoadSettings();
 
-        // Ẩn menu và reset scale ban đầu
-        settingsCanvas.transform.localScale = Vector3.zero;
+        // Store the original position and hide the canvas
+        originalPosition = settingsCanvas.transform.position;
+        settingsCanvas.transform.localScale = Vector3.zero; // Start scaled down
         settingsCanvas.SetActive(false);
     }
 
@@ -60,15 +62,29 @@ public class SettingMenu : MonoBehaviour
     public void OpenSettingMenu()
     {
         settingsCanvas.SetActive(true);
-        settingsCanvas.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
+
+        // Start off-screen (e.g., from the left side of the screen)
+        Vector3 startPosition = originalPosition + Vector3.left * 500f; // Adjust offset as needed
+        settingsCanvas.transform.position = startPosition;
+        settingsCanvas.transform.localScale = Vector3.zero; // Start small
+
+        // Create a sequence: slide in, then scale up
+        Sequence openSequence = DOTween.Sequence();
+        openSequence
+            .Append(settingsCanvas.transform.DOMove(originalPosition, 0.3f).SetEase(Ease.OutQuad)) // Slide in
+            .Append(settingsCanvas.transform.DOScale(Vector3.one * 1.05f, 0.2f).SetEase(Ease.OutBack)) // Slightly overscale
+            .Append(settingsCanvas.transform.DOScale(Vector3.one, 0.1f).SetEase(Ease.InOutQuad)); // Settle to normal size
     }
 
     public void CloseSettingMenu()
     {
-        settingsCanvas.transform.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack).OnComplete(() =>
-        {
-            settingsCanvas.SetActive(false);
-        });
+        // Create a sequence: scale down, then slide out
+        Sequence closeSequence = DOTween.Sequence();
+        closeSequence
+            .Append(settingsCanvas.transform.DOScale(Vector3.one * 1.05f, 0.1f).SetEase(Ease.InOutQuad)) // Slight overscale
+            .Append(settingsCanvas.transform.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack)) // Scale down
+            .Append(settingsCanvas.transform.DOMove(originalPosition + Vector3.left * 500f, 0.3f).SetEase(Ease.InQuad)) // Slide out
+            .OnComplete(() => settingsCanvas.SetActive(false)); // Deactivate when done
     }
 
     public void SetEnglish()
