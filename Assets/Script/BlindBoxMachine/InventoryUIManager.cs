@@ -41,6 +41,10 @@ public class InventoryUIManager : MonoBehaviour
         // Display Blind Boxes
         foreach (var box in boxes)
         {
+            if (box.Key == BoxTypeName.Null)
+            {
+                continue;
+            }
             CreateInventoryItem(box.Key.ToString(), BoxTypeManager.Instance.GetBoxData(box.Key).sprite, box.Value);
         }
     }
