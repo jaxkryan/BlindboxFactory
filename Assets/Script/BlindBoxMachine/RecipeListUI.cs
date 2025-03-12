@@ -13,7 +13,6 @@ public class RecipeListUI : PersistentSingleton<RecipeListUI>
 
         if (Machine != null)
         {
-            Debug.LogError(Machine.name);
             GenerateButtons();
         }
         else

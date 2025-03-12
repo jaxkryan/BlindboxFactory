@@ -19,9 +19,10 @@ namespace Script.Machine {
                 return;
             }
             if (!CanExecute()) {
-                Debug.LogError("Work detail cannot be started.");
+                //Debug.LogError("Work detail cannot be started.");
                 return;
             }
+            Debug.LogWarning($"{this.GetType()} start");
             IsRunning = true;
             OnStart();
         }
