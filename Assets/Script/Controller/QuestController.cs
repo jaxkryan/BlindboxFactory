@@ -24,18 +24,6 @@ namespace Script.Controller {
             }
         }
 
-        [SerializeField] private List<Quest.Quest> _quest;
-        public HashSet<Quest.Quest> Quests {
-            get {
-                return _quest?.ToHashSet() ?? NewSetAndLog();
-
-                HashSet<Quest.Quest> NewSetAndLog() {
-                    Debug.LogError("Quest list is empty!");
-                    return new HashSet<Quest.Quest>();
-                }
-            }
-        }
-
         private Dictionary<string, object> QuestData { get; set; } = new();
         
         public bool ContainsKey(string key) => QuestData.ContainsKey(key);
