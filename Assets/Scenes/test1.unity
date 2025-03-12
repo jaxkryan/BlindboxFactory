@@ -3180,6 +3180,22 @@ PrefabInstance:
       value: 2000000000
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: 'managedReferences[-2]'
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: _workDetails.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: '_workDetails.Array.data[1]'
+      value: 7204601892799250522
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: 'managedReferences[7204601892799250522]'
+      value: Assembly-CSharp Script.Machine.WorkDetails.CoreChangeWorkDetail
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: 'managedReferences[7910668519338934380]'
       value: Assembly-CSharp Script.Machine.Products.ProductLineupListProduct
       objectReference: {fileID: 0}
@@ -3240,7 +3256,19 @@ PrefabInstance:
       value: Assembly-CSharp BlindBox
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7204601892799250522].Core
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7204601892799250522].Slot
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
       propertyPath: managedReferences[7910668519338934385]._core
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
+      propertyPath: managedReferences[7204601892799250522].Amount
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7986783082072029475, guid: 824968f5247d10144bae184de4e0dd08, type: 3}
@@ -46536,7 +46564,7 @@ MonoBehaviour:
     _resourceAmount:
       _serializedList: []
   QuestController:
-    Quests: []
+    _quest: []
   Grid: {fileID: 0}
   ConstructionLayer: {fileID: 0}
   CollisionLayer: {fileID: 0}

@@ -12,7 +12,30 @@ namespace Script.Controller {
         public override void Save() { //throw new System.NotImplementedException();
                                       }
 
-        [SerializeField] public List<Quest.Quest> Quests;
+        [SerializeField] private List<Quest.Quest> _quest;
+        public HashSet<Quest.Quest> Quests {
+            get {
+                return _quest?.ToHashSet() ?? NewSetAndLog();
+
+                HashSet<Quest.Quest> NewSetAndLog() {
+                    Debug.LogError("Quest list is empty!");
+                    return new HashSet<Quest.Quest>();
+                }
+            }
+        }
+
+        [SerializeField] private List<Quest.Quest> _quest;
+        public HashSet<Quest.Quest> Quests {
+            get {
+                return _quest?.ToHashSet() ?? NewSetAndLog();
+
+                HashSet<Quest.Quest> NewSetAndLog() {
+                    Debug.LogError("Quest list is empty!");
+                    return new HashSet<Quest.Quest>();
+                }
+            }
+        }
+
         private Dictionary<string, object> QuestData { get; set; } = new();
         
         public bool ContainsKey(string key) => QuestData.ContainsKey(key);
