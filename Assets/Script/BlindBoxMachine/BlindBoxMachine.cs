@@ -21,6 +21,10 @@ public class BlindBoxMachine : MachineBase
     [SerializeField] public int maxAmount;
     protected override void Update()
     {
+        BlindBox nullbb = new BlindBox()
+        {
+            boxTypeName = BoxTypeName.Null,
+        };
         if (CurrentProgress >= MaxProgress)
         {
             CreateProduct();
@@ -28,12 +32,12 @@ public class BlindBoxMachine : MachineBase
 
         if (amount == 0)
         {
-            Product = new Null();
+            Product = nullbb;
         }
 
         if (Product == null)
         {
-            Product = new Null();
+            Product = nullbb;
         }
 
         base.Update();
@@ -42,13 +46,6 @@ public class BlindBoxMachine : MachineBase
     protected override void Start()
     {
         base.Start();
-        Debug.Log($"MachineBase Start(): WorkDetails count = {WorkDetails.Count()}");
-
-        foreach (var detail in WorkDetails)
-        {
-            Debug.Log($"Starting WorkDetail: {detail.GetType().Name}");
-            detail.Start();
-        }
     }
 
 
