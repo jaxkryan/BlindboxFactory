@@ -105,7 +105,6 @@ namespace Script.Machine {
             if (Slots.All(s => s != slot)) { Debug.LogWarning($"Slots don't belong to machine({name})."); }
 
             slot.SetCurrentWorker(worker);
-            WorkDetails.Where(d => d.CanExecute()).ForEach(d => d.Start());
             onWorkerChanged?.Invoke();
         }
 
@@ -120,7 +119,6 @@ namespace Script.Machine {
             }
 
             Slots.Where(s => s.CurrentWorker?.Equals(worker) ?? false).ForEach(s => s.SetCurrentWorker());
-            WorkDetails.Where(d => !d.CanExecute()).ForEach(d => d.Stop());
             onWorkerChanged?.Invoke();
         }
 
@@ -171,6 +169,28 @@ namespace Script.Machine {
 
         public event Action onWorkerChanged = delegate { };
 
+        private void UpdateWorkDetails() {
+            WorkDetails.Where(d => d.CanExecute()).ForEach(d => d.Start());
+            WorkDetails.Where(d => !d.CanExecute()).ForEach(d => d.Stop());
+        }
+        
+        private void UpdateWorkDetails(ProductBase value) => UpdateWorkDetails();
+        private void UpdateWorkDetails(bool value) => UpdateWorkDetails();
+
+        private void SubscribeWorkDetails() {
+            this.onWorkerChanged += UpdateWorkDetails;
+            this.onProductChanged += UpdateWorkDetails;
+            this.onCreateProduct += UpdateWorkDetails;
+            this.onMachineCloseStatusChanged += UpdateWorkDetails;
+        }
+
+        private void UnsubscribeWorkDetails() {
+            this.onWorkerChanged -= UpdateWorkDetails;
+            this.onProductChanged -= UpdateWorkDetails;
+            this.onCreateProduct -= UpdateWorkDetails;
+            this.onMachineCloseStatusChanged -= UpdateWorkDetails;
+        }
+
         protected virtual void Awake() {
             WorkDetails.ForEach(d => d.Machine = this);
             _progressPerSecTimer = new CountdownTimer(1);
@@ -179,7 +199,8 @@ namespace Script.Machine {
 
         private void OnEnable() {
             ResourceUse?.ForEach(r => r.Start(this, _resourceManager));
-            WorkDetails.ForEach(d => d.Start());
+            WorkDetails.ForEach(d => d.Start()); 
+            SubscribeWorkDetails();
         }
 
         private void OnValidate() {
@@ -189,6 +210,7 @@ namespace Script.Machine {
         private void OnDisable() {            
             ResourceUse?.ForEach(r => r.Stop());
             WorkDetails.ForEach(d => d.Stop());
+            UnsubscribeWorkDetails();
         }
 
         
@@ -227,8 +249,6 @@ namespace Script.Machine {
             #endregion
              
             GameController.Instance.MachineController.AddMachine(this);
-            WorkDetails.ForEach(d => d.Start());
-
         }
 
         protected virtual void Update() {
