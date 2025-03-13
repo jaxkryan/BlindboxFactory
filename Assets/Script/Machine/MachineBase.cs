@@ -6,6 +6,7 @@ using Script.HumanResource.Worker;
 using Script.Machine.Products;
 using Script.Machine.ResourceManager;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Script.Machine {
     [DisallowMultipleComponent]
@@ -18,6 +19,8 @@ namespace Script.Machine {
         }
         private ResourceManager.ResourceManager _resourceManager;
         public virtual bool HasResourceForWork => _resourceManager.HasResourcesForWork(out _);
+        public bool CanCreateProduct { get => _product.CanCreateProduct; }
+        public bool IsWorkable { get => !_isClosed && HasResourceForWork && HasEnergyForWork && CanCreateProduct; }
         public bool HasEnergyForWork { get; private set; }
         
         public void SetMachineHasEnergyForWork(bool hasEnergy) => HasEnergyForWork = hasEnergy;
@@ -52,10 +55,10 @@ namespace Script.Machine {
         [SerializeField] private bool _isClosed;
 
         public IEnumerable<MachineSlot> Slots {
-            get => _slot;
+            get => _slots;
         }
 
-        [SerializeField] private List<MachineSlot> _slot;
+        [FormerlySerializedAs("_slot")] [SerializeField] private List<MachineSlot> _slots;
 
         public float CurrentProgress {
             get => _currentProgress;
@@ -76,12 +79,12 @@ namespace Script.Machine {
         }
 
         public IEnumerable<IWorker> Workers {
-            get => _slot.Select(s => s.CurrentWorker).Where(w => w != null);
+            get => _slots.Select(s => s.CurrentWorker).Where(w => w != null);
         }
 
         public virtual void AddWorker(IWorker worker, MachineSlot slot) {
-            if (IsClosed) {
-                Debug.LogWarning($"Machine({name}) is closed.");
+            if (!IsWorkable) {
+                Debug.LogWarning($"Machine({name}) is not workable.");
                 return;
             }
             
@@ -94,11 +97,6 @@ namespace Script.Machine {
                 string str = "";
                 if (worker is MonoBehaviour monoWorker) str = $"({monoWorker.name})";
                 Debug.LogWarning($"Worker{str} is already working on machine({str}).");
-                return;
-            }
-
-            if (IsClosed) {
-                Debug.LogWarning($"Machine({name}) is closed.");
                 return;
             }
 
@@ -153,16 +151,24 @@ namespace Script.Machine {
 
         public void IncreaseProgress(float progress) {
             if (_resourceManager is not null && !HasResourceForWork) {
-                _resourceManager.UnlockResource();
+                UnlockResource();
                 _resourceManager.SetResourceUses(ResourceUse.ToArray());
-                _resourceManager.TryPullResource(1, out _);
+                TryPullResource();
                 if (!HasResourceForWork) {
                     Debug.LogError($"Machine {name} does not have enough resource to work. {Product.GetType()}");
-                    return;
+                    return; 
                 }
             }
             CurrentProgress += progress;
             onProgress?.Invoke(progress);
+        }
+
+        protected virtual void UnlockResource() {
+            _resourceManager.UnlockResource();
+        }
+
+        protected virtual void TryPullResource() {
+            _resourceManager.TryPullResource(1, out _);
         }
         
         public event Action<float> onProgress = delegate { };
@@ -199,7 +205,7 @@ namespace Script.Machine {
 
         private void OnEnable() {
             ResourceUse?.ForEach(r => r.Start(this, _resourceManager));
-            WorkDetails.ForEach(d => d.Start()); 
+            WorkDetails.ForEach(d => d.Start());
             SubscribeWorkDetails();
         }
 
@@ -240,9 +246,9 @@ namespace Script.Machine {
             _resourceManager.SetResourceUses(ResourceUse.ToArray());
             onProductChanged += product => {
                 //Debug.Log("Product changed to " + nameof(product));
-                _resourceManager.UnlockResource();
+                UnlockResource();
                 _resourceManager.SetResourceUses(product.ResourceUse.ToArray());
-                _resourceManager.TryPullResource(1, out _);
+                TryPullResource();
             };
 
             ResourceUse?.ForEach(r => r.Start(this, _resourceManager));

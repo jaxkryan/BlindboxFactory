@@ -1068,6 +1068,10 @@ MonoBehaviour:
   MachineController:
     _recoverMachines:
       _serializedList: []
+  BoxController:
+    _boxData:
+      _serializedList: []
+    _expireTime: 0
   ResourceController:
     _resourceConversion:
       _serializedList:
@@ -1077,15 +1081,10 @@ MonoBehaviour:
         Value: 0
     _resourceData:
       _serializedList: []
+    _resourceAmount:
+      _serializedList: []
   QuestController:
-    Quests:
-    - Name: 
-      Description: 
-      State: 0
-      Preconditions: []
-      Objectives: []
-      Rewards:
-      - rid: -2
+    _quest: []
   Grid: {fileID: 0}
   ConstructionLayer: {fileID: 0}
   CollisionLayer: {fileID: 0}
@@ -1093,9 +1092,7 @@ MonoBehaviour:
   _timeBetweenSave: 5
   references:
     version: 2
-    RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
+    RefIds: []
 --- !u!4 &1030003509
 Transform:
   m_ObjectHideFlags: 0
@@ -9901,8 +9898,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _powerUse: 0
   BuildingDimension: {x: 0, y: 0}
+  _progressPerSec: 0
   _isClosed: 0
-  _slot: []
+  _slots: []
+  _currentProgress: 0
   _workDetails:
   - rid: 7910984600563482718
   _product:
@@ -9916,13 +9915,15 @@ MonoBehaviour:
         Slot: 0
         ProgressionPerInterval: 50
         IntervalSeconds: 1
+        _timerTime: 0
+        _timerStart: 0
     - rid: 7910984600563482720
       type: {class: KitchenMealProduct, ns: Script.Machine.Products, asm: Assembly-CSharp}
       data:
         _maxProgress: 100
         _resourceUse: []
         _amount: 1
-        _storage: {fileID: 0}
+        _storage: {fileID: 1941057641}
 --- !u!60 &1894915617
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -9989,38 +9990,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _powerUse: 0
   BuildingDimension: {x: 0, y: 0}
+  _progressPerSec: 0
   _isClosed: 0
-  _slot:
+  _slots:
   - {fileID: 1946415241}
   - {fileID: 996118633}
   - {fileID: 107702382}
+  _currentProgress: 0
   _workDetails:
-  - rid: 307817691621359725
+  - rid: 7204601919494684764
   _product:
     rid: 7910984600563482716
   references:
     version: 2
     RefIds:
-    - rid: 307817691621359725
+    - rid: 7204601919494684764
       type: {class: IncreaseProgressWorkDetail, ns: Script.Machine.WorkDetails, asm: Assembly-CSharp}
       data:
-        Slot: 0
-        ProgressionPerInterval: 0
-        IntervalSeconds: 0
+        Slot: 1
+        ProgressionPerInterval: 50
+        IntervalSeconds: 1
+        _timerTime: 0
+        _timerStart: 0
     - rid: 7910984600563482716
       type: {class: WorkerCoreRefillProduct, ns: Script.Machine.Products, asm: Assembly-CSharp}
       data:
         _maxProgress: 100
-        _resourceUse:
-        - rid: 7910984600563482717
-        _machine: {fileID: 0}
-        _core: 0
-        _amount: 0
-    - rid: 7910984600563482717
-      type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
-      data:
-        _resource: 8
-        _amount: 3
+        _resourceUse: []
+        _machine: {fileID: 1941057640}
+        _core: 1
+        _amount: 50
 --- !u!114 &1941057641
 MonoBehaviour:
   m_ObjectHideFlags: 0

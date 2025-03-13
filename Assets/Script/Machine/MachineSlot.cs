@@ -45,7 +45,7 @@ namespace Script.Machine {
         }
 
         public bool CanAddWorker(IWorker worker) {
-            if (Machine.IsClosed || !Machine.HasEnergyForWork || !Machine.HasResourceForWork) return false;
+            if (!Machine.IsWorkable) return false;
             
             if (_forAll) return true;
             return _forWorker.Value.Any(w => w == IWorker.ToWorkerType(worker));
