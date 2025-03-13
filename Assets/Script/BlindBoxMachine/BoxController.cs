@@ -29,6 +29,12 @@ public struct SaleData
     public int Amount;
 }
 
+public struct BoxLog
+{
+    public DateTime DateTime;
+    public int Amount;
+}
+
 
 namespace Script.Controller
 {
@@ -36,21 +42,27 @@ namespace Script.Controller
     public class BoxController : ControllerBase
     {
         [SerializeField] private SerializedDictionary<BoxTypeName, BoxMaxAmount> _boxData;
+        [SerializeField] private int _expireTime;
 
         private Dictionary<BoxTypeName, long> _boxAmount = new();
-        
-        public ReadOnlyCollection<SaleData> SaleData => _saleData.AsReadOnly(); 
+
+        private Dictionary<BoxTypeName, List<BoxLog>> _boxLog = new();
+
+        public ReadOnlyCollection<SaleData> SaleData => _saleData.AsReadOnly();
         private List<SaleData> _saleData = new();
 
         private long _wareHouseMaxAmount;
 
         public void AddSaleData(int UnitPrice, int TotalPrice, BoxTypeName BoxTypeName, int Amount, DateTime DateTime)
         {
-            _saleData.Add(new SaleData { UnitPrice = UnitPrice,
+            _saleData.Add(new SaleData
+            {
+                UnitPrice = UnitPrice,
                 TotalPrice = TotalPrice,
                 DateTime = DateTime,
                 BoxTypeName = BoxTypeName,
-                Amount = Amount});
+                Amount = Amount
+            });
         }
 
         public void AddSaleData(SaleData SaleData)
@@ -85,9 +97,9 @@ namespace Script.Controller
 
         public bool TrySetAmount(BoxTypeName boxType, long amount)
         {
-            if (!_boxData.TryGetValue(boxType, out var data)) return false;
+            RemoveExpiredLogs();
             if (!TryGetAmount(boxType, out var currentAmount)) return false;
-            if (!data.IsAmountValid(currentAmount, amount)) return false;
+            if (_boxData.TryGetValue(boxType, out var data) && !data.IsAmountValid(currentAmount, amount)) return false;
 
             long totalBlindBoxAmount = GetTotalBlindBoxAmount() - currentAmount + amount;
             if (totalBlindBoxAmount > _wareHouseMaxAmount)
@@ -97,12 +109,46 @@ namespace Script.Controller
             }
 
             _boxAmount[boxType] = amount;
+
+            if (amount != 0)
+            {
+                var newBoxLog = new BoxLog()
+                {
+                    DateTime = DateTime.Now,
+                    Amount = (int)(amount - currentAmount),
+                };
+                if (!_boxLog.TryGetValue(boxType, out var logs))
+                {
+                    _boxLog.Add(boxType, new List<BoxLog>() { newBoxLog });
+                }
+                else
+                {
+                    logs.Add(newBoxLog);
+                }
+            }
             return true;
+            void RemoveExpiredLogs()
+            {
+                _boxLog.Keys.ForEach(k =>
+                {
+                    if (_boxLog.TryGetValue(k, out var logs))
+                    {
+                        logs.Where(log => log.DateTime.AddHours(_expireTime) <= DateTime.Now)
+                        .ForEach(log => logs.Remove(log));
+                    }
+                });
+
+
+            }
         }
 
         public override void Load()
         {
-            //throw new System.NotImplementedException();
+            Debug.Log("run Load");
+            foreach (BoxTypeName btn in Enum.GetValues(typeof(BoxTypeName)))
+            {
+                _boxAmount[btn] = 100;
+            }
         }
 
         public override void Save()

@@ -23,15 +23,15 @@ namespace Script.Machine {
         public void SetMachineHasEnergyForWork(bool hasEnergy) => HasEnergyForWork = hasEnergy;
         
         [SerializeField] public Vector2Int BuildingDimension;
-        
+        [SerializeField] private float _progressPerSec;
         public float ProgressionPerSec {
             get {
-                var avg = 0f;
-                _progressQueue.ForEach(p => avg = (p + avg) / 2);
-                return avg;
+                _progressPerSec = _progressQueue.Average();
+                return _progressPerSec;
             }
             set => _progressQueue = new Queue<float>(new []{value}) ;
         }
+
 
         private Timer _progressPerSecTimer;
         private Queue<float> _progressQueue = new();
@@ -59,16 +59,17 @@ namespace Script.Machine {
 
         public float CurrentProgress {
             get => _currentProgress;
-            set {
+            set
+            {
                 _currentProgress = value;
                 if (!(CurrentProgress >= MaxProgress)) return;
                 CurrentProgress -= MaxProgress;
                 CreateProduct();
             }
         }
-        
 
-        private float _currentProgress;
+        private float _lastProgress = 0f;
+        [SerializeField]private float _currentProgress;
 
         public float MaxProgress {
             get => Product.MaxProgress;
@@ -164,7 +165,6 @@ namespace Script.Machine {
             }
             CurrentProgress += progress;
             onProgress?.Invoke(progress);
-            _progressQueue.Enqueue(progress);
         }
         
         public event Action<float> onProgress = delegate { };
@@ -179,6 +179,7 @@ namespace Script.Machine {
 
         private void OnEnable() {
             ResourceUse?.ForEach(r => r.Start(this, _resourceManager));
+            WorkDetails.ForEach(d => d.Start());
         }
 
         private void OnValidate() {
@@ -187,21 +188,26 @@ namespace Script.Machine {
 
         private void OnDisable() {            
             ResourceUse?.ForEach(r => r.Stop());
+            WorkDetails.ForEach(d => d.Stop());
         }
 
+        
         protected virtual void Start() {
             #region Progression
             _progressPerSecTimer.OnTimerStop += () => {
                 var diff = 0f;
                 if (_progressQueue.Any()) {
                     var last = _progressQueue.Last();
-                    if (CurrentProgress < last)
-                        diff = CurrentProgress + (MaxProgress - last);
-                    else diff = CurrentProgress - last;
+                    if (CurrentProgress < _lastProgress)
+                        diff = CurrentProgress + (MaxProgress - _lastProgress);
+                    else diff = CurrentProgress - _lastProgress;
+                //Debug.Log($"Diff: {diff}. Queue: [{ string.Join(", ", _progressQueue)}]");
                 }
 
+                if (_progressQueue.All(p => p == 0f)) _progressQueue.Clear();
                 _progressQueue.Enqueue(diff);
-                if (_progressQueue.Count > 10) _progressQueue.Dequeue();
+                _lastProgress = _currentProgress;
+                if (_progressQueue.Count > 50) _progressQueue.Dequeue();
                 _progressPerSecTimer.Start();
             };
 
@@ -221,6 +227,8 @@ namespace Script.Machine {
             #endregion
              
             GameController.Instance.MachineController.AddMachine(this);
+            WorkDetails.ForEach(d => d.Start());
+
         }
 
         protected virtual void Update() {

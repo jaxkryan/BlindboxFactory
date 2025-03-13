@@ -8,9 +8,10 @@ public class BlindBoxQueueDisplay : MonoBehaviour
     public static BlindBoxQueueDisplay Instance { get; private set; }
     [SerializeField] TMP_Text currentText;
     [SerializeField] Image currentImage;
+    [SerializeField] TMP_Text timeText;
 
     BoxTypeManager boxTypeManager;
-
+    int testInterval;
     void Awake()
     {
         if (Instance == null)
@@ -28,10 +29,27 @@ public class BlindBoxQueueDisplay : MonoBehaviour
         boxTypeManager = FindFirstObjectByType<BoxTypeManager>();
         UpdateQueueUI();
     }
+
+    private void Update()
+    {
+        var bbm = BlindBoxInformationDisplay.Instance.currentBlindBoxMachine;
+        float timesec = bbm.EstimateCompletionTime; 
+        string timetext = FormatTimeFull(timesec);
+        timeText.text = timesec.ToString();
+    }
     private void OnEnable()
     {
         UpdateQueueUI();
     }
+
+    public string FormatTimeFull(float timeInSeconds)
+    {
+        int hours = Mathf.FloorToInt(timeInSeconds / 3600);
+        int minutes = Mathf.FloorToInt((timeInSeconds % 3600) / 60);
+        int seconds = Mathf.FloorToInt(timeInSeconds % 60);
+        return string.Format(hours + ":" + minutes + ":" + seconds);
+    }
+
 
     //public void AddToQueue(BlindBoxNumberPerCraft newItem)
     //{
