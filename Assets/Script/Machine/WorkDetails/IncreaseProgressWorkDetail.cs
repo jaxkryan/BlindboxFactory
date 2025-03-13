@@ -6,8 +6,6 @@ namespace Script.Machine.WorkDetails {
     public class IncreaseProgressWorkDetail : WorkDetail {
         [SerializeField] public float ProgressionPerInterval;
         [SerializeField] public float IntervalSeconds;
-        [SerializeField] public float _timerTime;
-        [SerializeField] public bool _timerStart;
         protected override void OnStart() {
             base.OnStart();
             
@@ -23,8 +21,6 @@ namespace Script.Machine.WorkDetails {
         protected override void OnUpdate(float deltaTime) {
             base.OnUpdate(deltaTime);
             _timer.Tick(deltaTime);
-            _timerTime = _timer.Time;
-            _timerStart = _timer.IsRunning;
         }
 
         protected override void OnStop() {

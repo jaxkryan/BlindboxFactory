@@ -129,8 +129,10 @@ namespace Script.Machine {
         public virtual ProductBase Product {
             get => _product;
             set {
-                onProductChanged?.Invoke(value);
+                ResourceUse.ForEach(r => r.Stop());
                 _product = value;
+                ResourceUse.ForEach(r => r.Start(this, _resourceManager));
+                onProductChanged?.Invoke(value);
             }
         }
         public event Action<ProductBase> onProductChanged = delegate { };
@@ -143,7 +145,6 @@ namespace Script.Machine {
         public void SetMachinePlacedTime(DateTimeOffset time) => _placedTime = time;
         
         public virtual ProductBase CreateProduct() {
-            _resourceManager.TryConsumeResources(1, out _);
             _product?.OnProductCreated();
             onCreateProduct?.Invoke(_product);
             return _product;
