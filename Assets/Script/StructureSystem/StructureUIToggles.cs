@@ -5,7 +5,6 @@ public class StructureUIToggles : MonoBehaviour
     [SerializeField] private GameObject ChosePanel;
     [SerializeField] private GameObject CraftPanel;
     [SerializeField] private GameObject InformationPanel;
-    [SerializeField] private GameObject UpgradePanel;
     [SerializeField] private GameObject ExitPanel;
 
     public StructureUIToggles Instance;
@@ -21,20 +20,6 @@ public class StructureUIToggles : MonoBehaviour
         {
 
             CraftPanel.SetActive(true);
-            ChosePanel.SetActive(false);
-        }
-        catch
-        {
-
-        }
-    }
-
-    public void turnOnUpgradePanel()
-    {
-        try
-        {
-
-            UpgradePanel.SetActive(true);
             ChosePanel.SetActive(false);
         }
         catch
@@ -64,7 +49,6 @@ public class StructureUIToggles : MonoBehaviour
             CraftPanel.SetActive(false);
             ChosePanel.SetActive(false);
             InformationPanel.SetActive(false);
-            UpgradePanel.SetActive(false);
             ExitPanel.SetActive(false);
         }
         catch
@@ -80,7 +64,6 @@ public class StructureUIToggles : MonoBehaviour
             CraftPanel.SetActive(false);
             ChosePanel.SetActive(true);
             InformationPanel.SetActive(false);
-            UpgradePanel.SetActive(false);
             ExitPanel.SetActive(true);
         }
         catch

@@ -10,19 +10,15 @@ public class AdminGachaPanelUI : MonoBehaviour
 {
     [SerializeField] private bool _canClose;
     [FormerlySerializedAs("_closeButton")][SerializeField] private Button _closeBtn;
-    [SerializeField] private Button _gachaBtn;
+    [SerializeField] private Button _singlePullBtn;        // Button for single pull
+    [SerializeField] private Button _tenPullBtn;          // Button for 10-pull
     [SerializeField] private AdministratorGacha _adminGacha;
-    [SerializeField] private GameObject _gachaPanel;  // New panel GameObject reference
+    [SerializeField] private GameObject _gachaPanel;      // Panel GameObject reference
 
-    // Serialized fields for resource-based gacha buttons
-    [SerializeField] private Button _gachaGoldBtn;        // Button for Gold-based single pull
-    [SerializeField] private Button _gachaGemBtn;         // Button for Gem-based single pull
-    [SerializeField] private Button _gachaGold10Btn;      // Button for Gold-based 10-pull
-    [SerializeField] private Button _gachaGem10Btn;       // Button for Gem-based 10-pull
-    [SerializeField] private long _goldCost = 1000;       // Cost for Gold single pull
-    [SerializeField] private long _gemCost = 50;          // Cost for Gem single pull
-    [SerializeField] private long _goldCost10 = 9000;     // Cost for Gold 10-pull
-    [SerializeField] private long _gemCost10 = 450;       // Cost for Gem 10-pull
+    // Resource and cost configuration
+    [SerializeField] private Resource _pullResource = Resource.Gold;
+    [SerializeField] private long _singlePullCost = 1000;            // Cost for single pull
+    [SerializeField] private long _tenPullCost = 9000;              // Cost for 10-pull
 
     public event Action<Mascot> onAdminGacha = delegate { };
 
@@ -42,11 +38,8 @@ public class AdminGachaPanelUI : MonoBehaviour
 
         // Setup button listeners
         _closeBtn.onClick.AddListener(Close);
-        _gachaBtn.onClick.AddListener(Gacha);
-        if (_gachaGoldBtn != null) _gachaGoldBtn.onClick.AddListener(GachaWithGold);
-        if (_gachaGemBtn != null) _gachaGemBtn.onClick.AddListener(GachaWithGem);
-        if (_gachaGold10Btn != null) _gachaGold10Btn.onClick.AddListener(GachaWithGold10);
-        if (_gachaGem10Btn != null) _gachaGem10Btn.onClick.AddListener(GachaWithGem10);
+        if (_singlePullBtn != null) _singlePullBtn.onClick.AddListener(SinglePull);
+        if (_tenPullBtn != null) _tenPullBtn.onClick.AddListener(TenPull);
     }
 
     private void OnValidate()
@@ -57,26 +50,13 @@ public class AdminGachaPanelUI : MonoBehaviour
     private void OnDestroy()
     {
         // Clean up listeners
-        _closeBtn.onClick.RemoveListener(Close);
-        _gachaBtn.onClick.RemoveListener(Gacha);
-        if (_gachaGoldBtn != null) _gachaGoldBtn.onClick.RemoveListener(GachaWithGold);
-        if (_gachaGemBtn != null) _gachaGemBtn.onClick.RemoveListener(GachaWithGem);
-        if (_gachaGold10Btn != null) _gachaGold10Btn.onClick.RemoveListener(GachaWithGold10);
-        if (_gachaGem10Btn != null) _gachaGem10Btn.onClick.RemoveListener(GachaWithGem10);
+        if (_closeBtn != null)  _closeBtn.onClick.RemoveListener(Close);
+        if (_singlePullBtn != null) _singlePullBtn.onClick.RemoveListener(SinglePull);
+        if (_tenPullBtn != null) _tenPullBtn.onClick.RemoveListener(TenPull);
     }
 
     public void Setup(AdministratorGacha gacha) => _adminGacha = gacha;
 
-    // Modified Close method to deactivate the panel instead of destroying
-    public void Close()
-    {
-        if (_gachaPanel != null)
-        {
-            _gachaPanel.SetActive(false);
-        }
-    }
-
-    // New method to open the panel
     public void Open()
     {
         if (_gachaPanel != null)
@@ -89,37 +69,16 @@ public class AdminGachaPanelUI : MonoBehaviour
         }
     }
 
-    // test single pull
-    public void Gacha()
+    public void Close()
     {
-        if (_adminGacha is null)
+        if (_gachaPanel != null)
         {
-            Debug.LogWarning("No administrator gacha was selected");
-            return;
-        }
-
-        var pulled = _adminGacha.Pull();
-        onAdminGacha?.Invoke(pulled);
-    }
-
-    // test 10-pull
-    public void Gacha_10()
-    {
-        if (_adminGacha is null)
-        {
-            Debug.LogWarning("No administrator gacha was selected");
-            return;
-        }
-
-        var pulled = _adminGacha.PullMultiple(10);
-        foreach (var item in pulled)
-        {
-            onAdminGacha?.Invoke(item);
+            _gachaPanel.SetActive(false);
         }
     }
 
-    // Gold-based single pull
-    public void GachaWithGold()
+    // Single pull method
+    public void SinglePull()
     {
         if (_adminGacha is null)
         {
@@ -127,26 +86,37 @@ public class AdminGachaPanelUI : MonoBehaviour
             return;
         }
 
-        if (GameController.Instance.ResourceController.TryGetAmount(Resource.Gold, out long goldAmount) && goldAmount >= _goldCost)
+        // If no resource is specified (or invalid), perform a free pull
+        if (!Enum.IsDefined(typeof(Resource), _pullResource))
         {
-            if (GameController.Instance.ResourceController.TrySetAmount(Resource.Gold, goldAmount - _goldCost))
+            var pulled = _adminGacha.Pull();
+            onAdminGacha?.Invoke(pulled);
+            Debug.Log("Performed a free single pull.");
+            return;
+        }
+
+        // Check and deduct resource for single pull
+        if (GameController.Instance.ResourceController.TryGetAmount(_pullResource, out long amount) && amount >= _singlePullCost)
+        {
+            if (GameController.Instance.ResourceController.TrySetAmount(_pullResource, amount - _singlePullCost))
             {
                 var pulled = _adminGacha.Pull();
                 onAdminGacha?.Invoke(pulled);
+                Debug.Log($"Performed a single pull using {_singlePullCost} {_pullResource}.");
             }
             else
             {
-                Debug.LogWarning("Failed to deduct Gold for gacha pull");
+                Debug.LogWarning($"Failed to deduct {_singlePullCost} {_pullResource} for single pull.");
             }
         }
         else
         {
-            Debug.LogWarning($"Not enough Gold! Required: {_goldCost}, Available: {goldAmount}");
+            Debug.LogWarning($"Not enough {_pullResource}! Required: {_singlePullCost}, Available: {amount}");
         }
     }
 
-    // Gem-based single pull
-    public void GachaWithGem()
+    // 10-pull method
+    public void TenPull()
     {
         if (_adminGacha is null)
         {
@@ -154,81 +124,38 @@ public class AdminGachaPanelUI : MonoBehaviour
             return;
         }
 
-        if (GameController.Instance.ResourceController.TryGetAmount(Resource.Gem, out long gemAmount) && gemAmount >= _gemCost)
+        // If no resource is specified (or invalid), perform a free 10-pull
+        if (!Enum.IsDefined(typeof(Resource), _pullResource))
         {
-            if (GameController.Instance.ResourceController.TrySetAmount(Resource.Gem, gemAmount - _gemCost))
+            var pulled = _adminGacha.PullMultiple(10);
+            foreach (var item in pulled)
             {
-                var pulled = _adminGacha.Pull();
-                onAdminGacha?.Invoke(pulled);
+                onAdminGacha?.Invoke(item);
             }
-            else
-            {
-                Debug.LogWarning("Failed to deduct Gems for gacha pull");
-            }
-        }
-        else
-        {
-            Debug.LogWarning($"Not enough Gems! Required: {_gemCost}, Available: {gemAmount}");
-        }
-    }
-
-    // Gold-based 10-pull
-    public void GachaWithGold10()
-    {
-        if (_adminGacha is null)
-        {
-            Debug.LogWarning("No administrator gacha was selected");
+            Debug.Log("Performed a free 10-pull.");
             return;
         }
 
-        if (GameController.Instance.ResourceController.TryGetAmount(Resource.Gold, out long goldAmount) && goldAmount >= _goldCost10)
+        // Check and deduct resource for 10-pull
+        if (GameController.Instance.ResourceController.TryGetAmount(_pullResource, out long amount) && amount >= _tenPullCost)
         {
-            if (GameController.Instance.ResourceController.TrySetAmount(Resource.Gold, goldAmount - _goldCost10))
+            if (GameController.Instance.ResourceController.TrySetAmount(_pullResource, amount - _tenPullCost))
             {
                 var pulled = _adminGacha.PullMultiple(10);
                 foreach (var item in pulled)
                 {
                     onAdminGacha?.Invoke(item);
                 }
+                Debug.Log($"Performed a 10-pull using {_tenPullCost} {_pullResource}.");
             }
             else
             {
-                Debug.LogWarning("Failed to deduct Gold for 10-pull gacha");
+                Debug.LogWarning($"Failed to deduct {_tenPullCost} {_pullResource} for 10-pull.");
             }
         }
         else
         {
-            Debug.LogWarning($"Not enough Gold! Required: {_goldCost10}, Available: {goldAmount}");
-        }
-    }
-
-    // Gem-based 10-pull
-    public void GachaWithGem10()
-    {
-        if (_adminGacha is null)
-        {
-            Debug.LogWarning("No administrator gacha was selected");
-            return;
-        }
-
-        if (GameController.Instance.ResourceController.TryGetAmount(Resource.Gem, out long gemAmount) && gemAmount >= _gemCost10)
-        {
-            if (GameController.Instance.ResourceController.TrySetAmount(Resource.Gem, gemAmount - _gemCost10))
-            {
-                var pulled = _adminGacha.PullMultiple(10);
-                foreach (var item in pulled)
-                {
-                    onAdminGacha?.Invoke(item);
-                }
-            }
-            else
-            {
-                Debug.LogWarning("Failed to deduct Gems for 10-pull gacha");
-            }
-        }
-        else
-        {
-            Debug.LogWarning($"Not enough Gems! Required: {_gemCost10}, Available: {gemAmount}");
+            Debug.LogWarning($"Not enough {_pullResource}! Required: {_tenPullCost}, Available: {amount}");
         }
     }
 }

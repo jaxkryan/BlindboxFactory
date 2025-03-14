@@ -140,8 +140,7 @@ public class RecipeButton : MonoBehaviour
     }
     public void CraftingAdd()
     {
-        
-            Debug.Log("[CraftingAdd] Function was called.");
+        Debug.Log("[CraftingAdd] Function was called.");
 
         if (BlindBoxQueueDisplay.Instance == null)
         {
@@ -149,31 +148,22 @@ public class RecipeButton : MonoBehaviour
             return;
         }
 
-        //BlindBoxWithNumber blindBoxNumberPerCraft = new BlindBoxWithNumber();
-
-        //if ((int)numberSlider.value == 0) return;
-
-
-        //blindBoxNumberPerCraft.number = (int)numberSlider.value;
-        //blindBoxNumberPerCraft.boxTypeName = currentrecipe.result.boxTypeName;
-
-        //RecipeListUI.Instance.Machine.EnqueueProduct(blindBoxNumberPerCraft);
-        //BlindBoxQueueDisplay.Instance.UpdateQueueUI();
-        var amount = RecipeListUI.Instance.Machine.amount;
         if ((int)numberSlider.value == 0) return;
 
-        if (currentBlindBox.boxTypeName == currentBlindBox.boxTypeName || currentBlindBox == null)
-        {
-            RecipeListUI.Instance.Machine.Product = currentBlindBox;
-            
-            RecipeListUI.Instance.Machine.amount += (int)numberSlider.value;
-        }
-        else if(amount == 0)
-        {
-            RecipeListUI.Instance.Machine.Product = currentBlindBox;
-            RecipeListUI.Instance.Machine.amount = (int)numberSlider.value;
-        }
-        BlindBoxQueueDisplay.Instance.UpdateQueueUI();
+        var machine = RecipeListUI.Instance.Machine;
+        int maxAmount = machine.maxAmount;
+        int selectedAmount = Mathf.Min((int)numberSlider.value, maxAmount);
 
+        if (machine.amount == 0)
+        {
+            machine.Product = currentBlindBox;
+            machine.amount = selectedAmount;
+        }
+        else if (machine.Product == currentBlindBox)
+        {
+            machine.amount = Mathf.Min(machine.amount + selectedAmount, maxAmount);
+        }
+
+        BlindBoxQueueDisplay.Instance.UpdateQueueUI();
     }
 }
