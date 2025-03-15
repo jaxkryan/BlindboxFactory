@@ -20,7 +20,7 @@ public class MascotEntryUI : MonoBehaviour
         _manager = manager;
 
         _portrait.sprite = mascot.Portrait ?? _defaultPortrait;
-        _nameText.text = mascot.Name.ToString();
+        _nameText.text = mascot.Name != null ? mascot.Name.ToString() : "null name";
 
         if (_detailsButton != null)
         {

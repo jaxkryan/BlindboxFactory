@@ -55,6 +55,8 @@ namespace Script.HumanResource.Administrator {
             //Randomize name
             if (NameRandomizer.UseGachaRequirements)NameRandomizer.SetRequirement(setting.nameRequirements.Compose());
             admin.Name = NameRandomizer.Pull();
+            admin.Name = name ?? new EmployeeName { FirstName = "Unnamed", LastName = "" }; // Fallback
+
             //Randomize portrait
             if (PortraitRandomizer.UseGachaRequirements)PortraitRandomizer.SetRequirement(setting.portraitRequirements.Compose());
             admin.Portrait = PortraitRandomizer.Pull();
@@ -65,6 +67,7 @@ namespace Script.HumanResource.Administrator {
             PullHistory.Add(admin);
 
             GameController.Instance.MascotController.AddMascot(admin);
+            Debug.Log($"Pulled Name: {admin.Name}, Portrait: {admin.Portrait?.name ?? "null"}, Policies: {admin.Policies.Count()}");
             return admin;
         }
 
