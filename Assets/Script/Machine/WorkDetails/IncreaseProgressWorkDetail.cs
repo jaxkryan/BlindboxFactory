@@ -19,14 +19,14 @@ namespace Script.Machine.WorkDetails {
 
 
         protected override void OnUpdate(float deltaTime) {
-            base.OnStop();
+            base.OnUpdate(deltaTime);
             _timer.Tick(deltaTime);
         }
 
         protected override void OnStop() {
             base.OnStop();
-            _timer.Reset();
             _timer.Pause();
+            _timer.Reset();
         }
     }
 }
