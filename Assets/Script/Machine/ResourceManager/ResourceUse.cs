@@ -31,8 +31,8 @@ namespace Script.Machine.ResourceManager {
         protected abstract void OnStop();
 
         protected virtual void UseResource() {
-            if (!_resourceManager.TryConsumeResources(1, out _)) {
-                Debug.LogError($"Cannot consume resources!");
+            if (!_resourceManager.TryConsumeResources(this, 1, out _)) {
+                Debug.LogError($"Cannot consume resource: {_resource}!");
             }
         }
     }
