@@ -1,10 +1,11 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Script.Controller;
 using Unity.VisualScripting;
+using UnityEngine;
 
 namespace Script.HumanResource.Administrator {
     public class MascotController : ControllerBase {
@@ -68,11 +69,39 @@ namespace Script.HumanResource.Administrator {
             get => _mascotsList.ToList().AsReadOnly();
         }
 
-        private HashSet<Mascot> _mascotsList;
+        private HashSet<Mascot> _mascotsList = new();
 
         public event Action<MascotType, Mascot?> OnAdminChanged = delegate { };
 
-        
+        public void AddMascot(Mascot mascot)
+        {
+            if (mascot == null)
+            {
+                Debug.LogError("❌ AddMascot FAILED: Mascot is NULL!");
+                return;
+            }
+
+            Debug.Log($"✅ Adding Mascot: {mascot.name} | Type: {mascot.Policies} | Rarity: {mascot.Grade}");
+
+            _mascotsList ??= new HashSet<Mascot>(); // Ensure the list is not null
+            _mascotsList.Add(mascot);
+        }
+        public void RemoveMascot(Mascot mascot)
+        {
+            if (_mascotsList.Remove(mascot))
+            {
+                // If the mascot was assigned, unassign it
+                if (GeneratorMascot == mascot) GeneratorMascot = null;
+                if (CanteenMascot == mascot) CanteenMascot = null;
+                if (RestroomMascot == mascot) RestroomMascot = null;
+                if (MiningMascot == mascot) MiningMascot = null;
+                if (FactoryMascot == mascot) FactoryMascot = null;
+                if (StorageMascot == mascot) StorageMascot = null;
+
+                mascot.OnDismiss(); // Call dismiss if it was assigned
+                Debug.Log($"Removed mascot: {mascot.Name} from collection.");
+            }
+        }
         public override void OnDestroy() {
             base.OnDestroy();
             _assignedMascots.ForEach(admin => admin.OnDismiss());
