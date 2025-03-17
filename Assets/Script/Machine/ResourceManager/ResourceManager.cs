@@ -20,17 +20,33 @@ namespace Script.Machine.ResourceManager {
 
         public bool TryConsumeResources(int times, out int actualTimes) {
             actualTimes = 0;
+            
             while (actualTimes < times) {
                 foreach (var resourceUse in _resourceUse) {
                     if (!_lockedResources.TryGetValue(resourceUse.Resource, out var lockedAmount)
-                        || lockedAmount < resourceUse.Amount) {
-                        return actualTimes > 0;
-                    }
+                        || lockedAmount < resourceUse.Amount) { return actualTimes > 0; }
                 }
+
                 foreach (var resourceUse in _resourceUse) {
                     _lockedResources[resourceUse.Resource] -= resourceUse.Amount;
                 }
-                
+
+                actualTimes++;
+            }
+
+            return true;
+        }
+
+        public bool TryConsumeResources(ResourceUse resourceUse, int times, out int actualTimes) {
+            actualTimes = 0;
+            while (actualTimes < times) {
+                if (!_lockedResources.TryGetValue(resourceUse.Resource, out var lockedAmount)
+                    || lockedAmount < resourceUse.Amount) {
+                    return actualTimes > 0;
+                }
+
+                _lockedResources[resourceUse.Resource] -= resourceUse.Amount;
+
                 actualTimes++;
             }
 
@@ -59,7 +75,6 @@ namespace Script.Machine.ResourceManager {
 
                     if (controller.TryGetAmount(r.Key, out var storedAmount))
                         controller.TrySetAmount(r.Key, storedAmount - r.Value);
-
                 });
 
                 actualTimes++;
@@ -76,15 +91,14 @@ namespace Script.Machine.ResourceManager {
                     count = 0;
                     return false;
                 }
-                count = count > lockedAmount/resourceUse.Amount ? lockedAmount/resourceUse.Amount : count;
+
+                count = count > lockedAmount / resourceUse.Amount ? lockedAmount / resourceUse.Amount : count;
             }
 
             return count > 0;
         }
 
-        public void UnlockResource() {
-            UnlockResource(LockedResources.Keys?.ToArray());
-        }
+        public void UnlockResource() { UnlockResource(LockedResources.Keys?.ToArray()); }
 
         public void UnlockResource(params Resource[] resources) {
             var controller = GameController.Instance.ResourceController;
