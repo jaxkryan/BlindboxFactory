@@ -35,7 +35,7 @@ public class BlindBoxQueueDisplay : MonoBehaviour
         var bbm = BlindBoxInformationDisplay.Instance.currentBlindBoxMachine;
         float timesec = bbm.EstimateCompletionTime; 
         string timetext = FormatTimeFull(timesec);
-        timeText.text = timesec.ToString();
+        timeText.text = timetext;
     }
     private void OnEnable()
     {
@@ -47,8 +47,10 @@ public class BlindBoxQueueDisplay : MonoBehaviour
         int hours = Mathf.FloorToInt(timeInSeconds / 3600);
         int minutes = Mathf.FloorToInt((timeInSeconds % 3600) / 60);
         int seconds = Mathf.FloorToInt(timeInSeconds % 60);
-        return string.Format(hours + ":" + minutes + ":" + seconds);
+
+        return string.Format("{0:D2}:{1:D2}:{2:D2}", hours, minutes, seconds);
     }
+
 
 
     //public void AddToQueue(BlindBoxNumberPerCraft newItem)
