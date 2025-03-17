@@ -67,9 +67,10 @@ namespace Script.HumanResource.Worker {
         }
 
         public static Dictionary<CoreType, float> EstCoreValuesWhenWorkDone (Dictionary<CoreType, float> cores, Dictionary<CoreType, float> coreChangesPerSec, float estWorkingTime){
-                cores.Keys.ForEach(k => cores[k] += coreChangesPerSec[k] * estWorkingTime);
+                var collection = new Dictionary<CoreType, float>(cores);
+            cores.Keys.ForEach(k => collection[k] += coreChangesPerSec[k] * estWorkingTime);
 
-                return cores;
+                return collection;
         }
 
         public static bool ContinueAfterProductCreated(Dictionary<CoreType, float> coreValues, Dictionary<CoreType, float> coreChangesPerSec, Dictionary<CoreType, float> max, Dictionary<CoreType, float> min, float totalTime, float workedTime = 0f) {

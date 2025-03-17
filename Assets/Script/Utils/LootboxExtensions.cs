@@ -16,12 +16,12 @@ namespace Script.Utils {
             var currentSettings = lootbox.CommonSettings;
             var grade = Grade.Common;
 
-            randomNumber -= currentSettings.Rate;
-            while (randomNumber > 0) {
+            while (randomNumber >= currentSettings.Rate)
+            {
                 randomNumber -= currentSettings.Rate;
                 ToNextGrade(lootbox, ref currentSettings, ref grade);
             }
-            
+
             return grade;
         }
 

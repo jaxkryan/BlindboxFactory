@@ -1,10 +1,11 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Script.Controller;
 using Unity.VisualScripting;
+using UnityEngine;
 
 namespace Script.HumanResource.Administrator {
     public class MascotController : ControllerBase {
@@ -58,7 +59,7 @@ namespace Script.HumanResource.Administrator {
         
         private void AssignMascot(Mascot? value, ref Mascot? admin, MascotType position) {
             if (value == admin) return;
-            OnAdminChanged?.Invoke(position, value);
+            OnMascotChanged?.Invoke(position, value);
             admin?.OnDismiss();
             admin = value;
             admin?.OnAssign();
@@ -68,11 +69,51 @@ namespace Script.HumanResource.Administrator {
             get => _mascotsList.ToList().AsReadOnly();
         }
 
-        private HashSet<Mascot> _mascotsList;
+        private HashSet<Mascot> _mascotsList = new();
 
-        public event Action<MascotType, Mascot?> OnAdminChanged = delegate { };
+        public bool TryAddMascot(Mascot mascot) {
+            if (_mascotsList.Contains(mascot)) return false;
+            
+            return _mascotsList.Add(mascot);
+        }
 
-        
+        public bool TryRemoveMascot(Mascot mascot) {
+            if (!_mascotsList.Contains(mascot)) return false;
+            
+            return _mascotsList.Remove(mascot);
+        }
+
+        public event Action<MascotType, Mascot?> OnMascotChanged = delegate { };
+
+        public void AddMascot(Mascot mascot)
+        {
+            if (mascot == null)
+            {
+                Debug.LogError("❌ AddMascot FAILED: Mascot is NULL!");
+                return;
+            }
+
+            Debug.Log($"✅ Adding Mascot: {mascot.name} | Type: {mascot.Policies} | Rarity: {mascot.Grade}");
+
+            _mascotsList ??= new HashSet<Mascot>(); // Ensure the list is not null
+            _mascotsList.Add(mascot);
+        }
+        public void RemoveMascot(Mascot mascot)
+        {
+            if (_mascotsList.Remove(mascot))
+            {
+                // If the mascot was assigned, unassign it
+                if (GeneratorMascot == mascot) GeneratorMascot = null;
+                if (CanteenMascot == mascot) CanteenMascot = null;
+                if (RestroomMascot == mascot) RestroomMascot = null;
+                if (MiningMascot == mascot) MiningMascot = null;
+                if (FactoryMascot == mascot) FactoryMascot = null;
+                if (StorageMascot == mascot) StorageMascot = null;
+
+                mascot.OnDismiss(); // Call dismiss if it was assigned
+                Debug.Log($"Removed mascot: {mascot.Name} from collection.");
+            }
+        }
         public override void OnDestroy() {
             base.OnDestroy();
             _assignedMascots.ForEach(admin => admin.OnDismiss());
@@ -87,6 +128,12 @@ namespace Script.HumanResource.Administrator {
             base.OnDisable();
             
             _assignedMascots.ForEach(admin => admin.OnDismiss());
+        }
+
+        public override void OnUpdate(float deltaTime) {
+            base.OnUpdate(deltaTime);
+            
+            _assignedMascots.ForEach(mascot => mascot.OnUpdate(Time.deltaTime));
         }
 
         public override void Load() { /*throw new NotImplementedException();*/ }

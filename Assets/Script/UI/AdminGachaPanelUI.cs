@@ -1,41 +1,161 @@
 using System;
+using Script.Controller;  // For GameController/ResourceController access
 using Script.HumanResource.Administrator;
+using Script.Resources;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-public class AdminGachaPanelUI : MonoBehaviour {
+public class AdminGachaPanelUI : MonoBehaviour
+{
     [SerializeField] private bool _canClose;
-    [FormerlySerializedAs("_closeButton")] [SerializeField] private Button _closeBtn;
-    [SerializeField] private Button _gachaBtn;
+    [FormerlySerializedAs("_closeButton")][SerializeField] private Button _closeBtn;
+    [SerializeField] private Button _singlePullBtn;        // Button for single pull
+    [SerializeField] private Button _tenPullBtn;          // Button for 10-pull
     [SerializeField] private AdministratorGacha _adminGacha;
+    [SerializeField] private GameObject _gachaPanel;      // Panel GameObject reference
+
+    // Resource and cost configuration
+    [SerializeField] private Resource _pullResource = Resource.Gold;
+    [SerializeField] private long _singlePullCost = 1000;            // Cost for single pull
+    [SerializeField] private long _tenPullCost = 9000;              // Cost for 10-pull
 
     public event Action<Mascot> onAdminGacha = delegate { };
 
-    
-    private void Awake() {       
+    private void Awake()
+    {
+        // Ensure the panel is hidden by default
+        //if (_gachaPanel != null)
+        //{
+        //    _gachaPanel.SetActive(false);
+        //}
+        //else
+        //{
+        //    Debug.LogWarning("GachaPanel is not assigned in the Inspector!");
+        //}
+
+        _closeBtn.gameObject.SetActive(_canClose);
+
+        // Setup button listeners
+        _closeBtn.onClick.AddListener(Close);
+        if (_singlePullBtn != null) _singlePullBtn.onClick.AddListener(SinglePull);
+        if (_tenPullBtn != null) _tenPullBtn.onClick.AddListener(TenPull);
+    }
+
+    private void OnValidate()
+    {
         _closeBtn.gameObject.SetActive(_canClose);
     }
 
-    private void OnValidate() {
-        _closeBtn.gameObject.SetActive(_canClose);
+    private void OnDestroy()
+    {
+        // Clean up listeners
+        if (_closeBtn != null)  _closeBtn.onClick.RemoveListener(Close);
+        if (_singlePullBtn != null) _singlePullBtn.onClick.RemoveListener(SinglePull);
+        if (_tenPullBtn != null) _tenPullBtn.onClick.RemoveListener(TenPull);
     }
 
     public void Setup(AdministratorGacha gacha) => _adminGacha = gacha;
-    public void Close() {
-        Destroy(this.gameObject);
+
+    public void Open()
+    {
+        if (_gachaPanel != null)
+        {
+            _gachaPanel.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Cannot open GachaPanel: panel reference is null!");
+        }
     }
 
-    public void Gacha() {
-        if (_adminGacha is null) {
-            Debug.LogWarning("No administator gacha was selected");
+    public void Close()
+    {
+        if (_gachaPanel != null)
+        {
+            _gachaPanel.SetActive(false);
+        }
+    }
+
+    // Single pull method
+    public void SinglePull()
+    {
+        if (_adminGacha is null)
+        {
+            Debug.LogWarning("No administrator gacha was selected");
             return;
         }
-        _closeBtn.gameObject.SetActive(false);
-        _gachaBtn.gameObject.SetActive(false);
 
-        var pulled = _adminGacha.Pull();
+        // If no resource is specified (or invalid), perform a free pull
+        if (!Enum.IsDefined(typeof(Resource), _pullResource))
+        {
+            var pulled = _adminGacha.Pull();
+            onAdminGacha?.Invoke(pulled);
+            Debug.Log("Performed a free single pull.");
+            return;
+        }
 
-        onAdminGacha?.Invoke(pulled);
+        // Check and deduct resource for single pull
+        if (GameController.Instance.ResourceController.TryGetAmount(_pullResource, out long amount) && amount >= _singlePullCost)
+        {
+            if (GameController.Instance.ResourceController.TrySetAmount(_pullResource, amount - _singlePullCost))
+            {
+                var pulled = _adminGacha.Pull();
+                onAdminGacha?.Invoke(pulled);
+                Debug.Log($"Performed a single pull using {_singlePullCost} {_pullResource}.");
+            }
+            else
+            {
+                Debug.LogWarning($"Failed to deduct {_singlePullCost} {_pullResource} for single pull.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"Not enough {_pullResource}! Required: {_singlePullCost}, Available: {amount}");
+        }
+    }
+
+    // 10-pull method
+    public void TenPull()
+    {
+        if (_adminGacha is null)
+        {
+            Debug.LogWarning("No administrator gacha was selected");
+            return;
+        }
+
+        // If no resource is specified (or invalid), perform a free 10-pull
+        if (!Enum.IsDefined(typeof(Resource), _pullResource))
+        {
+            var pulled = _adminGacha.PullMultiple(10);
+            foreach (var item in pulled)
+            {
+                onAdminGacha?.Invoke(item);
+            }
+            Debug.Log("Performed a free 10-pull.");
+            return;
+        }
+
+        // Check and deduct resource for 10-pull
+        if (GameController.Instance.ResourceController.TryGetAmount(_pullResource, out long amount) && amount >= _tenPullCost)
+        {
+            if (GameController.Instance.ResourceController.TrySetAmount(_pullResource, amount - _tenPullCost))
+            {
+                var pulled = _adminGacha.PullMultiple(10);
+                foreach (var item in pulled)
+                {
+                    onAdminGacha?.Invoke(item);
+                }
+                Debug.Log($"Performed a 10-pull using {_tenPullCost} {_pullResource}.");
+            }
+            else
+            {
+                Debug.LogWarning($"Failed to deduct {_tenPullCost} {_pullResource} for 10-pull.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"Not enough {_pullResource}! Required: {_tenPullCost}, Available: {amount}");
+        }
     }
 }
