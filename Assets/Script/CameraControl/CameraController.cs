@@ -46,7 +46,7 @@ public class CameraController : MonoBehaviour
             Touch touch = Input.GetTouch(0);
 
             if (touch.phase == TouchPhase.Began)
-            {
+            { 
                 touchStart = Camera.main.ScreenToWorldPoint(touch.position);
                 Debug.Log("touchStart" + touchStart);
             }
@@ -54,7 +54,6 @@ public class CameraController : MonoBehaviour
             {
                 Vector3 direction = touchStart - Camera.main.ScreenToWorldPoint(touch.position);
                 direction.z = Camera.main.transform.position.z;
-                Camera.main.transform.position += direction;
                 Debug.Log("direction" + direction);
             }
         }
