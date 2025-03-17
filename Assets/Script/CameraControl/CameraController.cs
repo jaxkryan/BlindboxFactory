@@ -12,7 +12,7 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
-        if (!IsPointerOverUI()) 
+        if (!IsPointerOverUI())
         {
             HandleZoom();
             HandleDrag();
@@ -46,15 +46,23 @@ public class CameraController : MonoBehaviour
             Touch touch = Input.GetTouch(0);
 
             if (touch.phase == TouchPhase.Began)
-            { 
-                touchStart = Camera.main.ScreenToWorldPoint(touch.position);
-                Debug.Log("touchStart" + touchStart);
+            {
+                // Correctly set z to camera's distance from the scene
+                touchStart = Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, Camera.main.transform.position.z));
+                Debug.Log("touchStart: " + touchStart);
             }
             else if (touch.phase == TouchPhase.Moved)
             {
-                Vector3 direction = touchStart - Camera.main.ScreenToWorldPoint(touch.position);
-                direction.z = Camera.main.transform.position.z;
-                Debug.Log("direction" + direction);
+                // Convert touch position to world space, ensuring correct depth
+                Vector3 newTouchPos = Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, Camera.main.transform.position.z));
+
+                // Calculate the movement direction
+                Vector3 direction = touchStart - newTouchPos;
+                direction.z = 0; // Prevent movement along the Z-axis
+
+                // Move the camera
+                Camera.main.transform.position += direction * dragSpeed;
+                Debug.Log("direction: " + direction);
             }
         }
     }
