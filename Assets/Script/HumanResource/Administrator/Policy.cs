@@ -19,6 +19,7 @@ namespace Script.HumanResource.Administrator {
         [SerializeField] protected string _description;
         public abstract void OnAssign();
         public virtual void OnDismiss() { ResetValues();}
+        public virtual void OnUpdate(float deltaTime) {}
         protected abstract void ResetValues();
     }
 }
