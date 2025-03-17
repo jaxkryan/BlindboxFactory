@@ -28,10 +28,10 @@ public class MascotCollectionUI : MonoBehaviour
             Debug.LogWarning("ManagerPanel is not assigned in the Inspector!");
         }
 
-        if (_detailPanel != null)
-        {
-            _detailPanel.gameObject.SetActive(false);
-        }
+        //if (_detailPanel != null)
+        //{
+        //    _detailPanel.gameObject.SetActive(false);
+        //}
 
         if (_closeButton != null)
         {
@@ -65,10 +65,10 @@ public class MascotCollectionUI : MonoBehaviour
         {
             _managerPanel.SetActive(false);
         }
-        if (_detailPanel != null)
-        {
-            _detailPanel.gameObject.SetActive(false);
-        }
+        //if (_detailPanel != null)
+        //{
+        //    _detailPanel.gameObject.SetActive(false);
+        //}
     }
 
     private void PopulateMascotList()
@@ -116,10 +116,10 @@ public class MascotCollectionUI : MonoBehaviour
             // Instead, we need to modify the underlying HashSet via a method
             _mascotController.RemoveMascot(mascot);
             PopulateMascotList(); // Refresh the list
-            if (_detailPanel != null)
-            {
-                _detailPanel.gameObject.SetActive(false); // Hide details after deletion
-            }
+            //if (_detailPanel != null)
+            //{
+            //    _detailPanel.gameObject.SetActive(false); // Hide details after deletion
+            //}
             Debug.Log($"Deleted mascot: {mascot.Name}");
         }
     }

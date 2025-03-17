@@ -25,14 +25,14 @@ public class AdminGachaPanelUI : MonoBehaviour
     private void Awake()
     {
         // Ensure the panel is hidden by default
-        if (_gachaPanel != null)
-        {
-            _gachaPanel.SetActive(false);
-        }
-        else
-        {
-            Debug.LogWarning("GachaPanel is not assigned in the Inspector!");
-        }
+        //if (_gachaPanel != null)
+        //{
+        //    _gachaPanel.SetActive(false);
+        //}
+        //else
+        //{
+        //    Debug.LogWarning("GachaPanel is not assigned in the Inspector!");
+        //}
 
         _closeBtn.gameObject.SetActive(_canClose);
 
