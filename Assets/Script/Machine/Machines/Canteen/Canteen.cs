@@ -19,20 +19,21 @@ namespace Script.Machine.Machines.Canteen {
             if (_lockedMeals < 0) Debug.LogError("Number of locked meals cannot be less than 0!");
             var count = Workers.Count();
             var needMeals = _lockedMeals - count;
-
-            if (_storage.AvailableMeals < needMeals) {
-                Debug.LogError("Kitchen runs out of meals");
-                _hasMeals = false;
-            }
-            else _hasMeals = true;
             _storage.TryChangeMealAmount(-needMeals);
             
-
             _lockedMeals = count;
         }
+        public override bool HasResourceForWork => base.HasResourceForWork && _lockedMeals > Workers.Count();
 
-        private bool _hasMeals = true;
-        public override bool HasResourceForWork => base.HasResourceForWork && _hasMeals;
+        protected override void TryPullResource() {
+            base.TryPullResource();
+            LockMeal();
+        }
+
+        protected override void UnlockResource() {
+            base.UnlockResource();
+            UnlockMeals();
+        }
 
         private void UnlockMeals() {
             _storage.TryChangeMealAmount(_lockedMeals);

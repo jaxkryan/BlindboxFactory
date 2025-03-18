@@ -4,6 +4,7 @@ using Script.HumanResource.Administrator;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+
 public class MascotCollectionUI : MonoBehaviour
 {
     [SerializeField] private GameObject _managerPanel;           // Main panel for the UI
@@ -57,6 +58,13 @@ public class MascotCollectionUI : MonoBehaviour
 
         _managerPanel.SetActive(true);
         PopulateMascotList();
+
+        // Automatically show the first mascot in the detail panel if there are any mascots
+        var mascots = _mascotController.MascotsList.ToList();
+        if (mascots.Count > 0)
+        {
+            ShowMascotDetails(mascots[0]);
+        }
     }
 
     public void Close()
@@ -112,14 +120,21 @@ public class MascotCollectionUI : MonoBehaviour
     {
         if (_mascotController.MascotsList.Contains(mascot))
         {
-            _mascotController.MascotsList.ToList().Remove(mascot); // Note: This won't work directly due to ReadOnlyCollection
-            // Instead, we need to modify the underlying HashSet via a method
+           
             _mascotController.RemoveMascot(mascot);
             PopulateMascotList(); // Refresh the list
-            //if (_detailPanel != null)
-            //{
-            //    _detailPanel.gameObject.SetActive(false); // Hide details after deletion
-            //}
+
+            // After deletion, show the first mascot in the list if any remain
+            var remainingMascots = _mascotController.MascotsList.ToList();
+            if (remainingMascots.Count > 0)
+            {
+                ShowMascotDetails(remainingMascots[0]);
+            }
+            else if (_detailPanel != null)
+            {
+                _detailPanel.gameObject.SetActive(false); // Hide detail panel if no mascots left
+            }
+
             Debug.Log($"Deleted mascot: {mascot.Name}");
         }
     }

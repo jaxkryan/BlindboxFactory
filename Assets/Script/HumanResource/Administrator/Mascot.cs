@@ -24,5 +24,10 @@ namespace Script.HumanResource.Administrator {
             IsActive = false;
             Policies.ForEach(p => p.OnDismiss());
         }
+
+        public virtual void OnUpdate(float deltaTime) {
+            if (!IsActive) return;
+            Policies.ForEach(p => p.OnUpdate(deltaTime));
+        }
     }
 }
