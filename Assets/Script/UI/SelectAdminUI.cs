@@ -6,7 +6,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public abstract class UIScrollable : MonoBehaviour {
+public abstract class UIScrollable : MonoBehaviour
+{
     [SerializeField] protected ScrollRect _scrollRect;
     [SerializeField] protected GameObject _container;
     [SerializeField] protected TextMeshProUGUI _emptyListText;
@@ -15,28 +16,34 @@ public abstract class UIScrollable : MonoBehaviour {
     public abstract void Clear();
 
     public abstract void Spawn();
-    protected virtual void Awake() {
-        _scrollRect = GetComponentInChildren<ScrollRect>();
-        _container = _scrollRect.content.gameObject;
-    }
-    
-    protected virtual void OnValidate() {
+    protected virtual void Awake()
+    {
         _scrollRect = GetComponentInChildren<ScrollRect>();
         _container = _scrollRect.content.gameObject;
     }
 
-    public virtual void Save() {
+    protected virtual void OnValidate()
+    {
+        _scrollRect = GetComponentInChildren<ScrollRect>();
+        _container = _scrollRect.content.gameObject;
+    }
+
+    public virtual void Save()
+    {
         Destroy(this.gameObject);
     }
 }
 
-public abstract class UIList<TItem> : UIScrollable where TItem : class {
-    
+public abstract class UIList<TItem> : UIScrollable where TItem : class
+{
+
     public List<TItem> List { get; set; }
 
-    public TItem Current {
+    public TItem Current
+    {
         get => _current;
-        set {
+        set
+        {
             if (_current == value) return;
             OnSelectedChanged(value);
             _current = value;
@@ -48,8 +55,10 @@ public abstract class UIList<TItem> : UIScrollable where TItem : class {
 
 }
 
-public class SelectAdminUI : UIList<Mascot> {
-    protected override void OnSelectedChanged(Mascot value) {
+public class SelectAdminUI : UIList<Mascot>
+{
+    protected override void OnSelectedChanged(Mascot value)
+    {
         var selected = _selectionList.FirstOrDefault(s => s.Mascot == value);
         _selectionList.Where(s => s != selected).ForEach(s => s.IsSelected = false);
         if (selected != null) selected.IsSelected = true;
@@ -58,17 +67,20 @@ public class SelectAdminUI : UIList<Mascot> {
 
     private List<AdminSelectionUI> _selectionList = new();
 
-    public override void Clear() {
+    public override void Clear()
+    {
         var children = _container.GetComponentsInChildren<AdminSelectionUI>();
         children.ForEach(c => Destroy(c.gameObject));
     }
-    
+
     public event Action<Mascot> onAdminSelected = delegate { };
-    public void OnSelectionClicked(Mascot admin) {
+    public void OnSelectionClicked(Mascot admin)
+    {
         Current = admin;
     }
 
-    public override void Spawn() {
+    public override void Spawn()
+    {
         List.ForEach(admin => {
             var obj = Instantiate(_itemPrefab, _container.transform, true);
             var ui = obj.GetComponent<AdminSelectionUI>();
@@ -79,7 +91,8 @@ public class SelectAdminUI : UIList<Mascot> {
         if (List.Count == 0) Instantiate(_emptyListText, _container.transform);
     }
 
-    public override void Save() {
+    public override void Save()
+    {
         onAdminSelected?.Invoke(Current);
         base.Save();
     }

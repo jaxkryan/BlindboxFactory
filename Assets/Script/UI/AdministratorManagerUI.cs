@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class AdministratorManagerUI : MonoBehaviour
 {
-    [SerializeField] private AdminDepartmentManagerUI Generator;    // For Generator position
+    [SerializeField] private GameObject _managerPanel;             // Main panel for the UI
+    [SerializeField] private AdminDepartmentManagerUI Generator;   // For Generator position
     [SerializeField] private AdminDepartmentManagerUI Canteen;     // For Canteen position
     [SerializeField] private AdminDepartmentManagerUI Restroom;    // For Restroom position
     [SerializeField] private AdminDepartmentManagerUI Mining;      // For MiningMachine position
@@ -18,6 +19,16 @@ public class AdministratorManagerUI : MonoBehaviour
     private void Awake()
     {
         _adminController = GameController.Instance.MascotController;
+
+        // Ensure the panel is hidden by default
+        if (_managerPanel != null)
+        {
+            _managerPanel.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning("ManagerPanel is not assigned in the Inspector!");
+        }
 
         // Ensure each department UI has the correct position assigned
         Generator.Position = MascotType.Generator;
@@ -36,22 +47,29 @@ public class AdministratorManagerUI : MonoBehaviour
         Storage.Mascot = _adminController.StorageMascot;
     }
 
-    public void Save()
+    public void Open()
     {
-        try
+        if (_managerPanel == null)
         {
-            _adminController.GeneratorMascot = Generator.Mascot;
-            _adminController.CanteenMascot = Canteen.Mascot;
-            _adminController.RestroomMascot = Restroom.Mascot;
-            _adminController.MiningMascot = Mining.Mascot;
-            _adminController.FactoryMascot = Factory.Mascot;
-            _adminController.StorageMascot = Storage.Mascot;
-
-            this.gameObject.SetActive(false);
+            Debug.LogWarning("Cannot open AdministratorManagerUI: ManagerPanel is null!");
+            return;
         }
-        catch (System.Exception e)
+
+        _managerPanel.SetActive(true);
+    }
+
+    public void Close()
+    {
+        if (_managerPanel != null)
         {
-            Debug.LogError($"Failed to save mascots: {e}");
+            _managerPanel.SetActive(false);
         }
     }
+
+    public void Save()
+    {
+        Close();
+    }
+
+    
 }

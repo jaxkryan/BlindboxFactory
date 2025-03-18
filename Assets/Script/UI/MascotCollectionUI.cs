@@ -120,7 +120,7 @@ public class MascotCollectionUI : MonoBehaviour
     {
         if (_mascotController.MascotsList.Contains(mascot))
         {
-           
+
             _mascotController.RemoveMascot(mascot);
             PopulateMascotList(); // Refresh the list
 
