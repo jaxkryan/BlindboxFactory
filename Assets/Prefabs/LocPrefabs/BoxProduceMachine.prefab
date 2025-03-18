@@ -1040,42 +1040,37 @@ MonoBehaviour:
   BuildingDimension: {x: 0, y: 0}
   _progressPerSec: 0
   _isClosed: 0
-  _slot: []
+  _slots: []
+  _currentProgress: 0
   _workDetails:
-  - rid: 7910668514009546842
+  - rid: 7910668793321357312
   _product:
-    rid: 7910668632747933992
+    rid: 7910668632747933989
   amount: 0
   recipes:
-  - _maxProgress: 100
+  - _maxProgress: 5
     _resourceUse:
     - rid: 7910668519338934394
     - rid: 7910668519338934395
     boxTypeName: 0
-  - _maxProgress: 100
+  - _maxProgress: 5
     _resourceUse:
     - rid: 7910668519338934396
     - rid: 7910668519338934397
     boxTypeName: 1
-  - _maxProgress: 100
+  - _maxProgress: 5
     _resourceUse:
     - rid: 7910668519338934398
     - rid: 7910668519338934399
     boxTypeName: 2
-  maxAmount: 0
+  maxAmount: 2000000000
   references:
     version: 2
     RefIds:
-    - rid: 7910668514009546842
-      type: {class: IncreaseProgressWorkDetail, ns: Script.Machine.WorkDetails, asm: Assembly-CSharp}
-      data:
-        Slot: 0
-        ProgressionPerInterval: 1
-        IntervalSeconds: 5
     - rid: 7910668519338934394
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
-        _resource: 1
+        _resource: 3
         _amount: 10
     - rid: 7910668519338934395
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
@@ -1085,12 +1080,12 @@ MonoBehaviour:
     - rid: 7910668519338934396
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
-        _resource: 2
+        _resource: 4
         _amount: 10
     - rid: 7910668519338934397
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
-        _resource: 3
+        _resource: 7
         _amount: 5
     - rid: 7910668519338934398
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
@@ -1102,12 +1097,18 @@ MonoBehaviour:
       data:
         _resource: 6
         _amount: 5
-    - rid: 7910668632747933992
+    - rid: 7910668632747933989
       type: {class: BlindBox, ns: , asm: Assembly-CSharp}
       data:
-        _maxProgress: 100
+        _maxProgress: 1
         _resourceUse: []
         boxTypeName: 0
+    - rid: 7910668793321357312
+      type: {class: IncreaseProgressWorkDetail, ns: Script.Machine.WorkDetails, asm: Assembly-CSharp}
+      data:
+        Slot: 0
+        ProgressionPerInterval: 1
+        IntervalSeconds: 1
 --- !u!212 &1518176329254882740
 SpriteRenderer:
   m_ObjectHideFlags: 0

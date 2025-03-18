@@ -51,8 +51,9 @@ namespace Script.Controller
         public ReadOnlyCollection<SaleData> SaleData => _saleData.AsReadOnly();
         private List<SaleData> _saleData = new();
 
-        private long _wareHouseMaxAmount;
+        [SerializeField] private long _wareHouseMaxAmount;
 
+        InventoryUIManager inventoryUIManager = new InventoryUIManager();
         public void AddSaleData(int UnitPrice, int TotalPrice, BoxTypeName BoxTypeName, int Amount, DateTime DateTime)
         {
             _saleData.Add(new SaleData
@@ -126,19 +127,19 @@ namespace Script.Controller
                     logs.Add(newBoxLog);
                 }
             }
+            inventoryUIManager.DisplayInventory();
             return true;
             void RemoveExpiredLogs()
             {
-                _boxLog.Keys.ForEach(k =>
+                var keys = _boxLog.Keys;
+                keys.ForEach(k =>
                 {
                     if (_boxLog.TryGetValue(k, out var logs))
                     {
-                        logs.Where(log => log.DateTime.AddHours(_expireTime) <= DateTime.Now)
-                        .ForEach(log => logs.Remove(log));
+                        var expLogs = logs.Where(log => log.DateTime.AddHours(_expireTime) <= DateTime.Now).ToList().Clone();
+                        expLogs.ForEach(log => logs.Remove(log));
                     }
                 });
-
-
             }
         }
 

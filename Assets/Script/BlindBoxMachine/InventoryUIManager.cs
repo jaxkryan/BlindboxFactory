@@ -15,6 +15,8 @@ public class InventoryUIManager : MonoBehaviour
 
     public void DisplayInventory()
     {
+        // Check if the inventory is active before updating
+
         // Clear existing UI items before updating
         foreach (Transform child in gridParent)
         {
@@ -28,7 +30,7 @@ public class InventoryUIManager : MonoBehaviour
         // Display Crafting Materials
         foreach (var material in materials)
         {
-            if(material.Key == Script.Resources.Resource.Gold ||
+            if (material.Key == Script.Resources.Resource.Gold ||
                 material.Key == Script.Resources.Resource.Gem)
             {
                 continue;
@@ -48,6 +50,7 @@ public class InventoryUIManager : MonoBehaviour
             CreateInventoryItem(box.Key.ToString(), BoxTypeManager.Instance.GetBoxData(box.Key).sprite, box.Value);
         }
     }
+
 
     private void CreateInventoryItem(string itemName, Sprite itemSprite, long amount)
     {

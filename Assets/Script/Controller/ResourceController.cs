@@ -15,6 +15,8 @@ namespace Script.Controller {
 
         [SerializeField]private SerializedDictionary<Resource, long> _resourceAmount = new() ;
 
+        InventoryUIManager inventoryUIManager = new InventoryUIManager();
+
         public long StorageCapacity {get; private set;}
 
         public bool TryGetData(Resource resource, out ResourceData resourceData, out long currentAmount) {
@@ -46,7 +48,7 @@ namespace Script.Controller {
 
             _resourceAmount[resource] = amount;
             onResourceAmountChanged?.Invoke(resource, currentAmount, amount);
-
+            inventoryUIManager.DisplayInventory();
             return true;
         }
 

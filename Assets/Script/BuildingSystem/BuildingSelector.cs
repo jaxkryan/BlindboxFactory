@@ -122,6 +122,13 @@ public class BuildingSelector : MonoBehaviour
         Debug.Log("Selected Buildable: " + buildable.name);
         _buildingPlacer.SetActiveBuildable(buildable);
         _buildingPlacer.SetStoreMode(false);
-        StoreModeButton.GetComponentInChildren<TMP_Text>().text = "Store Mode: OFF";
+        try
+        {
+            StoreModeButton.GetComponentInChildren<TMP_Text>().text = "Store Mode: OFF";
+        }
+        catch
+        {
+
+        }
     }
 }

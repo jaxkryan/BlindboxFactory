@@ -2756,8 +2756,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 62e3f8914debf8145bc9745ed1761899, type: 3}
-<<<<<<< HEAD
-=======
 --- !u!1001 &559246054
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3078,14 +3076,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 295813005488754462, guid: 368dc49b8a360b444b0fbc6b4ae774bc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1559702590}
-    - targetCorrespondingSourceObject: {fileID: 217000422684472901, guid: 368dc49b8a360b444b0fbc6b4ae774bc, type: 3}
-      insertIndex: 1
-      addedObject: {fileID: 300306846}
     - targetCorrespondingSourceObject: {fileID: 9186088826935075807, guid: 368dc49b8a360b444b0fbc6b4ae774bc, type: 3}
       insertIndex: 1
       addedObject: {fileID: 1079325360}
   m_SourcePrefab: {fileID: 100100000, guid: 368dc49b8a360b444b0fbc6b4ae774bc, type: 3}
->>>>>>> a441de1893c8a1176853004df7b007003f6bd32e
 --- !u!1 &585714299
 GameObject:
   m_ObjectHideFlags: 0
@@ -46544,8 +46538,6 @@ MonoBehaviour:
   ShopButton: {fileID: 1606979148}
   ShopUI: {fileID: 1896834697}
   StoreModeButton: {fileID: 982225199}
-<<<<<<< HEAD
-=======
 --- !u!1 &1079325356 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 9186088826935075807, guid: 368dc49b8a360b444b0fbc6b4ae774bc, type: 3}
@@ -46564,7 +46556,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentText: {fileID: 1119486853}
-  currentImage: {fileID: 943774954}
+  currentImage: {fileID: 0}
   timeText: {fileID: 2072172083}
 --- !u!114 &1119486853 stripped
 MonoBehaviour:
@@ -46577,7 +46569,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
->>>>>>> a441de1893c8a1176853004df7b007003f6bd32e
 --- !u!1 &1127356321
 GameObject:
   m_ObjectHideFlags: 0
@@ -46751,6 +46742,7 @@ MonoBehaviour:
     _boxData:
       _serializedList: []
     _expireTime: 0
+    _wareHouseMaxAmount: 0
   ResourceController:
     _resourceConversion:
       _serializedList: []
@@ -46768,7 +46760,7 @@ MonoBehaviour:
     _resourceAmount:
       _serializedList: []
   QuestController:
-    Quests: []
+    _quest: []
   Grid: {fileID: 0}
   ConstructionLayer: {fileID: 0}
   CollisionLayer: {fileID: 0}
@@ -47087,6 +47079,7 @@ RectTransform:
   - {fileID: 258491917}
   - {fileID: 918589608}
   - {fileID: 7202614746090997593}
+  - {fileID: 1559702587}
   m_Father: {fileID: 2002883702}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -47395,7 +47388,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1555905149}
   - component: {fileID: 1555905151}
-  - component: {fileID: 1555905150}
   m_Layer: 5
   m_Name: GeneralPanel
   m_TagString: Untagged
@@ -47424,36 +47416,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -832.85}
   m_SizeDelta: {x: 0, y: -1665.7}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1555905150
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1555905148}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
 --- !u!222 &1555905151
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -47462,8 +47424,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1555905148}
   m_CullTransparentMesh: 1
-<<<<<<< HEAD
-=======
 --- !u!1 &1559702586 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 295813005488754462, guid: 368dc49b8a360b444b0fbc6b4ae774bc, type: 3}
@@ -47529,7 +47489,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
->>>>>>> a441de1893c8a1176853004df7b007003f6bd32e
 --- !u!1 &1566644000
 GameObject:
   m_ObjectHideFlags: 0
