@@ -21,6 +21,15 @@ public class BlindBoxMachine : MachineBase
     [SerializeField] public int maxAmount;
     protected override void Update()
     {
+        base.Update();
+    }
+
+    protected override void Start()
+    {
+        BlindBox nullbb = new BlindBox()
+        {
+            boxTypeName = BoxTypeName.Null,
+        };
         if (CurrentProgress >= MaxProgress)
         {
             CreateProduct();
@@ -28,49 +37,29 @@ public class BlindBoxMachine : MachineBase
 
         if (amount == 0)
         {
-            Product = new Null();
+            Product = nullbb;
         }
 
         if (Product == null)
         {
-            Product = new Null();
+            Product = nullbb;
         }
 
-        base.Update();
-    }
-
-    protected override void Start()
-    {
         base.Start();
-        Debug.Log($"MachineBase Start(): WorkDetails count = {WorkDetails.Count()}");
-
-        foreach (var detail in WorkDetails)
-        {
-            Debug.Log($"Starting WorkDetail: {detail.GetType().Name}");
-            detail.Start();
-        }
     }
 
 
     public override ProductBase CreateProduct()
     {
-        base.CreateProduct();
-
-
-        if (amount <= 0)
+        var ret = base.CreateProduct();
+        if (amount-- <= 0 && !(Product is BlindBox bbProduct && bbProduct.boxTypeName == BoxTypeName.Null))
         {
-            Product = null;
-            return null;
+            Debug.LogWarning("Product order completed");
+            amount = 0;
+            ProductBase createdProduct = Product ?? new BlindBox { boxTypeName = BoxTypeName.Null };
+            Product = new BlindBox { boxTypeName = BoxTypeName.Null };
         }
 
-        ProductBase createdProduct = Product;
-        amount--;
-
-        if (amount == 0)
-        {
-            Product = null;
-        }
-
-        return createdProduct;
+        return ret;
     }
 }

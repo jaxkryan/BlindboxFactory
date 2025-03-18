@@ -28,59 +28,61 @@ namespace BuildingSystem
 
         private void Update()
         {
-            Vector3 position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            position.z = 0;
-            
-            //if (!IsMouseWithinBuildableRange())
-            //{
-            //    _previewLayer.ClearPreview();
-            //  return;
-            //};
-            if (IsPointerOverUI()) return;
-
-            if (_constructionLayer == null)
+            if (IsbuildMode)
             {
-                _previewLayer.ClearPreview();
-                return;
-            }
+                Vector3 position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                position.z = 0;
 
-            if (_storeMode)
-            {
-                if (Input.GetMouseButtonDown(0))
+                //if (!IsMouseWithinBuildableRange())
+                //{
+                //    _previewLayer.ClearPreview();
+                //  return;
+                //};
+                if (IsPointerOverUI()) return;
+
+                if (_constructionLayer == null)
                 {
-                    try
+                    _previewLayer.ClearPreview();
+                    return;
+                }
+
+                if (_storeMode)
+                {
+                    if (Input.GetMouseButtonDown(0))
                     {
-                        _constructionLayer.Stored(position);
-                    }
-                    catch
-                    {
-                        //Debug.Log("position clear");
+                        try
+                        {
+                            _constructionLayer.Stored(position);
+                        }
+                        catch
+                        {
+                            //Debug.Log("position clear");
+                        }
                     }
                 }
+
+                if (ActiveBuildable == null)
+                {
+                    return;
+                };
+
+                var isSpaceEmpty = _constructionLayer.IsEmpty(position,
+                    ActiveBuildable.UseCustomCollisionSpace ? ActiveBuildable.CollisionSpace : default);
+
+                _previewLayer.ShowPreview(
+                    ActiveBuildable,
+                    position,
+                    isSpaceEmpty
+                    );
+                if (Input.GetMouseButtonUp(0) &&
+                    ActiveBuildable != null &&
+                    _constructionLayer != null &&
+                    isSpaceEmpty
+                    )
+                {
+                    _constructionLayer.Build(position, ActiveBuildable);
+                }
             }
-
-            if (ActiveBuildable == null)
-            {
-                return;
-            };
-
-            var isSpaceEmpty = _constructionLayer.IsEmpty(position,
-                ActiveBuildable.UseCustomCollisionSpace ? ActiveBuildable.CollisionSpace : default);
-
-            _previewLayer.ShowPreview(
-                ActiveBuildable,
-                position,
-                isSpaceEmpty
-                );
-            if (Input.GetMouseButtonUp(0) &&
-                ActiveBuildable != null &&
-                _constructionLayer != null &&
-                isSpaceEmpty
-                )
-            {
-                _constructionLayer.Build(position, ActiveBuildable);
-            }
-
 
         }
 

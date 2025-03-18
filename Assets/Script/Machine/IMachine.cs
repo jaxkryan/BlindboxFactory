@@ -8,6 +8,10 @@ namespace Script.Machine {
         float ProgressionPerSec { get; }
         float EstimateCompletionTime { get; }
         bool IsClosed { get; }
+        bool HasEnergyForWork { get; }
+        bool HasResourceForWork { get; }
+        bool CanCreateProduct { get; }
+        bool IsWorkable { get; }
         IEnumerable<MachineSlot> Slots { get; }
         float CurrentProgress { get; set; }
         float MaxProgress { get; }

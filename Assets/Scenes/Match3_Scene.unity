@@ -2591,29 +2591,46 @@ MonoBehaviour:
   m_GameObject: {fileID: 1847563652}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e88e086e94dde448abaf6435ee0e4ca, type: 3}
+  m_Script: {fileID: 11500000, guid: f8796e66ad9e4d60a68239f14d516f0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoUnparentOnLoad: 1
-  inventoryMaterials:
-  - material: 0
-    amount: 0
-    maxAmount: 1000
-  - material: 1
-    amount: 0
-    maxAmount: 1000
-  - material: 2
-    amount: 0
-    maxAmount: 1000
-  - material: 3
-    amount: 0
-    maxAmount: 1000
-  - material: 4
-    amount: 0
-    maxAmount: 1000
-  - material: 5
-    amount: 0
-    maxAmount: 1000
+  MachineController:
+    _recoverMachines:
+      _serializedList: []
+  ResourceController:
+    _resourceConversion:
+      _serializedList: []
+    _resourceData:
+      _serializedList:
+      - Key: 2
+        Value:
+          MaxAmount: 1000
+      - Key: 3
+        Value:
+          MaxAmount: 1000
+      - Key: 4
+        Value:
+          MaxAmount: 1000
+      - Key: 5
+        Value:
+          MaxAmount: 1000
+      - Key: 6
+        Value:
+          MaxAmount: 1000
+      - Key: 7
+        Value:
+          MaxAmount: 1000
+  QuestController:
+    Quests: []
+  Grid: {fileID: 0}
+  ConstructionLayer: {fileID: 0}
+  CollisionLayer: {fileID: 0}
+  _hasSaveTimer: 0
+  _timeBetweenSave: 5
+  references:
+    version: 2
+    RefIds: []
 --- !u!1 &1901511305
 GameObject:
   m_ObjectHideFlags: 0

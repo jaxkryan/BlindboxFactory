@@ -44,5 +44,17 @@ public class WorkStrategy : IActionStrategy {
                     , min
                     , 0f)) 
             _slot.Machine.RemoveWorker(_worker);
+        
+        var controller = GameController.Instance.MachineController;
+        List<MachineBase> recoveryMachine = new();
+        foreach (var coreType in Enum.GetValues(typeof(CoreType)).Cast<CoreType>()) {
+            recoveryMachine.AddRange(controller.FindRecoveryMachine(coreType, (Worker)_worker));
+        }
+
+        if (_worker.CurrentCores.Any(c => c.Value <= 0f)
+            && recoveryMachine.All(r => r != _slot.Machine)) _slot.Machine.RemoveWorker(_worker);
+
+        if (_worker.CurrentCores.Any(c => c.Value >= _worker.MaximumCore[c.Key])
+            && recoveryMachine.Any(r => r == _slot.Machine)) _slot.Machine.RemoveWorker(_worker);
     }
 }

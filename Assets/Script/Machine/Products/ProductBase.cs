@@ -9,6 +9,8 @@ namespace Script.Machine.Products {
     public abstract class ProductBase : IProduct {
         public abstract float MaxProgress { get; }
         public abstract List<ResourceUse> ResourceUse { get; }
+        public virtual bool CanCreateProduct { get => true; }
+
         public abstract void OnProductCreated();
     }
 

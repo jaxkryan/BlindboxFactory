@@ -10,7 +10,7 @@ namespace Script.Machine {
     public abstract class WorkDetail {
         [SerializeField] public int Slot;
         protected CountdownTimer _timer;
-        public IMachine Machine { get; set; }
+        public MachineBase Machine { get; set; }
         public bool IsRunning { get; private set; }
 
         public void Start() {
@@ -18,10 +18,9 @@ namespace Script.Machine {
                 Debug.LogError("Work detail is not setup.");
                 return;
             }
-            if (!CanExecute()) {
-                Debug.LogError("Work detail cannot be started.");
-                return;
-            }
+            if (!CanExecute()) return;
+
+            if (IsRunning) return;
             IsRunning = true;
             OnStart();
         }
@@ -33,10 +32,9 @@ namespace Script.Machine {
                 Debug.LogError("Work detail is not setup.");
                 return;
             }
-            if (CanExecute()) {
-                Debug.LogError("Work detail cannot be stopped.");
-                return;
-            }
+            if (CanExecute()) return;
+
+            if (!IsRunning) return;
             IsRunning = false;
             OnStop();
         }
@@ -54,8 +52,8 @@ namespace Script.Machine {
 
         public virtual bool CanExecute() {
             if (Machine is null) return false;
-            if (Machine.Slots.Count() < Slot) return false;
-            if (IsRunning) return false;
+            if (!Machine.IsWorkable) return false;
+            if (Machine.Slots.Count(s => s.CurrentWorker is not null) < Slot) return false;
             
             return true;
         }
