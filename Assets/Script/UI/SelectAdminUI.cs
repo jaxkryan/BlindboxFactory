@@ -64,16 +64,17 @@ public class SelectAdminUI : UIList<Mascot>
         if (selected != null) selected.IsSelected = true;
     }
 
-
     private List<AdminSelectionUI> _selectionList = new();
 
     public override void Clear()
     {
         var children = _container.GetComponentsInChildren<AdminSelectionUI>();
         children.ForEach(c => Destroy(c.gameObject));
+        _selectionList.Clear(); // Clear the list to avoid stale references
     }
 
     public event Action<Mascot> onAdminSelected = delegate { };
+
     public void OnSelectionClicked(Mascot admin)
     {
         Current = admin;
@@ -81,14 +82,25 @@ public class SelectAdminUI : UIList<Mascot>
 
     public override void Spawn()
     {
-        List.ForEach(admin => {
+        // Clear any existing items to avoid duplicates
+        Clear();
+
+        // Add "None" option
+        var noneObj = Instantiate(_itemPrefab, _container.transform, true);
+        var noneUi = noneObj.GetComponent<AdminSelectionUI>();
+        noneUi.SetAdmin(null);
+        noneUi.SetReturn(this);
+        _selectionList.Add(noneUi);
+
+        // Add actual mascots
+        List.ForEach(admin =>
+        {
             var obj = Instantiate(_itemPrefab, _container.transform, true);
             var ui = obj.GetComponent<AdminSelectionUI>();
             ui.SetAdmin(admin);
             ui.SetReturn(this);
             _selectionList.Add(ui);
         });
-        if (List.Count == 0) Instantiate(_emptyListText, _container.transform);
     }
 
     public override void Save()

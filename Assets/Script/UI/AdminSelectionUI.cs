@@ -85,12 +85,22 @@ public class AdminSelectionUI : MonoBehaviour
 
     public void SetAdmin(Mascot admin)
     {
-        _portrait.sprite = admin.Portrait;
-        _firstName.text = admin.Name.FirstName;
-        _lastName.text = admin.Name.LastName;
-        var policies = "";
-        admin.Policies.ForEach(x => policies += x.Description + "\n");
-        _policies.text = policies;
-        Mascot = admin;
+        if (admin == null)
+        { 
+            _firstName.text = "None";
+            _lastName.text = "";
+            _policies.text = "";
+            Mascot = null;
+        }
+        else
+        {
+            _portrait.sprite = admin.Portrait;
+            _firstName.text = admin.Name.FirstName;
+            _lastName.text = admin.Name.LastName;
+            var policies = "";
+            admin.Policies.ForEach(x => policies += x.Description + "\n");
+            _policies.text = policies;
+            Mascot = admin;
+        }
     }
 }
