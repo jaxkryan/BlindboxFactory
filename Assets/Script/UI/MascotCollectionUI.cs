@@ -19,15 +19,8 @@ public class MascotCollectionUI : MonoBehaviour
     {
         _mascotController = GameController.Instance.MascotController;
 
-        // Ensure the panel is hidden by default
-        if (_managerPanel != null)
-        {
-            _managerPanel.SetActive(false);
-        }
-        else
-        {
-            Debug.LogWarning("ManagerPanel is not assigned in the Inspector!");
-        }
+        // Ensure the panel is hidden by default in the inspector
+       
 
         //if (_detailPanel != null)
         //{
@@ -120,7 +113,7 @@ public class MascotCollectionUI : MonoBehaviour
     {
         if (_mascotController.MascotsList.Contains(mascot))
         {
-           
+
             _mascotController.RemoveMascot(mascot);
             PopulateMascotList(); // Refresh the list
 

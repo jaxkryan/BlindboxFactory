@@ -1,5 +1,7 @@
 using BuildingSystem;
 using BuildingSystem.Models;
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -19,6 +21,9 @@ public class StructureManage : MonoBehaviour
     private Camera mainCamera;
     private Vector3 targetCameraPosition;
     private bool isMovingCamera = false;
+    private bool isTouching = false;
+    private float touchStartTime;
+    private const float maxTouchDuration = 0.2f;
 
     private void Awake()
     {
@@ -31,12 +36,24 @@ public class StructureManage : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0) && !_buildingPlacer.IsbuildMode)
         {
-            Vector3 worldPosition = mainCamera.ScreenToWorldPoint(
-                Input.mousePosition);
-            worldPosition.z = 0;
-
-            HandleBuildableSelection(worldPosition);
+            isTouching = true;
+            touchStartTime = Time.time; // Record when touch starts
         }
+
+        if (Input.GetMouseButtonUp(0) && isTouching)
+        {
+            float touchDuration = Time.time - touchStartTime;
+
+            if (touchDuration <= maxTouchDuration) // Ensure it's a quick tap
+            {
+                Vector3 worldPosition = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+                worldPosition.z = 0;
+                HandleBuildableSelection(worldPosition);
+            }
+
+            isTouching = false; // Reset touch state
+        }
+
 
         // Smooth camera movement
         if (isMovingCamera)
@@ -49,19 +66,27 @@ public class StructureManage : MonoBehaviour
             }
         }
     }
-
+    private void OnDrawGizmos()
+    {
+        if (_hitCoord != Vector3.zero)
+        {
+            Gizmos.DrawWireSphere(_hitCoord, 0.5f);
+            Gizmos.DrawLine(_hitCoord, _hitCoord + Vector3.zero);
+        }
+    }
+    Vector3 _hitCoord = Vector3.zero;
     private void HandleBuildableSelection(Vector3 worldCoords)
     {
         if (IsPointerOverUI()) return;
         if (_buildingPlacer.IsActiveBuildable()) return;
-
-        RaycastHit2D hit = Physics2D.Raycast(worldCoords, Vector2.zero);
+        RaycastHit2D hit = Physics2D.RaycastAll(worldCoords, Vector2.zero).FirstOrDefault(h => h.collider is not null && h.collider.gameObject.CompareTag("BoxMachine"));
+        _hitCoord = hit.centroid;
 
         if (hit.collider != null)
         {
             GameObject buildableObject = hit.collider.gameObject;
             if (buildableObject == null)
-            {
+            { 
                 Debug.LogWarning("[HandleBuildableSelection] The buildable object is null.");
                 return;
             }

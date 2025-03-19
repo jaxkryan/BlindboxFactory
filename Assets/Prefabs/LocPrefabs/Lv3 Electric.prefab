@@ -654,6 +654,8 @@ GameObject:
   - component: {fileID: 1232915562656997498}
   - component: {fileID: 2126596737199820935}
   - component: {fileID: 8203101737108277507}
+  - component: {fileID: 3677057712175432402}
+  - component: {fileID: 5289756006288664300}
   m_Layer: 0
   m_Name: Lv3 Electric
   m_TagString: ElectricMachine
@@ -739,7 +741,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8928702549105713015}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 797481cfad372c74aac4fc56e08deae8, type: 3}
   m_Name: 
@@ -773,3 +775,108 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!60 &3677057712175432402
+PolygonCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8928702549105713015}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.43, y: 0}
+    oldSize: {x: 2.03, y: 2.07}
+    newSize: {x: 2.03, y: 2.07}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Points:
+    m_Paths:
+    - - {x: 1.1271, y: 0.63}
+      - {x: 1.1571, y: 0.66999996}
+      - {x: 1.1571, y: 0.83}
+      - {x: 1.0870999, y: 0.96}
+      - {x: 1.0870999, y: 1.5999999}
+      - {x: 1.0271, y: 1.7099999}
+      - {x: 0.83709997, y: 1.8499999}
+      - {x: 0.5471, y: 2.02}
+      - {x: 0.4371, y: 2.07}
+      - {x: 0.29709998, y: 2.07}
+      - {x: 0.21709998, y: 2.02}
+      - {x: 0.07709999, y: 2.04}
+      - {x: -0.05290001, y: 2.05}
+      - {x: -0.112900004, y: 1.9799999}
+      - {x: -0.1629, y: 1.8}
+      - {x: -0.2929, y: 1.76}
+      - {x: -0.3529, y: 1.68}
+      - {x: -0.3829, y: 1.63}
+      - {x: -0.5129, y: 1.5699999}
+      - {x: -0.7429, y: 1.4}
+      - {x: -0.7829, y: 1.3199999}
+      - {x: -0.79289997, y: 0.74}
+      - {x: -0.8229, y: 0.71}
+      - {x: -0.8729, y: 0.65}
+      - {x: -0.8729, y: 0.48}
+      - {x: -0.08290001, y: 0.01}
+      - {x: -0.06290001, y: 0}
+      - {x: 0.13709998, y: 0}
+      - {x: 0.26709998, y: 0.099999994}
+      - {x: 0.45709997, y: 0.22}
+      - {x: 0.90709996, y: 0.48999998}
+  m_UseDelaunayMesh: 0
+--- !u!114 &5289756006288664300
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8928702549105713015}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17b9c279e49f4d6cb3baa71207e5dda3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _powerUse: 0
+  BuildingDimension: {x: 0, y: 0}
+  _progressPerSec: 0
+  _isClosed: 0
+  _slots: []
+  _currentProgress: 0
+  _workDetails: []
+  _product:
+    rid: -2
+  _power: 400
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
