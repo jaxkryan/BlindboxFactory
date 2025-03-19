@@ -16,9 +16,11 @@ namespace Script.Machine.ResourceManager {
         private bool _started = false;
 
         public void Start(MachineBase machine, ResourceManager resourceManager) {
+
             if (_started) return;
             _machine = machine;
             _resourceManager = resourceManager;
+            _started = true;
             OnStart();
         }
 
@@ -26,6 +28,7 @@ namespace Script.Machine.ResourceManager {
 
         public void Stop() {
             if (!_started) return;
+            _started = false;
             OnStop();   
         }
         protected abstract void OnStop();

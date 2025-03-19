@@ -19,7 +19,8 @@ public class BlindBox : SingleProductBase
         var boxcontroller = GameController.Instance.BoxController;
         if (boxcontroller.TryGetAmount(boxTypeName, out long amount))
         {
-            boxcontroller.TrySetAmount(boxTypeName, amount + 1);
+            Debug.Log(amount);
+            Debug.Log(boxcontroller.TrySetAmount(boxTypeName, amount + 1));
         }
         else
         {

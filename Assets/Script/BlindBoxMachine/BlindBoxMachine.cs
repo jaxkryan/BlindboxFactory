@@ -51,6 +51,7 @@ public class BlindBoxMachine : MachineBase
 
     public override ProductBase CreateProduct()
     {
+        Debug.Log("calling create");
         var ret = base.CreateProduct();
         if (amount-- <= 0 && !(Product is BlindBox bbProduct && bbProduct.boxTypeName == BoxTypeName.Null))
         {

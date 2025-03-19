@@ -56,6 +56,8 @@ namespace BuildingSystem
                     buildingPlacer.SetBuildableFromInventory(null);
                     buildingPlacer.ClearPreview();
                 }
+                //if(building is MachineBase machine &&  !gamecontroller.machinecontroller.recovermachine.any (m => m.gettype == machine.gettype)
+                // => spawn machine.slot.count worker
                 FindFirstObjectByType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
             }
         }
