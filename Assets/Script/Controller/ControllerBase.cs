@@ -1,5 +1,7 @@
+using Script.Controller.SaveLoad;
+
 namespace Script.Controller {
-    public abstract class ControllerBase {
+    public abstract class ControllerBase : ISavable {
         public virtual void OnUpdate(float deltaTime) { }
         public virtual void OnStart() { Load(); }
         public virtual void OnAwake() { }

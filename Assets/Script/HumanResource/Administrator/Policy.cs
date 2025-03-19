@@ -21,5 +21,22 @@ namespace Script.HumanResource.Administrator {
         public virtual void OnDismiss() { ResetValues();}
         public virtual void OnUpdate(float deltaTime) {}
         protected abstract void ResetValues();
+
+        public virtual SaveData Save() =>
+            new SaveData() {
+                Type = this.GetType().Name,
+                Name = _name,
+                Description = _description
+            };
+
+        public virtual void Load(SaveData data) {
+            _name = data.Name;
+            _description = data.Description;
+        }
+        public class SaveData {
+            public string Type;
+            public string Name;
+            public string Description;
+        }
     }
 }

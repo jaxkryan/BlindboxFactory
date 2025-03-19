@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
 using MyBox;
+using Newtonsoft.Json;
 using Script.Resources;
 using UnityEngine;
 
@@ -14,9 +15,6 @@ namespace Script.Controller {
         [SerializeField] private SerializedDictionary<Resource, ResourceData> _resourceData;
 
         [SerializeField]private SerializedDictionary<Resource, long> _resourceAmount = new() ;
-
-        public long StorageCapacity {get; private set;}
-
         public bool TryGetData(Resource resource, out ResourceData resourceData, out long currentAmount) {
             currentAmount = default;
             var ret = _resourceData.TryGetValue(resource, out resourceData) &&
@@ -42,7 +40,8 @@ namespace Script.Controller {
 
         public bool TrySetAmount(Resource resource, long amount) {
             if (!TryGetAmount(resource, out var currentAmount)) return false;
-            if (_resourceData.TryGetValue(resource, out var data) && !data.IsAmountValid(currentAmount, amount)) return false;
+            if (_resourceData.TryGetValue(resource, out var data) 
+                && !data.IsAmountValid(currentAmount, amount)) return false;
 
             _resourceAmount[resource] = amount;
             onResourceAmountChanged?.Invoke(resource, currentAmount, amount);
@@ -79,19 +78,6 @@ namespace Script.Controller {
             Load();
         }
 
-        public override void Load() {
-            Debug.Log("run Load");
-            foreach (Resource resource in Enum.GetValues(typeof(Resource)))
-            {
-                _resourceAmount[resource] = 10000;
-            }
-        }
-
-        public override void Save()
-        {
-            //throw new System.NotImplementedException();
-        }
-
         public override void OnAwake() {
             base.OnAwake();
 
@@ -124,6 +110,40 @@ namespace Script.Controller {
             }
             resourceAmounts = new Dictionary<Resource, long>(_resourceAmount);
             return true;
+        }
+
+        public override void Load() {
+            // Debug.Log("run Load");
+            // foreach (Resource resource in Enum.GetValues(typeof(Resource)))
+            // {
+            //     _resourceAmount[resource] = 10000;
+            // }
+            if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
+
+            _resourceConversion = new(data.ResourceConversion);
+            _resourceData = new(data.ResourceData);
+            _resourceAmount = new(data.ResourceAmount);
+        }
+
+        public override void Save() {
+            var newSave = new SaveData() {
+                ResourceConversion =  _resourceConversion,
+                ResourceData = _resourceData,
+                ResourceAmount = _resourceAmount
+            };
+            
+            if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data) 
+                GameController.Instance.SaveManager.SaveData.Add(this.GetType().Name, JsonConvert.SerializeObject(newSave));
+            else GameController.Instance.SaveManager.SaveData[this.GetType().Name] = JsonConvert.SerializeObject(newSave);
+        }
+        
+        public class SaveData{
+            public Dictionary<ResourceConversionPair, float> ResourceConversion;
+            public Dictionary<Resource, ResourceData> ResourceData;
+            public Dictionary<Resource, long> ResourceAmount;
+            
         }
     }
 }

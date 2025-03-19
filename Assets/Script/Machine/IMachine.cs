@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Script.HumanResource.Worker;
 using Script.Machine.Products;
+using UnityEngine;
 
 namespace Script.Machine {
     public interface IMachine {
@@ -27,5 +28,6 @@ namespace Script.Machine {
         event Action onWorkerChanged;
         event Action<ProductBase> onCreateProduct;
         DateTimeOffset PlacedTime { get; } 
+        Vector2Int Position { get; }
     }
 }

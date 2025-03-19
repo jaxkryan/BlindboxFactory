@@ -93,5 +93,33 @@ namespace Script.HumanResource.Administrator.Policies {
         }
 
         private float PickRandom(Vector2 range) => new Unity.Mathematics.Random().NextFloat(range.x, range.y);
+
+        public override SaveData Save() {
+            var data = (CoreChangeOnWorkData)base.Save();
+
+            data.Additives = Additives;
+            data.Multiplier = Multiplier;
+            data.ForAllWorkers = _forAllWorkers;
+            data.WorkerType = _workerType.Value;
+            return data;
+        }
+
+        public override void Load(SaveData data) {
+            if (data is CoreChangeOnWorkData coreData) {
+                Additives = new SerializedDictionary<CoreType, Vector2>(coreData.Additives);
+                Multiplier = new SerializedDictionary<CoreType, Vector2>(coreData.Multiplier);
+                _forAllWorkers = coreData.ForAllWorkers;
+                _workerType.Value = coreData.WorkerType;
+            }
+            
+            base.Load(data);
+        }
+
+        public class CoreChangeOnWorkData : SaveData {
+            public Dictionary<CoreType, Vector2> Additives; 
+            public Dictionary<CoreType, Vector2> Multiplier; 
+            public bool ForAllWorkers;
+            public List<Worker.Worker> WorkerType;
+        }
     }
 }

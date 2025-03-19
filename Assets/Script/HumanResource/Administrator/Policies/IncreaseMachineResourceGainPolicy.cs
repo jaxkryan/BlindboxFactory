@@ -60,5 +60,27 @@ namespace Script.HumanResource.Administrator.Policies {
         }
 
         private float PickRandom(Vector2 range) => new Unity.Mathematics.Random().NextFloat(range.x, range.y);
+
+        public override SaveData Save() {
+            var data = (IncreaseMachineResourceGainData)base.Save();
+
+            data.Additives = Additives;
+            data.Multiplier = Multiplier;
+
+            return data;
+        }
+
+        public override void Load(SaveData data) {
+            if (data is IncreaseMachineResourceGainData increaseData) {
+                Additives = new(increaseData.Additives);
+                Multiplier = new(increaseData.Multiplier);
+            }
+            base.Load(data);
+        }
+
+        public class IncreaseMachineResourceGainData : SaveData {
+            public Dictionary<Resource, Vector2> Additives; 
+            public Dictionary<Resource, Vector2> Multiplier; 
+        }
     }
 }
