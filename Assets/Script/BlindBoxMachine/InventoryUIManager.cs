@@ -13,6 +13,11 @@ public class InventoryUIManager : MonoBehaviour
         DisplayInventory();
     }
 
+    private void Update()
+    {
+        DisplayInventory();
+    }
+
     public void DisplayInventory()
     {
         // Check if the inventory is active before updating

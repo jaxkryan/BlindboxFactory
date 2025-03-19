@@ -48,7 +48,6 @@ namespace Script.Controller {
 
             _resourceAmount[resource] = amount;
             onResourceAmountChanged?.Invoke(resource, currentAmount, amount);
-            inventoryUIManager.DisplayInventory();
             return true;
         }
 

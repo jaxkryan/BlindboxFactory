@@ -979,6 +979,7 @@ GameObject:
   - component: {fileID: 7986783082072029475}
   - component: {fileID: 1518176329254882740}
   - component: {fileID: 7326187405951186412}
+  - component: {fileID: 7022986040928576854}
   m_Layer: 0
   m_Name: BoxProduceMachine
   m_TagString: BoxMachine
@@ -1214,6 +1215,7 @@ PolygonCollider2D:
       - {x: 0.216, y: 0.15200001}
       - {x: 0.264, y: 0.18}
       - {x: 0.36600003, y: 0.23400001}
+      - {x: 0.45208645, y: 0.28921425}
       - {x: 0.504, y: 0.30800003}
       - {x: 0.57600003, y: 0.35000002}
       - {x: 0.66800004, y: 0.402}
@@ -1359,3 +1361,49 @@ PolygonCollider2D:
       - {x: 0.172, y: 0.082}
       - {x: 0.178, y: 0.098000005}
   m_UseDelaunayMesh: 0
+--- !u!61 &7022986040928576854
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9159193123509703617}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 1.006}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0}
+    oldSize: {x: 1.936, y: 2.012}
+    newSize: {x: 9.68, y: 9.83}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 1.936, y: 2.012}
+  m_EdgeRadius: 0

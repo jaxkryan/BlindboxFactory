@@ -44,7 +44,7 @@ namespace Script.Controller
         [SerializeField] private SerializedDictionary<BoxTypeName, BoxMaxAmount> _boxData;
         [SerializeField] private int _expireTime;
 
-        private Dictionary<BoxTypeName, long> _boxAmount = new();
+        [SerializeField] private SerializedDictionary<BoxTypeName, long> _boxAmount = new();
 
         private Dictionary<BoxTypeName, List<BoxLog>> _boxLog = new();
 
@@ -127,7 +127,6 @@ namespace Script.Controller
                     logs.Add(newBoxLog);
                 }
             }
-            inventoryUIManager.DisplayInventory();
             return true;
             void RemoveExpiredLogs()
             {
