@@ -15,6 +15,7 @@ namespace Script.HumanResource.Administrator {
     [Serializable]
     public class MascotController : ControllerBase {
         [SerializeField] public List<Sprite> Portraits;
+
         public Mascot? GeneratorMascot {
             get => _generatorMascot;
             set => AssignMascot(value, ref _generatorMascot, MascotType.Generator);
@@ -66,14 +67,61 @@ namespace Script.HumanResource.Administrator {
 
         private void AssignMascot(Mascot? value, ref Mascot? admin, MascotType position) {
             if (value == admin) return;
+
+            // If assigning a new mascot, ensure it’s not assigned elsewhere
+            if (value != null) {
+                var currentDepartment = GetAssignedDepartment(value);
+                if (currentDepartment.HasValue && currentDepartment.Value != position) {
+                    SetMascotForDepartment(currentDepartment.Value, null); // Unassign from previous department
+                }
+            }
+
             OnMascotChanged?.Invoke(position, value);
             admin?.OnDismiss();
             admin = value;
             admin?.OnAssign();
         }
 
+        // Helper method to find where a mascot is currently assigned
+        private MascotType? GetAssignedDepartment(Mascot? mascot) {
+            if (mascot == null) return null;
+            if (GeneratorMascot == mascot) return MascotType.Generator;
+            if (CanteenMascot == mascot) return MascotType.Canteen;
+            if (RestroomMascot == mascot) return MascotType.Restroom;
+            if (MiningMascot == mascot) return MascotType.MiningMachine;
+            if (FactoryMascot == mascot) return MascotType.ProductFactory;
+            if (StorageMascot == mascot) return MascotType.Storage;
+            return null;
+        }
+
+        // Helper method to set a department’s mascot (used for unassigning)
+        private void SetMascotForDepartment(MascotType department, Mascot? mascot) {
+            switch (department) {
+                case MascotType.Generator:
+                    GeneratorMascot = mascot;
+                    break;
+                case MascotType.Canteen:
+                    CanteenMascot = mascot;
+                    break;
+                case MascotType.Restroom:
+                    RestroomMascot = mascot;
+                    break;
+                case MascotType.MiningMachine:
+                    MiningMascot = mascot;
+                    break;
+                case MascotType.ProductFactory:
+                    FactoryMascot = mascot;
+                    break;
+                case MascotType.Storage:
+                    StorageMascot = mascot;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(department), department, null);
+            }
+        }
+
         public ReadOnlyCollection<Mascot> MascotsList {
-            get => _mascotsList.ToList().AsReadOnly();
+            get => _mascotsList.AsReadOnly();
         }
 
         private List<Mascot> _mascotsList = new();
@@ -87,7 +135,6 @@ namespace Script.HumanResource.Administrator {
 
         public bool TryRemoveMascot(Mascot mascot) {
             if (!_mascotsList.Contains(mascot)) return false;
-
             return _mascotsList.Remove(mascot);
         }
 
@@ -180,7 +227,9 @@ namespace Script.HumanResource.Administrator {
                 mascot.Name = mascotData.Name;
                 mascot.name = mascotData.Name;
                 mascot.SetGrade(mascotData.Grade);
-                mascot.Portrait = Portraits.Count > mascotData.PortraitIndex ? Portraits[mascotData.PortraitIndex] : null;
+                mascot.Portrait = Portraits.Count > mascotData.PortraitIndex
+                    ? Portraits[mascotData.PortraitIndex]
+                    : null;
 
                 foreach (var policyData in mascotData.Policies) {
                     var policy = (Policy)ScriptableObject.CreateInstance(policyData.Type);
@@ -188,18 +237,25 @@ namespace Script.HumanResource.Administrator {
                         Debug.LogError("Cannot load policy of type: " + policyData.Type);
                         continue;
                     }
-                    
+
                     policy.Load(policyData);
                 }
+
                 _mascotsList.Add(mascot);
             }
-            
-            if (data.GeneratorMascotIndex > -1 && data.GeneratorMascotIndex < _mascotsList.Count ) GeneratorMascot = _mascotsList[data.GeneratorMascotIndex];
-            if (data.FactoryMascotIndex > -1 && data.FactoryMascotIndex < _mascotsList.Count ) FactoryMascot = _mascotsList[data.FactoryMascotIndex];
-            if (data.CanteenMascotIndex > -1 && data.CanteenMascotIndex < _mascotsList.Count ) CanteenMascot = _mascotsList[data.CanteenMascotIndex];
-            if (data.MiningMascotIndex > -1 && data.MiningMascotIndex < _mascotsList.Count ) MiningMascot = _mascotsList[data.MiningMascotIndex];
-            if (data.RestroomMascotIndex > -1 && data.RestroomMascotIndex < _mascotsList.Count ) RestroomMascot = _mascotsList[data.RestroomMascotIndex];
-            if (data.StorageMascotIndex > -1 && data.StorageMascotIndex < _mascotsList.Count ) StorageMascot = _mascotsList[data.StorageMascotIndex];
+
+            if (data.GeneratorMascotIndex > -1 && data.GeneratorMascotIndex < _mascotsList.Count)
+                GeneratorMascot = _mascotsList[data.GeneratorMascotIndex];
+            if (data.FactoryMascotIndex > -1 && data.FactoryMascotIndex < _mascotsList.Count)
+                FactoryMascot = _mascotsList[data.FactoryMascotIndex];
+            if (data.CanteenMascotIndex > -1 && data.CanteenMascotIndex < _mascotsList.Count)
+                CanteenMascot = _mascotsList[data.CanteenMascotIndex];
+            if (data.MiningMascotIndex > -1 && data.MiningMascotIndex < _mascotsList.Count)
+                MiningMascot = _mascotsList[data.MiningMascotIndex];
+            if (data.RestroomMascotIndex > -1 && data.RestroomMascotIndex < _mascotsList.Count)
+                RestroomMascot = _mascotsList[data.RestroomMascotIndex];
+            if (data.StorageMascotIndex > -1 && data.StorageMascotIndex < _mascotsList.Count)
+                StorageMascot = _mascotsList[data.StorageMascotIndex];
 
             void ClearData() {
                 _generatorMascot = null;
@@ -211,8 +267,9 @@ namespace Script.HumanResource.Administrator {
                 _mascotsList.Clear();
             }
         }
+
         public override void Save() {
-            var newSave = new SaveData(){MascotsList =  new()};
+            var newSave = new SaveData() { MascotsList = new() };
             foreach (var mascot in _mascotsList) {
                 if (GeneratorMascot == mascot) newSave.GeneratorMascotIndex = _mascotsList.IndexOf(mascot);
                 if (CanteenMascot == mascot) newSave.CanteenMascotIndex = _mascotsList.IndexOf(mascot);
@@ -225,15 +282,18 @@ namespace Script.HumanResource.Administrator {
                     Name = mascot.Name,
                     Grade = mascot.Grade,
                     Policies = mascot.Policies.Select(p => p.Save()).ToList(),
-                    PortraitIndex =  Portraits.IndexOf(mascot.Portrait)
+                    PortraitIndex = Portraits.IndexOf(mascot.Portrait)
                 };
                 newSave.MascotsList.Add(mData);
             }
-            
+
             if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data) 
-                GameController.Instance.SaveManager.SaveData.Add(this.GetType().Name, JsonConvert.SerializeObject(newSave));
-            else GameController.Instance.SaveManager.SaveData[this.GetType().Name] = JsonConvert.SerializeObject(newSave);
+                || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data)
+                GameController.Instance.SaveManager.SaveData.Add(this.GetType().Name,
+                    JsonConvert.SerializeObject(newSave));
+            else
+                GameController.Instance.SaveManager.SaveData[this.GetType().Name]
+                    = JsonConvert.SerializeObject(newSave);
         }
 
         public class SaveData {
@@ -245,6 +305,7 @@ namespace Script.HumanResource.Administrator {
             public int StorageMascotIndex = -1;
             public List<MascotData> MascotsList;
         }
+
         public class MascotData {
             public EmployeeName Name;
             public int PortraitIndex;

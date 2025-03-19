@@ -45,7 +45,6 @@ namespace Script.Controller {
 
             _resourceAmount[resource] = amount;
             onResourceAmountChanged?.Invoke(resource, currentAmount, amount);
-
             return true;
         }
 

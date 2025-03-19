@@ -168,6 +168,7 @@ namespace Script.Machine {
         public void SetMachinePlacedTime(DateTimeOffset time) => _placedTime = time;
 
         public virtual ProductBase CreateProduct() {
+            Debug.Log("creating");
             _product?.OnProductCreated();
             onCreateProduct?.Invoke(_product);
             return _product;

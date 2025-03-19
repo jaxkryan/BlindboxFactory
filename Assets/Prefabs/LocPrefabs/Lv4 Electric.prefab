@@ -654,6 +654,8 @@ GameObject:
   - component: {fileID: 1232915562656997498}
   - component: {fileID: 2126596737199820935}
   - component: {fileID: 8203101737108277507}
+  - component: {fileID: 7344420932629567498}
+  - component: {fileID: 7983013386938872302}
   m_Layer: 0
   m_Name: Lv4 Electric
   m_TagString: ElectricMachine
@@ -739,7 +741,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8928702549105713015}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 797481cfad372c74aac4fc56e08deae8, type: 3}
   m_Name: 
@@ -773,3 +775,115 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!60 &7344420932629567498
+PolygonCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8928702549105713015}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.555, y: 0}
+    oldSize: {x: 2.55, y: 2.42}
+    newSize: {x: 2.03, y: 2.07}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Points:
+    m_Paths:
+    - - {x: 1.0847499, y: 0.62}
+      - {x: 1.1347499, y: 0.65999997}
+      - {x: 1.1347499, y: 0.84}
+      - {x: 1.1247499, y: 0.85999995}
+      - {x: 1.0347499, y: 0.9}
+      - {x: 1.0747498, y: 0.96}
+      - {x: 1.0647498, y: 1.5799999}
+      - {x: 1.0647498, y: 1.62}
+      - {x: 0.9447499, y: 1.77}
+      - {x: 0.8347499, y: 1.8299999}
+      - {x: 0.4347499, y: 2.07}
+      - {x: 0.2547499, y: 2.19}
+      - {x: -0.11525009, y: 2.3899999}
+      - {x: -0.20525008, y: 2.4199998}
+      - {x: -0.46525007, y: 2.4199998}
+      - {x: -0.53525007, y: 2.37}
+      - {x: -0.60525006, y: 2.36}
+      - {x: -0.6552501, y: 2.29}
+      - {x: -0.67525005, y: 2.1699998}
+      - {x: -0.7552501, y: 2.1699998}
+      - {x: -0.8352501, y: 2.1499999}
+      - {x: -0.91525006, y: 2.05}
+      - {x: -0.9052501, y: 1.9699999}
+      - {x: -1.1152501, y: 1.8499999}
+      - {x: -1.2852501, y: 1.6999999}
+      - {x: -1.33525, y: 1.5999999}
+      - {x: -1.33525, y: 1.0699999}
+      - {x: -1.4152501, y: 0.98999995}
+      - {x: -1.4152501, y: 0.81}
+      - {x: -1.3952501, y: 0.78999996}
+      - {x: -1.07525, y: 0.59999996}
+      - {x: -0.86525005, y: 0.47}
+      - {x: -0.37525007, y: 0.17999999}
+      - {x: -0.06525009, y: 0}
+      - {x: 0.07474991, y: 0}
+      - {x: 0.2647499, y: 0.099999994}
+      - {x: 0.5547499, y: 0.29}
+      - {x: 0.9847499, y: 0.55}
+  m_UseDelaunayMesh: 0
+--- !u!114 &7983013386938872302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8928702549105713015}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17b9c279e49f4d6cb3baa71207e5dda3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _powerUse: 0
+  BuildingDimension: {x: 0, y: 0}
+  _progressPerSec: 0
+  _isClosed: 0
+  _slots: []
+  _currentProgress: 0
+  _workDetails: []
+  _product:
+    rid: -2
+  _power: 1000
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
