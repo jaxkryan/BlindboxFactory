@@ -13,7 +13,7 @@ namespace Script.Machine.ResourceManager {
             get => new(_lockedResources);
         }
 
-        public Dictionary<Resource, int> _lockedResources = new();
+        private Dictionary<Resource, int> _lockedResources = new();
         private List<ResourceUse> _resourceUse = new();
 
         public void SetResourceUses(params ResourceUse[] uses) => _resourceUse = uses.ToList();
@@ -112,6 +112,16 @@ namespace Script.Machine.ResourceManager {
                 if (newAmount(resource) > 0) controller.TrySetAmount(resource, newAmount(resource));
                 _lockedResources.Remove(resource);
             }
+        }
+
+        public SaveData ToSaveData() =>
+            new SaveData() { LockedResources = _lockedResources, ResourceUse = _resourceUse };
+        
+        public class SaveData {
+            public Dictionary<Resource, int> LockedResources;
+            public List<ResourceUse> ResourceUse;
+            
+            public ResourceManager ToResourceManager() => new ResourceManager(){ _lockedResources = LockedResources, _resourceUse = ResourceUse };
         }
     }
 }

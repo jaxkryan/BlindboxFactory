@@ -1,6 +1,7 @@
 using System;
 using AYellowpaper.SerializedCollections;
 using Script.Controller;
+using Script.Machine;
 using Script.Resources;
 using UnityEngine;
 
@@ -12,16 +13,17 @@ namespace Script.Quest {
 
     [Serializable]
     public class UnlockMachineQuestReward : QuestReward {
-        public override void Grant() { throw new NotImplementedException(); }
+        [SerializeField] MachineBase _machine;
+        public override void Grant() {  }
     }
 
     [Serializable] public class BlindboxQuestReward : QuestReward {
-        public override void Grant() { throw new NotImplementedException(); }
+        public override void Grant() { }
     }
 
     [Serializable]
     public class ResourceQuestReward : QuestReward {
-        [SerializeReference] public SerializedDictionary<Resource, int> Resources;
+        [SerializeReference] public SerializedDictionary<Resource, int> Resources = new();
 
         public override void Grant() {
             var controller = GameController.Instance.ResourceController;

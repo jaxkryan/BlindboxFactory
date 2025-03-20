@@ -27,7 +27,7 @@ namespace Script.HumanResource.Worker {
         void StopWorking();
         event Action onWorking;
         event Action onStopWorking;
-        HashSet<Bonus> Bonuses { get; }
+        List<Bonus> Bonuses { get; }
         void AddBonus(Bonus bonus);
         void RemoveBonus(Bonus bonus);
         string Name { get; }
