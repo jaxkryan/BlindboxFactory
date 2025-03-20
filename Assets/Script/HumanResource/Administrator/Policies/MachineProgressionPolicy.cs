@@ -56,5 +56,45 @@ namespace Script.HumanResource.Administrator.Policies {
         }
 
         private float PickRandom(Vector2 range) => new Unity.Mathematics.Random().NextFloat(range.x, range.y);
+
+        public override SaveData Save() {
+            var data = (ProgressionData)base.Save();
+            
+            data.Additives = Additives;
+            data.Multiplier = Multiplier;
+            data.ForAllMachines = _forAllMachines;
+            var buildables = GameController.Instance.MachineController.Buildables;
+            data.PrefabNames = new();
+            foreach (var machine in _machineType.Value) {
+                var b = buildables.FirstOrDefault(b => Equals(b.gameObject, machine.gameObject));
+                if (b) data.PrefabNames.Add(b.Name);
+            }
+
+            return data;
+        }
+
+        public override void Load(SaveData data) {
+            if (data is ProgressionData progressionData) {
+                Additives = progressionData.Additives;
+                Multiplier = progressionData.Multiplier;
+                _forAllMachines = progressionData.ForAllMachines;
+                var buildables= GameController.Instance.MachineController.Buildables;
+                var list = new List<MachineBase>();
+                foreach (var build in buildables.Where(b => progressionData.PrefabNames.Contains(b.Name))) {
+                    var machine = build.gameObject.GetComponent < MachineBase > ();
+                    if (machine is not null) list.Add(machine);
+                }
+
+                _machineType = new CollectionWrapperList<MachineBase>(){ Value = list };
+            }
+            base.Load(data);
+        }
+
+        public class ProgressionData : SaveData {
+            public bool ForAllMachines;
+            public List<string> PrefabNames;
+            public Vector2 Additives; 
+            public Vector2 Multiplier; 
+        }
     }
 }

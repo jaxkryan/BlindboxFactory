@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using MyBox;
+using Script.Controller.SaveLoad;
 using Script.HumanResource.Administrator;
+using Script.HumanResource.Worker;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -16,12 +19,21 @@ namespace Script.Controller {
         public ResourceController ResourceController = new();
         public PowerGridController PowerGridController = new();
         public QuestController QuestController = new();
+        public CommissionController CommissionController = new();
+        public DailyMissionController DailyMissionController = new();
+        public WorkerSpawner WorkerSpawner = new();
+        public Transform WorkerSpawnPoint;
         public Grid Grid;
+        public Tilemap Background;
         public Tilemap ConstructionLayer;
         public Tilemap CollisionLayer;
+        
+        [Space]
+        [Header("Save")]
         [SerializeField] private bool _hasSaveTimer;
         [ConditionalField(nameof(_hasSaveTimer))]
         [SerializeField] private float _timeBetweenSave = 5f;
+        public SaveManager SaveManager;
         private Timer _saveTimer;
         private List<ControllerBase> _controllers => typeof(GameController).GetFields()
                 .Where(f => f.FieldType.IsSubclassOf(typeof(ControllerBase)))
@@ -31,11 +43,14 @@ namespace Script.Controller {
         
         protected override void Awake() {
             base.Awake();
-            Load();
-            if (!Grid) {
-                Grid = FindFirstObjectByType<Grid>();
+
+            Task.Run(LoadOnAwake);
+            return;
+
+            async Awaitable LoadOnAwake(){
+                await Load();
+                _controllers.ForEach(c => c.OnAwake());
             }
-            _controllers.ForEach(c => c.OnAwake());
         }
 
         private void OnDestroy() => _controllers.ForEach(c => c.OnDestroy());
@@ -43,19 +58,21 @@ namespace Script.Controller {
 
         private void OnDisable() {
             _controllers.ForEach(c => c.OnDisable());
-            Save();
+            Task.Run(Save);
         }
 
         private void Start() {
             if (_hasSaveTimer) {
                 _saveTimer = new CountdownTimer(_timeBetweenSave);
-                _saveTimer.OnTimerStop += () => {
-                    Save();
-                    _saveTimer.Start();
-                };
+                _saveTimer.OnTimerStop += () => Task.Run(OnSaveTimerOnTimerStop);
                 _saveTimer.Start();
             }
             _controllers.ForEach(c => c.OnStart());
+        }
+
+        private async Task OnSaveTimerOnTimerStop() {
+            await Save();
+            _saveTimer.Start();
         }
 
         private void Update() {
@@ -65,12 +82,18 @@ namespace Script.Controller {
 
         private void OnValidate() => _controllers.ForEach(c => c.OnValidate());
 
-        private void Load() { 
+        private async Awaitable Load() { 
+            await SaveManager.LoadFromCloud();
+            await SaveManager.LoadFromLocal();
+            
             _controllers.ForEach(c => c.Load());
         }
 
-        private void Save() {
+        private async Awaitable Save() {
             _controllers.ForEach(c => c.Save());
+            
+            await SaveManager.SaveToLocal();
+            await SaveManager.SaveToCloud();
         }
 
     }

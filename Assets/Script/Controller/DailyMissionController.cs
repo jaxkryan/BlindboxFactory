@@ -2,33 +2,35 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MyBox;
+using Newtonsoft.Json;
+using Script.Quest;
 using UnityEngine;
 
 namespace Script.Controller {
     [Serializable]
     public class DailyMissionController : ControllerBase {
-        public override void Load() { throw new System.NotImplementedException(); }
-        public override void Save() { throw new System.NotImplementedException(); }
         private DateTime _lastUpdate = DateTime.MinValue;
         [SerializeField] private TimeAsSerializable _resetTime;
         [SerializeField] private List<Quest.Quest> _dailyMissionsList;
-        private HashSet<Quest.Quest> _dailyMissions;
+        private List<Quest.Quest> _dailyMissions;
         
-        public HashSet<Quest.Quest> DailyMissions {
-            get => _dailyMissions?.ToHashSet() ?? CreateDailyMissions();
+        public List<Quest.Quest> DailyMissions {
+            get => _dailyMissions ?? CreateDailyMissions();
         }
 
-        private HashSet<Quest.Quest> CreateDailyMissions(bool save = false) {
+        private List<Quest.Quest> CreateDailyMissions(bool save = false) {
             var list = new List<Quest.Quest>();
 
-            if (_dailyMissions.IsNullOrEmpty()) Debug.LogError("Daily mission list is empty!");
+            if (_dailyMissionsList.IsNullOrEmpty()) Debug.LogError("Daily mission list is empty!");
             else {
-                list = _dailyMissionsList;
-                _dailyMissionsList.ForEach(q => q.ClearQuestData());
+                list = _dailyMissionsList.Clone();
             }
 
-            if (save) _dailyMissions = list.ToHashSet();
-            return list.ToHashSet();
+            if (save) {
+                _dailyMissions.ForEach(q => q.ClearQuestData());
+                _dailyMissions = list;
+            }
+            return list;
         }
 
 
@@ -40,12 +42,39 @@ namespace Script.Controller {
             CreateDailyMissions(true);
             _lastUpdate = DateTime.Now;
         }
+
+        public override void Load() {
+            if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
+            
+            _lastUpdate = data.LastUpdate;
+            for (var i = 0; i < data.DailyMissionsState.Count; i++) {
+                _dailyMissions[i].State = data.DailyMissionsState[i];
+            }
+        }
+
+        public override void Save() {
+            var newSave = new SaveData() {
+                LastUpdate = _lastUpdate,
+                DailyMissionsState = _dailyMissions.Select(m => m.State).ToList(),
+            };
+            
+            if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data) 
+                GameController.Instance.SaveManager.SaveData.Add(this.GetType().Name, JsonConvert.SerializeObject(newSave));
+            else GameController.Instance.SaveManager.SaveData[this.GetType().Name] = JsonConvert.SerializeObject(newSave);
+        }
+
+        public class SaveData {
+            public DateTime LastUpdate;
+            public List<QuestState> DailyMissionsState;
+        }
     }
 
     [Serializable]
     public struct TimeAsSerializable {
-        public int Hour;
-        public int Minute;
+        [MaxValue(24)]public int Hour;
+        [MaxValue(60)]public int Minute;
 
         public static DateTime ToDateTime(TimeAsSerializable time) {
             return DateTime.Today.AddHours(time.Hour).AddMinutes(time.Minute);

@@ -1,6 +1,7 @@
 using BuildingSystem.Models;
 using Exception;
 using System.Collections.Generic;
+using Script.Machine;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -16,7 +17,7 @@ namespace BuildingSystem
         private Dictionary<Vector3Int, Buildable> _buildables = new();
         [SerializeField]
         private CollisionLayer _collisionLayer;
-        public void Build(Vector3 worldCoords, BuildableItem item)
+        public GameObject Build(Vector3 worldCoords, BuildableItem item)
         {
             worldCoords.z = 0;
             GameObject itemObject = null;
@@ -31,6 +32,13 @@ namespace BuildingSystem
                     );
                 int sortingOrder = Mathf.FloorToInt(-worldCoords.y * 100) + Mathf.FloorToInt(worldCoords.x * 10);
                 itemObject.GetComponent<SpriteRenderer>().sortingOrder = sortingOrder;
+                
+                //Add data to building
+                var machine = itemObject.GetComponent<MachineBase>();
+                if (machine is not null) {
+                    machine.Position = coords.ToVector2Int();
+                    machine.PrefabName = item.name;
+                }
             }
             var buildable = new Buildable(item, coords, _tilemap, itemObject);
             if (item.UseCustomCollisionSpace)
@@ -60,6 +68,8 @@ namespace BuildingSystem
                 // => spawn machine.slot.count worker
                 FindFirstObjectByType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
             }
+
+            return itemObject;
         }
 
         //public void Stored(Vector3 worldCoords)
