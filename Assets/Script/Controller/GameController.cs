@@ -43,14 +43,7 @@ namespace Script.Controller {
         
         protected override void Awake() {
             base.Awake();
-
-            Task.Run(LoadOnAwake);
-            return;
-
-            async Awaitable LoadOnAwake(){
-                await Load();
-                _controllers.ForEach(c => c.OnAwake());
-            }
+            _controllers.ForEach(c => c.OnAwake());
         }
 
         private void OnDestroy() => _controllers.ForEach(c => c.OnDestroy());
@@ -67,7 +60,19 @@ namespace Script.Controller {
                 _saveTimer.OnTimerStop += () => Task.Run(OnSaveTimerOnTimerStop);
                 _saveTimer.Start();
             }
+
+            
             _controllers.ForEach(c => c.OnStart());
+            // _controllers.ForEach(c => Debug.LogWarning(c.GetType().Name));
+            Task.Run(LoadOnStart);     
+            SaveManager = new();
+            Debug.LogWarning(SaveManager.FilePath);
+
+            return;
+
+            async Task LoadOnStart(){
+                await Load();
+            }
         }
 
         private async Task OnSaveTimerOnTimerStop() {
@@ -82,14 +87,14 @@ namespace Script.Controller {
 
         private void OnValidate() => _controllers.ForEach(c => c.OnValidate());
 
-        private async Awaitable Load() { 
-            await SaveManager.LoadFromCloud();
-            await SaveManager.LoadFromLocal();
-            
+        private async Task Load() { 
+            SaveManager.LoadFromCloud();
+            SaveManager.LoadFromLocal();
+
             _controllers.ForEach(c => c.Load());
         }
 
-        private async Awaitable Save() {
+        private async Task Save() {
             _controllers.ForEach(c => c.Save());
             
             await SaveManager.SaveToLocal();

@@ -289,7 +289,7 @@ namespace Script.HumanResource.Administrator {
 
             if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                 || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data)
-                GameController.Instance.SaveManager.SaveData.Add(this.GetType().Name,
+                GameController.Instance.SaveManager.SaveData.TryAdd(this.GetType().Name,
                     JsonConvert.SerializeObject(newSave));
             else
                 GameController.Instance.SaveManager.SaveData[this.GetType().Name]

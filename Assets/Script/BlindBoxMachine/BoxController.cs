@@ -52,8 +52,6 @@ namespace Script.Controller
         private List<SaleData> _saleData = new();
 
         [SerializeField] private long _wareHouseMaxAmount;
-
-        InventoryUIManager inventoryUIManager = new InventoryUIManager();
         public void AddSaleData(int UnitPrice, int TotalPrice, BoxTypeName BoxTypeName, int Amount, DateTime DateTime)
         {
             _saleData.Add(new SaleData

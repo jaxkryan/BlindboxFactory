@@ -161,7 +161,7 @@ namespace Script.Controller {
             _commissionedProducts = data.CommissionedProducts;
             _numberOfCommissionsPerItem = data.NumberOfCommissionsPerItem;
             _amountModifierForNextProduct = data.AmountModifierForNextProduct;
-            _bonusRange = data.BonusRange;
+            _bonusRange = new (data.BonusRange.Min, data.BonusRange.Max);
             _maximumTotalCommissions = data.MaximumTotalCommissions;
             _baseCommission = data.BaseCommission;
             _expireHours = data.ExpireHours;
@@ -176,7 +176,7 @@ namespace Script.Controller {
                 CommissionedProducts = _commissionedProducts,
                 NumberOfCommissionsPerItem =  _numberOfCommissionsPerItem,
                 AmountModifierForNextProduct = _amountModifierForNextProduct,
-                BonusRange = _bonusRange,
+                BonusRange = new(){Min = _bonusRange.x, Max = _bonusRange.y},
                 MaximumTotalCommissions = _maximumTotalCommissions,
                 BaseCommission = _baseCommission,
                 ExpireHours = _expireHours,
@@ -185,7 +185,7 @@ namespace Script.Controller {
             
             if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                 || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data) 
-                GameController.Instance.SaveManager.SaveData.Add(this.GetType().Name, JsonConvert.SerializeObject(newSave));
+                GameController.Instance.SaveManager.SaveData.TryAdd(this.GetType().Name, JsonConvert.SerializeObject(newSave));
             else GameController.Instance.SaveManager.SaveData[this.GetType().Name] = JsonConvert.SerializeObject(newSave);
         }
 
@@ -194,7 +194,7 @@ namespace Script.Controller {
             public List<BoxTypeName> CommissionedProducts;
             public int NumberOfCommissionsPerItem;
             public float AmountModifierForNextProduct;
-            public Vector2 BonusRange;
+            public (float Min, float Max) BonusRange;
             public int MaximumTotalCommissions;
             public int BaseCommission;
             public int ExpireHours;

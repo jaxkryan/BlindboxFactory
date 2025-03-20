@@ -231,8 +231,9 @@ namespace Script.Machine {
 
         private void OnEnable() {
             ResourceUse?.ForEach(r => r.Start(this, _resourceManager));
-            WorkDetails.ForEach(d => d.Start());
+            UpdateWorkDetails();
             SubscribeWorkDetails();
+            WorkDetails.ForEach(d => d.Start());
         }
 
         private void OnValidate() {
@@ -241,8 +242,9 @@ namespace Script.Machine {
 
         private void OnDisable() {
             ResourceUse?.ForEach(r => r.Stop());
-            WorkDetails.ForEach(d => d.Stop());
+            UpdateWorkDetails();
             UnsubscribeWorkDetails();
+            WorkDetails.ForEach(d => d.Stop());
         }
 
 
@@ -299,18 +301,25 @@ namespace Script.Machine {
             ResourceManager = _resourceManager.ToSaveData(),
             HasEnergyForWork = HasEnergyForWork,
             HasTimer = _progressPerSecTimer is not null && _progressPerSecTimer != default,
-            TimerTime = _progressPerSecTimer?.Time ?? 0f / _progressPerSecTimer?.Progress ?? 1f,
+            TimerTime = _progressPerSecTimer?.Time ?? 0f * _progressPerSecTimer?.Progress ?? 1f,
             TimerCurrentTime = _progressPerSecTimer?.Time ?? 0f,
             ProgressQueue = _progressQueue,
             IsClosed = _isClosed,
             CurrentProgress = _currentProgress,
             LastProgress = _lastProgress,
-            WorkDetails = _workDetails,
+            WorkDetails = _workDetails.Select(w => w.Save()).ToList(),
             Product = _product,
             PlacedTime = _placedTime
         };
 
         public virtual void Load(MachineBaseData data) {
+            _workDetails.Clear();
+            foreach (var w in data.WorkDetails) {
+                var workDetail = (WorkDetail)Activator.CreateInstance(w.Type);
+                workDetail.Load(w);
+                workDetail.Machine = this;
+                _workDetails.Add(workDetail);
+            }
             PrefabName = data.PrefabName;
             Position = data.Position;
             PowerUse = data.PowerUse;
@@ -325,10 +334,10 @@ namespace Script.Machine {
             IsClosed = data.IsClosed;
             CurrentProgress = data.CurrentProgress;
             _lastProgress = data.LastProgress;
-            _workDetails = data.WorkDetails;
             Product = data.Product;
             _placedTime = data.PlacedTime;
             
+            UpdateWorkDetails();
             OnDisable();
             OnEnable();
         }
@@ -346,7 +355,7 @@ namespace Script.Machine {
             public bool IsClosed;
             public float CurrentProgress;
             public float LastProgress;
-            public List<WorkDetail> WorkDetails;
+            public List<WorkDetail.SaveData> WorkDetails;
             public ProductBase Product;
             public DateTimeOffset PlacedTime;
         }

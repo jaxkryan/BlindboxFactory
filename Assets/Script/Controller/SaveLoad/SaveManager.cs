@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -7,42 +6,63 @@ using UnityEngine;
 
 namespace Script.Controller.SaveLoad {
     public class SaveManager {
-        public Dictionary<string, string> SaveData { get; private set; } = new();
-        public string Path => Application.persistentDataPath;
-        public string FileName { get; set; } = "data";
+        public ConcurrentDictionary<string, string> SaveData { get; private set; } = new();
+        public string Path { get; init; }
+        public string FileName { get; init; }
         public string FilePath => System.IO.Path.Combine(Path, FileName);
 
-        public static string Serialize(Dictionary<string, string> data) { return JsonConvert.SerializeObject(data); }
+        public SaveManager() : this(Application.persistentDataPath) { }
 
-        public static Dictionary<string, string> Deserialize(string data) {
-            return JsonConvert.DeserializeObject<Dictionary<string, string>>(data);
+        public SaveManager(string path, string fileName = "data.json") {
+            Path = path;
+            FileName = fileName;
+        }
+        
+        public static string Serialize(ConcurrentDictionary<string, string> data) {
+            var x = JsonConvert.SerializeObject(data);
+            Debug.LogWarning(x);
+            return x;
         }
 
-        #warning implement encryption
+        public static ConcurrentDictionary<string, string> Deserialize(string data) {
+            return JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(data);
+        }
+
+#warning implement encryption
         private static string Encrypt(string data) => data;
         private static string Decrypt(string coded) => coded;
 
-        public async Awaitable SaveToLocal() {
-            var str = Serialize(SaveData);
+        public async Task SaveToLocal() {
+            try {
+                Debug.Log($"Saving data to: {FilePath}");
+                var str = Serialize(SaveData);
+                Debug.Log($"Serialized data: {str}");
 
-            using (StreamWriter sw = new StreamWriter(FilePath, false)) {
-                await sw.WriteAsync(Encrypt(str));
+                await using (StreamWriter sw = new StreamWriter(System.IO.File.Open(FilePath, FileMode.OpenOrCreate))) {
+                    await sw.WriteAsync(str);
+                    await sw.FlushAsync();
+                    Debug.Log("Data saved successfully.");
+                }
+            }
+            catch (System.Exception e) {
+                Debug.LogError($"Error saving data: {e}");
+                Debug.LogError(e);
             }
         }
 
-        public async Awaitable LoadFromLocal() {
+        public async Task LoadFromLocal() {
             using StreamReader sr = new StreamReader(FilePath);
             var str = await sr.ReadToEndAsync();
             var saveData = Deserialize(Decrypt(str));
 
             foreach (var data in saveData.Keys) {
-                if (!SaveData.TryGetValue(data, out var value)) SaveData.Add(data, saveData[data]);
+                if (!SaveData.TryGetValue(data, out var value)) SaveData.TryAdd(data, saveData[data]);
                 else if (value != saveData[data]) SaveData[data] = saveData[data];
             }
         }
 
-        #warning load save from cloud
-        public async Awaitable SaveToCloud() { }
-        public async Awaitable LoadFromCloud() { }
+#warning load save from cloud
+        public async Task SaveToCloud() { }
+        public async Task LoadFromCloud() { }
     }
 }
