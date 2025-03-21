@@ -147,11 +147,11 @@ namespace Script.HumanResource.Administrator {
             }
 
             //Debugging 
-            string policiesDetails = mascot.Policies != null && mascot.Policies.Any()
-                ? string.Join(", ", mascot.Policies.Select(p => p.Description ?? p.ToString()))
-                : "No Policies";
+            //string policiesDetails = mascot.Policies != null && mascot.Policies.Any()
+            //    ? string.Join(", ", mascot.Policies.Select(p => p.Description ?? p.ToString()))
+            //    : "No Policies";
 
-            Debug.Log($"✅ Adding Mascot: {mascot.name} | Type: [{policiesDetails}] | Rarity: {mascot.Grade}");
+            //Debug.Log($"✅ Adding Mascot: {mascot.Name} | Type: [{policiesDetails}] | Rarity: {mascot.Grade}");
 
             _mascotsList ??= new List<Mascot>();
             _mascotsList.Add(mascot);
