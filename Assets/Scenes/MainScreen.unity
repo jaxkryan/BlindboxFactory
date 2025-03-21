@@ -52983,6 +52983,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AutoUnparentOnLoad: 1
   MachineController:
+    Buildables: []
     _recoverMachines:
       _serializedList: []
   BoxController:
@@ -52992,23 +52993,69 @@ MonoBehaviour:
     _boxAmount:
       _serializedList: []
     _wareHouseMaxAmount: 0
+  WorkerController:
+    PortraitSprites: []
+    WorkerPrefabs:
+      rid: -2
+  MascotController:
+    Portraits: []
   ResourceController:
     _resourceConversion:
       _serializedList: []
     _resourceData:
-      _serializedList: []
+      _serializedList:
+      - Key: 0
+        Value:
+          MaxAmount: 1000000
+      - Key: 1
+        Value:
+          MaxAmount: 1000000
     _resourceAmount:
-      _serializedList: []
+      _serializedList:
+      - Key: 0
+        Value: 1000000
+      - Key: 1
+        Value: 1000000
   QuestController:
     _quest: []
+  CommissionController:
+    _forAllProducts: 0
+    _commissionedProducts: 
+    _numberOfCommissionsPerItem: 0
+    _amountModifierForNextProduct: 0
+    _bonusRange: {x: 0, y: 0}
+    _maximumTotalCommissions: 0
+    _baseCommission: 0
+    _expireHours: 0
+  DailyMissionController:
+    _resetTime:
+      Hour: 0
+      Minute: 0
+    _dailyMissionsList:
+    - Name: 1
+      Description: 1
+      State: 0
+      Preconditions: []
+      Objectives: []
+      Rewards:
+      - rid: 8006286810917634139
+  WorkerSpawner:
+    SpawnLocations: []
+  WorkerSpawnPoint: {fileID: 0}
   Grid: {fileID: 0}
+  Background: {fileID: 0}
   ConstructionLayer: {fileID: 0}
   CollisionLayer: {fileID: 0}
   _hasSaveTimer: 0
   _timeBetweenSave: 5
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 8006286810917634139
+      type: {class: BlindboxQuestReward, ns: Script.Quest, asm: Assembly-CSharp}
+      data: 
 --- !u!4 &1534057209
 Transform:
   m_ObjectHideFlags: 0

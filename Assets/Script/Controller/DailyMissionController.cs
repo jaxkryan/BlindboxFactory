@@ -39,7 +39,7 @@ namespace Script.Controller {
 
             if ((DateTime.Today <= _lastUpdate.Date || _resetTime.AsDateTime() > DateTime.Now)
                 && _dailyMissions is not null) return;
-            CreateDailyMissions(true);
+            //CreateDailyMissions(true); //Tu add de debug clear
             _lastUpdate = DateTime.Now;
         }
 
