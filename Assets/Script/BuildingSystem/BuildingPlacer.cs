@@ -26,6 +26,10 @@ namespace BuildingSystem
 
         public bool IsbuildMode = false;
 
+        private bool isTouching = false;
+        private float touchStartTime;
+        private const float maxTouchDuration = 0.2f;
+
         private void Update()
         {
             if (IsbuildMode)
@@ -33,13 +37,7 @@ namespace BuildingSystem
                 Vector3 position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 position.z = 0;
 
-                //if (!IsMouseWithinBuildableRange())
-                //{
-                //    _previewLayer.ClearPreview();
-                //  return;
-                //};
                 if (IsPointerOverUI()) return;
-
                 if (_constructionLayer == null)
                 {
                     _previewLayer.ClearPreview();
@@ -50,41 +48,62 @@ namespace BuildingSystem
                 {
                     if (Input.GetMouseButtonDown(0))
                     {
-                        try
+                        isTouching = true;
+                        touchStartTime = Time.time; // Record touch start time
+                    }
+
+                    if (Input.GetMouseButtonUp(0) && isTouching)
+                    {
+                        float touchDuration = Time.time - touchStartTime;
+                        if (touchDuration <= maxTouchDuration) // Ensure it's a quick tap
                         {
-                            _constructionLayer.Stored(position);
+                            try
+                            {
+                                _constructionLayer.Stored(position);
+                            }
+                            catch
+                            {
+                                // Debug.Log("position clear");
+                            }
                         }
-                        catch
-                        {
-                            //Debug.Log("position clear");
-                        }
+                        isTouching = false; // Reset touch state
                     }
                 }
 
                 if (ActiveBuildable == null)
                 {
                     return;
-                };
+                }
 
-                var isSpaceEmpty = _constructionLayer.IsEmpty(position,
-                    ActiveBuildable.UseCustomCollisionSpace ? ActiveBuildable.CollisionSpace : default);
+                var isSpaceEmpty = _constructionLayer.IsEmpty(
+                    position,
+                    ActiveBuildable.UseCustomCollisionSpace ? ActiveBuildable.CollisionSpace : default
+                );
 
                 _previewLayer.ShowPreview(
                     ActiveBuildable,
                     position,
                     isSpaceEmpty
-                    );
-                if (Input.GetMouseButtonUp(0) &&
-                    ActiveBuildable != null &&
-                    _constructionLayer != null &&
-                    isSpaceEmpty
-                    )
+                );
+
+                if (Input.GetMouseButtonDown(0))
                 {
-                    _constructionLayer.Build(position, ActiveBuildable);
+                    isTouching = true;
+                    touchStartTime = Time.time;
+                }
+
+                if (Input.GetMouseButtonUp(0) && isTouching)
+                {
+                    float touchDuration = Time.time - touchStartTime;
+                    if (touchDuration <= maxTouchDuration && ActiveBuildable != null && _constructionLayer != null && isSpaceEmpty)
+                    {
+                        _constructionLayer.Build(position, ActiveBuildable);
+                    }
+                    isTouching = false;
                 }
             }
-
         }
+
 
 
         //private bool IsMouseWithinBuildableRange()

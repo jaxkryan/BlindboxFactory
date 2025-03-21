@@ -51,7 +51,7 @@ namespace Script.Controller
         public ReadOnlyCollection<SaleData> SaleData => _saleData.AsReadOnly();
         private List<SaleData> _saleData = new();
 
-        [SerializeField] private long _wareHouseMaxAmount;
+        [SerializeField] public long _wareHouseMaxAmount;
 
         InventoryUIManager inventoryUIManager = new InventoryUIManager();
         public void AddSaleData(int UnitPrice, int TotalPrice, BoxTypeName BoxTypeName, int Amount, DateTime DateTime)
@@ -170,9 +170,17 @@ namespace Script.Controller
             base.OnValidate();
         }
 
-        private long GetTotalBlindBoxAmount()
+        public long GetTotalBlindBoxAmount()
         {
-            return _boxAmount.Sum(b => b.Value);
+            long boxamount = 0;
+            foreach (var box in _boxAmount)
+            {
+                if (box.Key != BoxTypeName.Null)
+                {
+                    boxamount += box.Value;
+                }
+            }
+            return boxamount;
         }
 
         public bool TryGetAllBoxAmounts(out Dictionary<BoxTypeName, long> boxAmounts)
