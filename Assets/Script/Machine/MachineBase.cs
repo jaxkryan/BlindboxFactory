@@ -95,6 +95,11 @@ namespace Script.Machine {
             get => Product.MaxProgress;
         }
 
+        public int SpawnWorkers { get => _spawnWorkers; set => _spawnWorkers = value; }
+        [SerializeField] private int _spawnWorkers;
+        public WorkerType SpawnWorkerType { get => _spawnWorkerType; set => _spawnWorkerType = value; }
+        [SerializeField] WorkerType _spawnWorkerType;
+
         public IEnumerable<IWorker> Workers {
             get => _slots.Select(s => s.CurrentWorker).Where(w => w != null);
         }
@@ -309,7 +314,9 @@ namespace Script.Machine {
             LastProgress = _lastProgress,
             WorkDetails = _workDetails.Select(w => w.Save()).ToList(),
             Product = _product,
-            PlacedTime = _placedTime
+            PlacedTime = _placedTime,
+            SpawnWorkers = _spawnWorkers,
+            SpawnWorkerType = _spawnWorkerType,
         };
 
         public virtual void Load(MachineBaseData data) {
@@ -336,6 +343,8 @@ namespace Script.Machine {
             _lastProgress = data.LastProgress;
             Product = data.Product;
             _placedTime = data.PlacedTime;
+            _spawnWorkers = data.SpawnWorkers;
+            _spawnWorkerType = data.SpawnWorkerType;
             
             UpdateWorkDetails();
             OnDisable();
@@ -358,6 +367,8 @@ namespace Script.Machine {
             public List<WorkDetail.SaveData> WorkDetails;
             public ProductBase Product;
             public DateTimeOffset PlacedTime;
+            public int SpawnWorkers;
+            public WorkerType SpawnWorkerType;
         }
     }
 }

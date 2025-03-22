@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Script.Controller;
 using Script.HumanResource.Worker;
 using Script.Machine.Products;
 using UnityEngine;
@@ -16,6 +17,8 @@ namespace Script.Machine {
         IEnumerable<MachineSlot> Slots { get; }
         float CurrentProgress { get; set; }
         float MaxProgress { get; }
+        int SpawnWorkers { get; }
+        WorkerType SpawnWorkerType { get; }
         IEnumerable<IWorker> Workers { get; }
         void AddWorker(IWorker worker);
         void AddWorker(IWorker worker, MachineSlot slot);

@@ -7,6 +7,7 @@ using UnityEngine;
 namespace Script.Controller.SaveLoad {
     public class SaveManager {
         public ConcurrentDictionary<string, string> SaveData { get; private set; } = new();
+        
         public string Path { get; init; }
         public string FileName { get; init; }
         public string FilePath => System.IO.Path.Combine(Path, FileName);

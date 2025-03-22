@@ -88,8 +88,8 @@ namespace Script.Controller {
         private void OnValidate() => _controllers.ForEach(c => c.OnValidate());
 
         private async Task Load() { 
-            SaveManager.LoadFromCloud();
-            SaveManager.LoadFromLocal();
+            await SaveManager.LoadFromCloud();
+            await SaveManager.LoadFromLocal();
 
             _controllers.ForEach(c => c.Load());
         }
