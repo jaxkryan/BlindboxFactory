@@ -46,26 +46,26 @@ namespace Script.HumanResource.Administrator.Policies {
         
         
         
-        protected override string FormatDescription() {
-            var text = "";
+        //protected override string FormatDescription() {
+        //    var text = "";
 
-            foreach (CoreType core in Enum.GetValues(typeof(CoreType))) {
-                text += _description.DescriptionFormatter(
-                    (() => Additives.ContainsKey(core), new object[] { GetFloatRange(Additives, core) }),
-                    (() => Additives.ContainsKey(core) && Multiplier.ContainsKey(core), new object[]{}),
-                    (() => Multiplier.ContainsKey(core), new object[] { GetFloatRange(Multiplier, core) }),
-                    (() => Additives.ContainsKey(core) || Multiplier.ContainsKey(core), new object[]{ Enum.GetName(typeof(CoreType), core)})
-                    ) + "\n";
-            }
+        //    foreach (CoreType core in Enum.GetValues(typeof(CoreType))) {
+        //        text += _description.DescriptionFormatter(
+        //            (() => Additives.ContainsKey(core), new object[] { GetFloatRange(Additives, core) }),
+        //            (() => Additives.ContainsKey(core) && Multiplier.ContainsKey(core), new object[]{}),
+        //            (() => Multiplier.ContainsKey(core), new object[] { GetFloatRange(Multiplier, core) }),
+        //            (() => Additives.ContainsKey(core) || Multiplier.ContainsKey(core), new object[]{ Enum.GetName(typeof(CoreType), core)})
+        //            ) + "\n";
+        //    }
             
-            return text;
+        //    return text;
 
-            string GetFloatRange(SerializedDictionary<CoreType, Vector2> dict, CoreType key) {
-                return Mathf.Approximately(dict.GetValueOrDefault(key).x, dict.GetValueOrDefault(key).y)
-                    ? dict.GetValueOrDefault(key).x.ToString(CultureInfo.InvariantCulture)
-                    : $"{dict.GetValueOrDefault(key).x} - {dict.GetValueOrDefault(key).y}";
-            }
-        }
+        //    string GetFloatRange(SerializedDictionary<CoreType, Vector2> dict, CoreType key) {
+        //        return Mathf.Approximately(dict.GetValueOrDefault(key).x, dict.GetValueOrDefault(key).y)
+        //            ? dict.GetValueOrDefault(key).x.ToString(CultureInfo.InvariantCulture)
+        //            : $"{dict.GetValueOrDefault(key).x} - {dict.GetValueOrDefault(key).y}";
+        //    }
+        //}
 
         private List<IWorker> _appliedWorkers = new();
         private void ApplyBonus(IWorker worker) {

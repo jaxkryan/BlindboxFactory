@@ -2,16 +2,179 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AYellowpaper.SerializedCollections;
 using JetBrains.Annotations;
+using MyBox;
+using Script.Controller;
 using Script.Gacha.Base;
 using Script.Gacha.Machine;
+using Script.HumanResource.Administrator.Policies;
+using Script.HumanResource.Worker;
+using Script.Machine;
+using Script.Machine.Machines;
+using Script.Machine.Machines.Canteen;
+using Script.Machine.Machines.Generator;
+using Script.Resources;
 using Script.Utils;
-using Unity.Burst.Intrinsics;
 using UnityEngine;
 
-namespace Script.HumanResource.Administrator {
+namespace Script.HumanResource.Administrator
+{
     [CreateAssetMenu(fileName = "PolicyGacha", menuName = "HumanResource/Administrator/Gacha")]
-    public class PolicyGacha : ScriptableGachaMachineBase<Policy>, ILootbox<Policy, PolicySettings> {
+    public class PolicyGacha : ScriptableGachaMachineBase<Policy>, ILootbox<Policy, PolicySettings>
+    {
+        private readonly List<(float coefficient, float probability, Grade grade, int storageAmount, string percentString)> coefficientRates = new() {
+            (1.02f, 0.40f, Grade.Common, 20, "2"),   // 2% - 40%
+            (1.05f, 0.20f, Grade.Rare, 50, "5"),     // 5% - 20%
+            (1.10f, 0.15f, Grade.Special, 100, "10"), // 10% - 15%
+            (1.15f, 0.10f, Grade.Epic, 150, "15"),    // 15% - 10%
+            (1.20f, 0.05f, Grade.Legendary, 200, "20") // 20% - 5%
+        };
+
+        private readonly Type[] policyTypes = new Type[] {
+            typeof(MachineProgressionPolicy),
+            typeof(CoreChangeOnWorkPolicy),
+            typeof(IncreaseMachineResourceGainPolicy),
+            typeof(StorageModificationPolicy)
+        };
+
+        public IEnumerable<Policy> GeneratePoliciesForMascot(Grade grade)
+        {
+            int buffCount = grade switch
+            {
+                Grade.Common => 1,   // 2*
+                Grade.Rare => 2,     // 3*
+                Grade.Special => 3,  // 4*
+                Grade.Epic => 4,     // 5*
+                _ => 0
+            };
+
+            var policies = new List<Policy>();
+            var usedPolicyTypes = new HashSet<Type>(); // Track used policy types
+
+            for (int i = 0; i < buffCount; i++)
+            {
+                Policy? policy = null;
+                int attempts = 0;
+                const int maxAttempts = 10; // Prevent infinite loops
+
+                // Keep trying to generate a policy until we get a unique type
+                while (attempts < maxAttempts)
+                {
+                    policy = GenerateRandomPolicy(grade);
+                    if (policy == null) break;
+
+                    // Check if this policy type has already been used
+                    if (!usedPolicyTypes.Contains(policy.GetType()))
+                    {
+                        usedPolicyTypes.Add(policy.GetType());
+                        break; // Unique policy type found, exit the loop
+                    }
+
+                    // If the policy type is a duplicate, destroy the policy and try again
+                    UnityEngine.Object.DestroyImmediate(policy);
+                    policy = null;
+                    attempts++;
+                }
+
+                if (policy != null)
+                {
+                    policies.Add(policy);
+                    Pulls++;
+                    PullHistory.Add(policy);
+                }
+                else
+                {
+                    Debug.LogWarning($"Failed to generate a unique policy after {maxAttempts} attempts for {grade} mascot");
+                }
+            }
+
+            Debug.Log($"Generated {policies.Count} policies for {grade} mascot: [{string.Join(", ", policies.Select(p => p.GetType().Name))}]");
+            return policies;
+        }
+
+        private Policy? GenerateRandomPolicy(Grade mascotGrade)
+        {
+            // Pick a random policy type
+            var policyType = policyTypes[UnityEngine.Random.Range(0, policyTypes.Length)];
+            var policy = ScriptableObject.CreateInstance(policyType) as Policy;
+            if (policy == null) return null;
+
+            // Pick a coefficient that matches the mascot's grade
+            var rate = coefficientRates.First(r => r.grade == mascotGrade);
+            var (coefficient, _, policyGrade, storageAmount, percentString) = rate;
+            policy.SetGrade(policyGrade);
+
+            // Configure the policy
+            switch (policy)
+            {
+                case MachineProgressionPolicy mp:
+                    mp.Multiplier = new Vector2(coefficient, coefficient);
+                    mp.Additives = Vector2.zero;
+                    var facility = (MascotType)UnityEngine.Random.Range(0, 6);
+                    var machineType = facility switch
+                    {
+                        MascotType.Generator => typeof(Generator),
+                        MascotType.Canteen => typeof(Canteen),
+                        MascotType.Restroom => typeof(ResourceExtractor),
+                        MascotType.MiningMachine => typeof(ResourceExtractor),
+                        MascotType.ProductFactory => typeof(BlindBoxMachine),
+                        MascotType.Storage => typeof(StorageMachine),
+                        _ => typeof(ResourceExtractor)
+                    };
+                    var machineInstance = GameController.Instance.MachineController.Machines
+                        .FirstOrDefault(m => m.GetType() == machineType);
+                    if (machineInstance != null)
+                    {
+                        mp.SetField("_forAllMachines", false);
+                        var machineTypeList = new CollectionWrapperList<MachineBase> { Value = new List<MachineBase> { machineInstance } };
+                        mp.SetField("_machineType", machineTypeList);
+                        mp.SetField("_description", $"Increase {machineType.Name} Progression Speed by {percentString}%");
+                    }
+                    else
+                    {
+                        mp.SetField("_forAllMachines", true);
+                        mp.SetField("_description", $"Increase All Machines Progression Speed by {percentString}%");
+                    }
+                    break;
+
+                case CoreChangeOnWorkPolicy cc:
+                    cc.Multiplier = new SerializedDictionary<CoreType, Vector2> { { CoreType.Happiness, new Vector2(coefficient, coefficient) } };
+                    cc.Additives = new SerializedDictionary<CoreType, Vector2>();
+                    cc.SetField("_forAllWorkers", true);
+                    cc.SetField("_description", $"Increase All Workers Happiness by {percentString}%");
+                    break;
+
+                case IncreaseMachineResourceGainPolicy im:
+                    var resource = (Resource)UnityEngine.Random.Range(2, 8);
+                    im.Multiplier = new SerializedDictionary<Resource, Vector2> { { resource, new Vector2(coefficient, coefficient) } };
+                    im.Additives = new SerializedDictionary<Resource, Vector2>();
+                    im.SetField("_description", $"Increase {resource} Gain for All Machines by {percentString}%");
+                    break;
+
+                case StorageModificationPolicy sm:
+                    sm.SetField("amount", storageAmount);
+                    sm.SetField("_forAllStorages", true);
+                    sm.SetField("_description", $"Increase All Storages Capacity by {percentString}%");
+                    break;
+            }
+
+            return policy;
+        }
+
+        private (float coefficient, float probability, Grade grade, int storageAmount, string percentString) PickRandomCoefficient()
+        {
+            float roll = UnityEngine.Random.value;
+            float cumulative = 0f;
+
+            foreach (var rate in coefficientRates)
+            {
+                cumulative += rate.probability;
+                if (roll <= cumulative) return rate;
+            }
+            return coefficientRates[0];
+        }
+
         public override Policy? Pull(IEnumerable<Policy> itemPool)
         {
             if (itemPool == null || !itemPool.Any())
@@ -34,8 +197,7 @@ namespace Script.HumanResource.Administrator {
                 pullCount++;
                 pool = pool.Shuffle().ToList();
                 var weightedPool = new List<WeightedOption<Policy>>();
-                pool.ForEach(item =>
-                {
+                pool.ForEach(item => {
                     var settings = this.GetSettingsByGrade(item.Grade);
                     var option = new WeightedOption<Policy> { Option = item, Weight = settings.Rate };
                     weightedPool.Add(option);
@@ -54,9 +216,11 @@ namespace Script.HumanResource.Administrator {
             return pull;
         }
 
-        public Policy? PullFromGrade(Grade grade, bool allowsLower = false) {
+        public Policy? PullFromGrade(Grade grade, bool allowsLower = false)
+        {
             var pool = new List<Policy>();
-            switch (grade) {
+            switch (grade)
+            {
                 case Grade.Legendary:
                     pool.AddRange(ItemPool.Where(item => item.Grade == Grade.Legendary));
                     if (!allowsLower) goto case Grade.Epic;
@@ -89,7 +253,7 @@ namespace Script.HumanResource.Administrator {
             var settings = this.GetSettingsByGrade(grade);
             var currentLevel = 0;
             var currentPolicies = 0;
-            int maxAttempts = 100; // Safeguard to prevent infinite loop
+            int maxAttempts = 100;
 
             if (settings.MaximumPolicies == 0 || settings.MaximumTotalLevel < CommonSettings.GradeLevel)
             {
@@ -99,10 +263,9 @@ namespace Script.HumanResource.Administrator {
 
             while (maxAttempts-- > 0)
             {
-                currentLevel = pulledPolicies.Sum(p => (int)p.Grade); // Update level
-                currentPolicies = pulledPolicies.Count;              // Update count
+                currentLevel = pulledPolicies.Sum(p => (int)p.Grade);
+                currentPolicies = pulledPolicies.Count;
 
-                // If within range
                 if (currentLevel >= settings.MinimumTotalLevel && currentLevel <= settings.MaximumTotalLevel
                     && currentPolicies >= settings.MinimumPolicies && currentPolicies <= settings.MaximumPolicies)
                 {
@@ -123,7 +286,6 @@ namespace Script.HumanResource.Administrator {
                     }
                     break;
                 }
-                // If exceeded
                 else if (currentLevel > settings.MaximumTotalLevel || currentPolicies > settings.MaximumPolicies)
                 {
                     var p = pulledPolicies.OrderBy(e => e.Grade).First();
@@ -131,7 +293,6 @@ namespace Script.HumanResource.Administrator {
                     PullHistory.Remove(p);
                     Pulls--;
                 }
-                // If below range
                 else
                 {
                     var newPull = Pull();
@@ -142,7 +303,7 @@ namespace Script.HumanResource.Administrator {
                     else
                     {
                         Debug.LogWarning("Failed to pull a policy, breaking loop to prevent freeze.");
-                        break; // Exit if Pull keeps returning null
+                        break;
                     }
                 }
             }
@@ -155,34 +316,35 @@ namespace Script.HumanResource.Administrator {
             return pulledPolicies;
         }
 
-        public PolicySettings CommonSettings {
-            get => _commonSettings;
-        }
-
+        public PolicySettings CommonSettings => _commonSettings;
         [SerializeField] private PolicySettings _commonSettings = new();
 
-        public PolicySettings RareSettings {
-            get => _rareSettings;
-        }
-
+        public PolicySettings RareSettings => _rareSettings;
         [SerializeField] private PolicySettings _rareSettings = new();
 
-        public PolicySettings SpecialSettings {
-            get => _specialSettings;
-        }
-
+        public PolicySettings SpecialSettings => _specialSettings;
         [SerializeField] private PolicySettings _specialSettings = new();
 
-        public PolicySettings EpicSettings {
-            get => _epicSettings;
-        }
-
+        public PolicySettings EpicSettings => _epicSettings;
         [SerializeField] private PolicySettings _epicSettings = new();
 
-        public PolicySettings LegendarySettings {
-            get => _legendarySettings;
+        public PolicySettings LegendarySettings => _legendarySettings;
+        [SerializeField] private PolicySettings _legendarySettings = new();
+    }
+
+    public static class PolicyExtensions
+    {
+        public static void SetField(this Policy policy, string fieldName, object value)
+        {
+            var field = policy.GetType().GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (field != null) field.SetValue(policy, value);
+            else Debug.LogWarning($"Field {fieldName} not found in {policy.GetType().Name}");
         }
 
-        [SerializeField] private PolicySettings _legendarySettings = new();
+        public static void SetGrade(this Policy policy, Grade grade)
+        {
+            var field = typeof(Gacha.Base.Loot).GetProperty("Grade", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            if (field != null) field.SetValue(policy, grade);
+        }
     }
 }

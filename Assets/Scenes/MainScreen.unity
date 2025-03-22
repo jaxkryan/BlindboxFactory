@@ -4145,6 +4145,63 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 528577105}
   m_CullTransparentMesh: 1
+--- !u!1001 &532443242
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3830224445500502897, guid: 4ae3cd02d75e28846b2da7226cc893b3, type: 3}
+      propertyPath: m_Name
+      value: Lv1 Match3Machine
+      objectReference: {fileID: 0}
+    - target: {fileID: 4557479135514602646, guid: 4ae3cd02d75e28846b2da7226cc893b3, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4557479135514602646, guid: 4ae3cd02d75e28846b2da7226cc893b3, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4557479135514602646, guid: 4ae3cd02d75e28846b2da7226cc893b3, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.013902388
+      objectReference: {fileID: 0}
+    - target: {fileID: 4557479135514602646, guid: 4ae3cd02d75e28846b2da7226cc893b3, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4557479135514602646, guid: 4ae3cd02d75e28846b2da7226cc893b3, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4557479135514602646, guid: 4ae3cd02d75e28846b2da7226cc893b3, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4557479135514602646, guid: 4ae3cd02d75e28846b2da7226cc893b3, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4557479135514602646, guid: 4ae3cd02d75e28846b2da7226cc893b3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4557479135514602646, guid: 4ae3cd02d75e28846b2da7226cc893b3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4557479135514602646, guid: 4ae3cd02d75e28846b2da7226cc893b3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4ae3cd02d75e28846b2da7226cc893b3, type: 3}
 --- !u!1 &549069941
 GameObject:
   m_ObjectHideFlags: 0
@@ -54818,6 +54875,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AutoUnparentOnLoad: 1
   MachineController:
+    Buildables: []
     _recoverMachines:
       _serializedList: []
   BoxController:
@@ -54833,11 +54891,23 @@ MonoBehaviour:
       - Key: 2
         Value: 100000
     _wareHouseMaxAmount: 100000000
+  WorkerController:
+    PortraitSprites: []
+    WorkerPrefabs:
+      rid: -2
+  MascotController:
+    Portraits: []
   ResourceController:
     _resourceConversion:
       _serializedList: []
     _resourceData:
       _serializedList:
+      - Key: 0
+        Value:
+          MaxAmount: 1000000
+      - Key: 1
+        Value:
+          MaxAmount: 1000000
       - Key: 2
         Value:
           MaxAmount: 1000000
@@ -54857,17 +54927,53 @@ MonoBehaviour:
         Value:
           MaxAmount: 1000000
     _resourceAmount:
-      _serializedList: []
+      _serializedList:
+      - Key: 0
+        Value: 100000
+      - Key: 1
+        Value: 1000
+      - Key: 2
+        Value: 1000
+      - Key: 3
+        Value: 1000
+      - Key: 4
+        Value: 1000
+      - Key: 5
+        Value: 1000
+      - Key: 6
+        Value: 1000
+      - Key: 7
+        Value: 1000
   QuestController:
     _quest: []
+  CommissionController:
+    _forAllProducts: 0
+    _commissionedProducts: 
+    _numberOfCommissionsPerItem: 0
+    _amountModifierForNextProduct: 0
+    _bonusRange: {x: 0, y: 0}
+    _maximumTotalCommissions: 0
+    _baseCommission: 0
+    _expireHours: 0
+  DailyMissionController:
+    _resetTime:
+      Hour: 0
+      Minute: 0
+    _dailyMissionsList: []
+  WorkerSpawner:
+    SpawnLocations: []
+  WorkerSpawnPoint: {fileID: 0}
   Grid: {fileID: 0}
+  Background: {fileID: 0}
   ConstructionLayer: {fileID: 0}
   CollisionLayer: {fileID: 0}
   _hasSaveTimer: 0
   _timeBetweenSave: 5
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
 --- !u!4 &1534057209
 Transform:
   m_ObjectHideFlags: 0
@@ -61566,3 +61672,4 @@ SceneRoots:
   - {fileID: 855253991}
   - {fileID: 1534057209}
   - {fileID: 2068888751}
+  - {fileID: 532443242}

@@ -9,6 +9,8 @@ using Script.Resources;
 using UnityEngine;
 
 namespace Script.HumanResource.Administrator.Policies {
+    [CreateAssetMenu(menuName = "HumanResource/Policies/MachineResourceGainPolicy")]
+
     public class IncreaseMachineResourceGainPolicy : Policy {
         [SerializedDictionary("Core Type", "Min | Max")]
         [SerializeField] public SerializedDictionary<Resource, Vector2> Additives; 
