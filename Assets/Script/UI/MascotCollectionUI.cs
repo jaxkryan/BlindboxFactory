@@ -20,11 +20,9 @@ public class MascotCollectionUI : MonoBehaviour
         _mascotController = GameController.Instance.MascotController;
 
         // Ensure the panel is hidden by default in the inspector
-       
-
-        //if (_detailPanel != null)
+        //if (_managerPanel != null)
         //{
-        //    _detailPanel.gameObject.SetActive(false);
+        //    _managerPanel.SetActive(false);
         //}
 
         if (_closeButton != null)
@@ -52,11 +50,15 @@ public class MascotCollectionUI : MonoBehaviour
         _managerPanel.SetActive(true);
         PopulateMascotList();
 
-        // Automatically show the first mascot in the detail panel if there are any mascots
+        // Show the first mascot in the detail panel, or empty state if no mascots
         var mascots = _mascotController.MascotsList.ToList();
         if (mascots.Count > 0)
         {
             ShowMascotDetails(mascots[0]);
+        }
+        else
+        {
+            ShowMascotDetails(null); // Display empty state
         }
     }
 
@@ -66,10 +68,6 @@ public class MascotCollectionUI : MonoBehaviour
         {
             _managerPanel.SetActive(false);
         }
-        //if (_detailPanel != null)
-        //{
-        //    _detailPanel.gameObject.SetActive(false);
-        //}
     }
 
     private void PopulateMascotList()
@@ -113,19 +111,18 @@ public class MascotCollectionUI : MonoBehaviour
     {
         if (_mascotController.MascotsList.Contains(mascot))
         {
-
             _mascotController.RemoveMascot(mascot);
             PopulateMascotList(); // Refresh the list
 
-            // After deletion, show the first mascot in the list if any remain
+            // After deletion, show the first mascot in the list if any remain, or empty state
             var remainingMascots = _mascotController.MascotsList.ToList();
             if (remainingMascots.Count > 0)
             {
                 ShowMascotDetails(remainingMascots[0]);
             }
-            else if (_detailPanel != null)
+            else
             {
-                _detailPanel.gameObject.SetActive(false); // Hide detail panel if no mascots left
+                ShowMascotDetails(null); // Display empty state
             }
 
             Debug.Log($"Deleted mascot: {mascot.Name}");

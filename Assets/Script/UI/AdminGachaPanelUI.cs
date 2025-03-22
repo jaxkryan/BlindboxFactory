@@ -1,5 +1,7 @@
 using System;
-using Script.Controller;  // For GameController/ResourceController access
+using System.Collections.Generic;
+using System.Linq;
+using Script.Controller;
 using Script.HumanResource.Administrator;
 using Script.Resources;
 using UnityEngine;
@@ -10,33 +12,22 @@ public class AdminGachaPanelUI : MonoBehaviour
 {
     [SerializeField] private bool _canClose;
     [FormerlySerializedAs("_closeButton")][SerializeField] private Button _closeBtn;
-    [SerializeField] private Button _singlePullBtn;        // Button for single pull
-    [SerializeField] private Button _tenPullBtn;          // Button for 10-pull
+    [SerializeField] private Button _singlePullBtn;
+    [SerializeField] private Button _tenPullBtn;
     [SerializeField] private AdministratorGacha _adminGacha;
-    [SerializeField] private GameObject _gachaPanel;      // Panel GameObject reference
+    [SerializeField] private GameObject _gachaPanel;
+    [SerializeField] private GachaRevealPanelUI _revealPanelPrefab; // Prefab for the reveal panel
 
-    // Resource and cost configuration
     [SerializeField] private Resource _pullResource = Resource.Gold;
-    [SerializeField] private long _singlePullCost = 1000;            // Cost for single pull
-    [SerializeField] private long _tenPullCost = 9000;              // Cost for 10-pull
+    [SerializeField] private long _singlePullCost = 1000;
+    [SerializeField] private long _tenPullCost = 9000;
 
     public event Action<Mascot> onAdminGacha = delegate { };
 
     private void Awake()
     {
-        // Ensure the panel is hidden by default
-        //if (_gachaPanel != null)
-        //{
-        //    _gachaPanel.SetActive(false);
-        //}
-        //else
-        //{
-        //    Debug.LogWarning("GachaPanel is not assigned in the Inspector!");
-        //}
-
         _closeBtn.gameObject.SetActive(_canClose);
 
-        // Setup button listeners
         _closeBtn.onClick.AddListener(Close);
         if (_singlePullBtn != null) _singlePullBtn.onClick.AddListener(SinglePull);
         if (_tenPullBtn != null) _tenPullBtn.onClick.AddListener(TenPull);
@@ -49,8 +40,7 @@ public class AdminGachaPanelUI : MonoBehaviour
 
     private void OnDestroy()
     {
-        // Clean up listeners
-        if (_closeBtn != null)  _closeBtn.onClick.RemoveListener(Close);
+        if (_closeBtn != null) _closeBtn.onClick.RemoveListener(Close);
         if (_singlePullBtn != null) _singlePullBtn.onClick.RemoveListener(SinglePull);
         if (_tenPullBtn != null) _tenPullBtn.onClick.RemoveListener(TenPull);
     }
@@ -77,7 +67,6 @@ public class AdminGachaPanelUI : MonoBehaviour
         }
     }
 
-    // Single pull method
     public void SinglePull()
     {
         if (_adminGacha is null)
@@ -86,22 +75,22 @@ public class AdminGachaPanelUI : MonoBehaviour
             return;
         }
 
-        // If no resource is specified (or invalid), perform a free pull
         if (!Enum.IsDefined(typeof(Resource), _pullResource))
         {
             var pulled = _adminGacha.Pull();
             onAdminGacha?.Invoke(pulled);
+            ShowReveal(new List<Mascot> { pulled });
             Debug.Log("Performed a free single pull.");
             return;
         }
 
-        // Check and deduct resource for single pull
         if (GameController.Instance.ResourceController.TryGetAmount(_pullResource, out long amount) && amount >= _singlePullCost)
         {
             if (GameController.Instance.ResourceController.TrySetAmount(_pullResource, amount - _singlePullCost))
             {
                 var pulled = _adminGacha.Pull();
                 onAdminGacha?.Invoke(pulled);
+                ShowReveal(new List<Mascot> { pulled });
                 Debug.Log($"Performed a single pull using {_singlePullCost} {_pullResource}.");
             }
             else
@@ -115,7 +104,6 @@ public class AdminGachaPanelUI : MonoBehaviour
         }
     }
 
-    // 10-pull method
     public void TenPull()
     {
         if (_adminGacha is null)
@@ -124,28 +112,28 @@ public class AdminGachaPanelUI : MonoBehaviour
             return;
         }
 
-        // If no resource is specified (or invalid), perform a free 10-pull
         if (!Enum.IsDefined(typeof(Resource), _pullResource))
         {
-            var pulled = _adminGacha.PullMultiple(10);
+            var pulled = _adminGacha.PullMultiple(10).ToList();
             foreach (var item in pulled)
             {
                 onAdminGacha?.Invoke(item);
             }
+            ShowReveal(pulled);
             Debug.Log("Performed a free 10-pull.");
             return;
         }
 
-        // Check and deduct resource for 10-pull
         if (GameController.Instance.ResourceController.TryGetAmount(_pullResource, out long amount) && amount >= _tenPullCost)
         {
             if (GameController.Instance.ResourceController.TrySetAmount(_pullResource, amount - _tenPullCost))
             {
-                var pulled = _adminGacha.PullMultiple(10);
+                var pulled = _adminGacha.PullMultiple(10).ToList();
                 foreach (var item in pulled)
                 {
                     onAdminGacha?.Invoke(item);
                 }
+                ShowReveal(pulled);
                 Debug.Log($"Performed a 10-pull using {_tenPullCost} {_pullResource}.");
             }
             else
@@ -157,5 +145,25 @@ public class AdminGachaPanelUI : MonoBehaviour
         {
             Debug.LogWarning($"Not enough {_pullResource}! Required: {_tenPullCost}, Available: {amount}");
         }
+    }
+
+    private void ShowReveal(List<Mascot> mascots)
+    {
+        if (_revealPanelPrefab == null)
+        {
+            Debug.LogWarning("Reveal panel prefab is not assigned!");
+            return;
+        }
+
+        // Instantiate the reveal panel and start the animation
+        var revealPanel = Instantiate(_revealPanelPrefab, transform.parent);
+        revealPanel.RevealMascots(mascots, () =>
+        {
+            // Reopen the gacha panel after the reveal is complete
+            Open();
+        });
+
+        // Hide the gacha panel during the reveal
+        Close();
     }
 }
