@@ -22,9 +22,10 @@ public class InventoryUIManager : MonoBehaviour
 
     public void DisplayInventory()
     {
+        GameController.Instance.BoxController.TryGetWarehouseMaxAmount(out var whMA);
         maxBBText.text = "Box amount : " +
             FormatNumber(GameController.Instance.BoxController.GetTotalBlindBoxAmount()) +
-            " / " + FormatNumber(GameController.Instance.BoxController._wareHouseMaxAmount);
+            " / " + FormatNumber(whMA);
 
         // Clear existing UI items before updating
         ClearInventoryUI(gridResourcesParent);
