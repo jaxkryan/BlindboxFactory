@@ -87,25 +87,30 @@ namespace Script.Controller {
         }
 
         public override void Load() {
-            if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
+            try {
+                if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                      || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
 
-            var construction = GameController.Instance.ConstructionLayer.GetComponent<ConstructionLayer>();
-            if (construction == null || construction == default) {
-                Debug.LogError($"No collision layer found for {GameController.Instance.CollisionLayer.name}");
-                return;
-            }
-            foreach (var m in data.Machines) {
-                var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
-                if (prefab == default) continue;
+                var construction = GameController.Instance.ConstructionLayer.GetComponent<ConstructionLayer>();
+                if (construction == null || construction == default) {
+                    Debug.LogError($"No collision layer found for {GameController.Instance.CollisionLayer.name}");
+                    return;
+                }
+                foreach (var m in data.Machines) {
+                    var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
+                    if (prefab == default) continue;
                 
-                var worldPos = GameController.Instance.ConstructionLayer.CellToWorld(m.Position.ToVector3Int());
-                var constructedGO = construction.Build(worldPos, prefab);
+                    var worldPos = GameController.Instance.ConstructionLayer.CellToWorld(m.Position.ToVector3Int());
+                    var constructedGameObject = construction.Build(worldPos, prefab);
 
-                if (constructedGO is null
-                    || constructedGO == default
-                    || !constructedGO.TryGetComponent<MachineBase>(out var machine)) continue;
-                machine.Load(m);
+                    if (constructedGameObject is null
+                        || !constructedGameObject.TryGetComponent<MachineBase>(out var machine)) continue;
+                    machine.Load(m);
+                }
+            }
+            catch {
+                Debug.LogError($"Cannot load {GetType()}");
+                return;
             }
         }
         public override void Save() {
@@ -114,11 +119,21 @@ namespace Script.Controller {
                 var machine = m.Save();
                 newSave.Machines.Add(machine);
             });
+            // Debug.LogWarning(JsonConvert.SerializeObject(newSave));
             
-            if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data) 
-                GameController.Instance.SaveManager.SaveData.Add(this.GetType().Name, JsonConvert.SerializeObject(newSave));
-            else GameController.Instance.SaveManager.SaveData[this.GetType().Name] = JsonConvert.SerializeObject(newSave);
+            
+            try {
+                if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                    || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data)
+                    GameController.Instance.SaveManager.SaveData.TryAdd(this.GetType().Name,
+                        JsonConvert.SerializeObject(newSave));
+                else
+                    GameController.Instance.SaveManager.SaveData[this.GetType().Name]
+                        = JsonConvert.SerializeObject(newSave);
+            }
+            catch {
+                Debug.LogError($"Cannot save {GetType()}");
+            }
         }
 
         private class SaveData {

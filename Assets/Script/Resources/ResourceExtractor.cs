@@ -48,8 +48,9 @@ public class ResourceExtractor : MachineBase
     public Transform miningOutputPoint; // Vị trí xuất nguyên liệu
     public GameObject materialPrefab; // Prefab hiển thị nguyên liệu đào được
 
-    private void Start()
+    protected override void Start()
     {
+        base.Start();
         StartCoroutine(AutoMineMaterials());
     }
 

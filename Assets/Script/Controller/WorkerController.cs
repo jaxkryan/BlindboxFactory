@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
+using BuildingSystem;
 using Newtonsoft.Json;
 using Script.HumanResource.Worker;
+using Script.Machine;
 using UnityEngine;
 
 namespace Script.Controller {
@@ -16,7 +18,7 @@ namespace Script.Controller {
     [Serializable]
     public class WorkerController : ControllerBase {
         [SerializeField] public List<Sprite> PortraitSprites;
-        [SerializeReference] public SerializedDictionary<WorkerType, Worker> WorkerPrefabs; 
+        [SerializeField] public SerializedDictionary<WorkerType, Worker> WorkerPrefabs; 
         public ReadOnlyDictionary<WorkerType, List<Worker>> WorkerList {
             get => new ReadOnlyDictionary<WorkerType, List<Worker>>(_workerList);
         }
@@ -37,6 +39,33 @@ namespace Script.Controller {
 
         public WorkerController() : this(new Dictionary<WorkerType, List<Worker>>(),
             new Dictionary<WorkerType, Dictionary<CoreType, int>>()) { }
+
+        public override void OnEnable() {
+            base.OnEnable();
+        }
+
+        public override void OnDisable() {
+            base.OnDisable();
+        }
+
+        private void Subscribe() {
+            if (GameController.Instance.ConstructionLayer
+                .TryGetComponent<ConstructionLayer>(out var constructionLayer)) {
+                constructionLayer.onItemBuilt += OnMachineOnItemBuilt;
+            }
+        }
+        private void Unsubscribe(){
+            if (GameController.Instance.ConstructionLayer
+                .TryGetComponent<ConstructionLayer>(out var constructionLayer)) {
+                constructionLayer.onItemBuilt -= OnMachineOnItemBuilt;
+            }}
+
+        private void OnMachineOnItemBuilt(GameObject obj) {
+            if (!obj.TryGetComponent<MachineBase>(out var machine)) return;
+            for (int i = 0; i < machine.SpawnWorkers; i++) {
+                GameController.Instance.WorkerSpawner.Spawn(machine.SpawnWorkerType, out _);
+            }
+        }
 
         public event Action<Worker> onWorkerAdded = delegate { };
         public event Action<Worker> onWorkerRemoved = delegate { };
@@ -86,25 +115,32 @@ namespace Script.Controller {
         }
 
         public override void Load() {
-            if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
+            
+            try {
+                if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                      || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
 
-            foreach (var key in data.WorkerData.Keys) {
-                if (!data.WorkerData.TryGetValue(key, out var list) || !WorkerPrefabs.TryGetValue(key, out var prefab)) continue;
-                if (_workerList.TryGetValue(key, out var workerList) && workerList.Count > 0) {
-                    var count = workerList.Count;
-                    while (list.Count > 0 && count-- > 0) {
-                        list.RemoveAt(0);
+                foreach (var key in data.WorkerData.Keys) {
+                    if (!data.WorkerData.TryGetValue(key, out var list) || !WorkerPrefabs.TryGetValue(key, out var prefab)) continue;
+                    if (_workerList.TryGetValue(key, out var workerList) && workerList.Count > 0) {
+                        var count = workerList.Count;
+                        while (list.Count > 0 && count-- > 0) {
+                            list.RemoveAt(0);
+                        }
                     }
-                }
-                foreach (var w in list) {
-                    if (!GameController.Instance.WorkerSpawner.SpawnAtPosition(key, w.Position, out var worker)) {
-                        Debug.LogError($"Spawning {key} at {w.Position}");
-                        continue;
-                    }
+                    foreach (var w in list) {
+                        if (!GameController.Instance.WorkerSpawner.SpawnAtPosition(key, w.Position, out var worker)) {
+                            Debug.LogError($"Spawning {key} at {w.Position}");
+                            continue;
+                        }
                     
-                    worker.Load(w);
+                        worker.Load(w);
+                    }
                 }
+            }
+            catch {
+                Debug.LogError($"Cannot load {GetType()}");
+                return;
             }
         }
         public override void Save() {
@@ -118,10 +154,19 @@ namespace Script.Controller {
                 newSave.WorkerData.Add(w.Key, list);
             }
 
-            if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data) 
-                GameController.Instance.SaveManager.SaveData.Add(this.GetType().Name, JsonConvert.SerializeObject(newSave));
-            else GameController.Instance.SaveManager.SaveData[this.GetType().Name] = JsonConvert.SerializeObject(newSave);
+            
+            try {
+                if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                    || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data)
+                    GameController.Instance.SaveManager.SaveData.TryAdd(this.GetType().Name,
+                        JsonConvert.SerializeObject(newSave));
+                else
+                    GameController.Instance.SaveManager.SaveData[this.GetType().Name]
+                        = JsonConvert.SerializeObject(newSave);
+            }
+            catch {
+                Debug.LogError($"Cannot save {GetType()}");
+            }
         }
 
         private class SaveData {

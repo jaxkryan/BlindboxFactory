@@ -51,9 +51,7 @@ namespace Script.Controller
         public ReadOnlyCollection<SaleData> SaleData => _saleData.AsReadOnly();
         private List<SaleData> _saleData = new();
 
-        [SerializeField] public long _wareHouseMaxAmount;
-
-        InventoryUIManager inventoryUIManager = new InventoryUIManager();
+        [SerializeField] private long _wareHouseMaxAmount;
         public void AddSaleData(int UnitPrice, int TotalPrice, BoxTypeName BoxTypeName, int Amount, DateTime DateTime)
         {
             _saleData.Add(new SaleData
@@ -193,6 +191,27 @@ namespace Script.Controller
             boxAmounts = new Dictionary<BoxTypeName, long>(_boxAmount);
             return true;
         }
+
+        public bool TrySetWarehouseMaxAmount(long newMaxAmount)
+        {
+            if (newMaxAmount < 0)
+            {
+                Debug.LogWarning("Warehouse max amount cannot be negative!");
+                return false;
+            }
+
+            _wareHouseMaxAmount = newMaxAmount;
+            Debug.Log($"Warehouse max amount updated to: {_wareHouseMaxAmount}");
+            return true;
+        }
+
+        public bool TryGetWarehouseMaxAmount(out long maxAmount)
+        {
+            maxAmount = _wareHouseMaxAmount;
+            return true; 
+        }
+
+
 
     }
 }
