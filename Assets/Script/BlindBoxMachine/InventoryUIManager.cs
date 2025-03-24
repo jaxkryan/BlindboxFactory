@@ -5,8 +5,10 @@ using Script.Controller;
 
 public class InventoryUIManager : MonoBehaviour
 {
-    public Transform gridParent;  // Assign Grid Layout Group here
+    public Transform gridResourcesParent;  // Grid for Resources
+    public Transform gridBoxesParent;      // Grid for Blind Boxes
     public GameObject inventoryItemPrefab; // Assign InventoryItemUI prefab
+    public TMP_Text maxBBText;
 
     private void Start()
     {
@@ -20,19 +22,21 @@ public class InventoryUIManager : MonoBehaviour
 
     public void DisplayInventory()
     {
-        // Check if the inventory is active before updating
+        GameController.Instance.BoxController.TryGetWarehouseMaxAmount(out long maxAmount);
+
+        maxBBText.text = "Box amount : " +
+            FormatNumber(GameController.Instance.BoxController.GetTotalBlindBoxAmount()) +
+            " / " + FormatNumber(maxAmount);
 
         // Clear existing UI items before updating
-        foreach (Transform child in gridParent)
-        {
-            Destroy(child.gameObject);
-        }
+        ClearInventoryUI(gridResourcesParent);
+        ClearInventoryUI(gridBoxesParent);
 
         // Get Inventory Data
         GameController inventory = GameController.Instance;
         inventory.ResourceController.TryGetAllResourceAmounts(out var materials);
 
-        // Display Crafting Materials
+        // Display Crafting Materials in Resource Grid
         foreach (var material in materials)
         {
             if (material.Key == Script.Resources.Resource.Gold ||
@@ -40,29 +44,50 @@ public class InventoryUIManager : MonoBehaviour
             {
                 continue;
             }
-            CreateInventoryItem(material.Key.ToString(), CraftingMaterialTypeManager.Instance.GetCraftingMaterialData(material.Key).sprite, material.Value);
+            GameController.Instance.ResourceController.TryGetData(material.Key, out var resourceData, out var currentAmount);
+            CreateInventoryItemForResource(gridResourcesParent, material.Key.ToString(),
+                CraftingMaterialTypeManager.Instance.GetCraftingMaterialData(material.Key).sprite,
+                material.Value,
+                resourceData.MaxAmount
+                );
         }
 
         inventory.BoxController.TryGetAllBoxAmounts(out var boxes);
 
-        // Display Blind Boxes
+        // Display Blind Boxes in Box Grid
         foreach (var box in boxes)
         {
             if (box.Key == BoxTypeName.Null)
             {
                 continue;
             }
-            CreateInventoryItem(box.Key.ToString(), BoxTypeManager.Instance.GetBoxData(box.Key).sprite, box.Value);
+            CreateInventoryItem(gridBoxesParent, box.Key.ToString(),
+                BoxTypeManager.Instance.GetBoxData(box.Key).sprite, box.Value);
         }
     }
 
-
-    private void CreateInventoryItem(string itemName, Sprite itemSprite, long amount)
+    private void ClearInventoryUI(Transform gridParent)
     {
-        GameObject item = Instantiate(inventoryItemPrefab, gridParent);
+        foreach (Transform child in gridParent)
+        {
+            Destroy(child.gameObject);
+        }
+    }
+
+    private void CreateInventoryItem(Transform parentGrid, string itemName, Sprite itemSprite, long amount)
+    {
+        GameObject item = Instantiate(inventoryItemPrefab, parentGrid);
         item.transform.Find("ItemName").GetComponent<TMP_Text>().text = itemName;
         item.transform.Find("ItemImage").GetComponent<Image>().sprite = itemSprite;
         item.transform.Find("ItemAmount").GetComponent<TMP_Text>().text = FormatNumber(amount);
+    }
+
+    private void CreateInventoryItemForResource(Transform parentGrid, string itemName, Sprite itemSprite, long amount, long maxAmount)
+    {
+        GameObject item = Instantiate(inventoryItemPrefab, parentGrid);
+        item.transform.Find("ItemName").GetComponent<TMP_Text>().text = itemName;
+        item.transform.Find("ItemImage").GetComponent<Image>().sprite = itemSprite;
+        item.transform.Find("ItemAmount").GetComponent<TMP_Text>().text = FormatNumber(amount) + " / " + FormatNumber(maxAmount);
     }
 
     private string FormatNumber(long number)

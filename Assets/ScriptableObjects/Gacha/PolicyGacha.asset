@@ -15,7 +15,8 @@ MonoBehaviour:
   _itemPool:
   - {fileID: 11400000, guid: 8afd81de0d3abb7439203b83c7c98a1f, type: 2}
   - {fileID: 11400000, guid: ed98ebd4e742b9f428e07f53e9036210, type: 2}
-  _serializeRequirements: []
+  _serializeRequirements:
+  - rid: -2
   _commonSettings:
     _rate: 40
     _itemPool: []
@@ -44,8 +45,7 @@ MonoBehaviour:
     MaximumTotalLevel: 1
     MinimumPolicies: 1
     MaximumPolicies: 1
-    policyRequirements:
-    - rid: -2
+    policyRequirements: []
   _epicSettings:
     _rate: 8
     _itemPool:

@@ -168,9 +168,17 @@ namespace Script.Controller
             base.OnValidate();
         }
 
-        private long GetTotalBlindBoxAmount()
+        public long GetTotalBlindBoxAmount()
         {
-            return _boxAmount.Sum(b => b.Value);
+            long boxamount = 0;
+            foreach (var box in _boxAmount)
+            {
+                if (box.Key != BoxTypeName.Null)
+                {
+                    boxamount += box.Value;
+                }
+            }
+            return boxamount;
         }
 
         public bool TryGetAllBoxAmounts(out Dictionary<BoxTypeName, long> boxAmounts)
@@ -183,6 +191,27 @@ namespace Script.Controller
             boxAmounts = new Dictionary<BoxTypeName, long>(_boxAmount);
             return true;
         }
+
+        public bool TrySetWarehouseMaxAmount(long newMaxAmount)
+        {
+            if (newMaxAmount < 0)
+            {
+                Debug.LogWarning("Warehouse max amount cannot be negative!");
+                return false;
+            }
+
+            _wareHouseMaxAmount = newMaxAmount;
+            Debug.Log($"Warehouse max amount updated to: {_wareHouseMaxAmount}");
+            return true;
+        }
+
+        public bool TryGetWarehouseMaxAmount(out long maxAmount)
+        {
+            maxAmount = _wareHouseMaxAmount;
+            return true; 
+        }
+
+
 
     }
 }

@@ -12,28 +12,38 @@ using UnityEngine;
 namespace Script.HumanResource.Administrator {
     [CreateAssetMenu(fileName = "PolicyGacha", menuName = "HumanResource/Administrator/Gacha")]
     public class PolicyGacha : ScriptableGachaMachineBase<Policy>, ILootbox<Policy, PolicySettings> {
-        public override Policy? Pull(IEnumerable<Policy> itemPool) {
-            var pool = Requirement.ProcessItemPool(this, itemPool).ToList();
+        public override Policy? Pull(IEnumerable<Policy> itemPool)
+        {
+            if (itemPool == null || !itemPool.Any())
+            {
+                Debug.LogWarning("Pull failed: itemPool is null or empty.");
+                return null;
+            }
 
-            if (pool.Any()) {
+            var pool = Requirement.ProcessItemPool(this, itemPool).ToList();
+            if (!pool.Any())
+            {
                 Debug.LogWarning("Pull cannot be completed due to acting requirement(s).");
                 return null;
             }
 
             Policy? pull = null;
             int pullCount = 0;
-            while (pull == null) {
+            while (pull == null)
+            {
                 pullCount++;
                 pool = pool.Shuffle().ToList();
                 var weightedPool = new List<WeightedOption<Policy>>();
-                pool.ForEach(item => {
+                pool.ForEach(item =>
+                {
                     var settings = this.GetSettingsByGrade(item.Grade);
-                    var option = new WeightedOption<Policy>() { Option = item, Weight = settings.Rate };
+                    var option = new WeightedOption<Policy> { Option = item, Weight = settings.Rate };
                     weightedPool.Add(option);
                 });
 
                 pull = Requirement.ProcessPulledItem(this, weightedPool.ToArray().PickRandom());
-                if (pullCount > _requirementFailPullsCount) {
+                if (pullCount > _requirementFailPullsCount)
+                {
                     Debug.LogWarning("Pull cannot be completed due to acting requirement(s).");
                     return null;
                 }
@@ -73,45 +83,73 @@ namespace Script.HumanResource.Administrator {
             return Pull(pool);
         }
 
-        public IEnumerable<Policy> PullByAdminGrade(Grade grade) {
+        public IEnumerable<Policy> PullByAdminGrade(Grade grade)
+        {
             List<Policy> pulledPolicies = new();
             var settings = this.GetSettingsByGrade(grade);
             var currentLevel = 0;
             var currentPolicies = 0;
+            int maxAttempts = 100; // Safeguard to prevent infinite loop
 
-            if (settings.MaximumPolicies == 0 || settings.MaximumTotalLevel < CommonSettings.GradeLevel) {
+            if (settings.MaximumPolicies == 0 || settings.MaximumTotalLevel < CommonSettings.GradeLevel)
+            {
                 Debug.LogWarning($"Maximum total level is less than common item level");
                 return pulledPolicies;
             }
 
-            while (true) {
-                //if level and policies is within range
-                if ((currentLevel >= settings.MinimumTotalLevel && currentLevel <= settings.MaximumTotalLevel)
-                    && (currentPolicies >= settings.MinimumPolicies && currentPolicies <= settings.MaximumPolicies)) {
+            while (maxAttempts-- > 0)
+            {
+                currentLevel = pulledPolicies.Sum(p => (int)p.Grade); // Update level
+                currentPolicies = pulledPolicies.Count;              // Update count
+
+                // If within range
+                if (currentLevel >= settings.MinimumTotalLevel && currentLevel <= settings.MaximumTotalLevel
+                    && currentPolicies >= settings.MinimumPolicies && currentPolicies <= settings.MaximumPolicies)
+                {
                     var grades = Enum.GetValues(typeof(Grade)).Cast<Grade>().ToList();
                     grades.Reverse();
-                    foreach (var g in grades) {
-                        if (currentLevel + this.GetSettingsByGrade(g).GradeLevel <= settings.MaximumPolicies
-                            && currentPolicies + 1 <= settings.MaximumPolicies) {
+                    foreach (var g in grades)
+                    {
+                        if (currentLevel + this.GetSettingsByGrade(g).GradeLevel <= settings.MaximumTotalLevel
+                            && currentPolicies + 1 <= settings.MaximumPolicies)
+                        {
                             var newPull = PullFromGrade(g, true);
-                            if (newPull) pulledPolicies.Add(newPull);
+                            if (newPull != null)
+                            {
+                                pulledPolicies.Add(newPull);
+                            }
                             break;
                         }
                     }
-
                     break;
                 }
-                //if level or policies exceed maximum
-                else if (currentLevel > settings.MaximumTotalLevel || currentPolicies > settings.MaximumPolicies) {
+                // If exceeded
+                else if (currentLevel > settings.MaximumTotalLevel || currentPolicies > settings.MaximumPolicies)
+                {
                     var p = pulledPolicies.OrderBy(e => e.Grade).First();
                     pulledPolicies.Remove(p);
                     PullHistory.Remove(p);
                     Pulls--;
                 }
-                else {
+                // If below range
+                else
+                {
                     var newPull = Pull();
-                    if(newPull) pulledPolicies.Add(newPull);
+                    if (newPull != null)
+                    {
+                        pulledPolicies.Add(newPull);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Failed to pull a policy, breaking loop to prevent freeze.");
+                        break; // Exit if Pull keeps returning null
+                    }
                 }
+            }
+
+            if (maxAttempts <= 0)
+            {
+                Debug.LogWarning("PullByAdminGrade exceeded maximum attempts, possible configuration issue.");
             }
 
             return pulledPolicies;

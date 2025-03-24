@@ -151,13 +151,18 @@ namespace Script.HumanResource.Administrator {
 
         public void AddMascot(Mascot mascot) {
             if (mascot == null) {
-                Debug.LogError("❌ AddMascot FAILED: Mascot is NULL!");
+                Debug.Log("❌ AddMascot FAILED: Mascot is NULL!");
                 return;
             }
 
-            Debug.Log($"✅ Adding Mascot: {mascot.name} | Type: {mascot.Policies} | Rarity: {mascot.Grade}");
+            //Debugging 
+            //string policiesDetails = mascot.Policies != null && mascot.Policies.Any()
+            //    ? string.Join(", ", mascot.Policies.Select(p => p.Description ?? p.ToString()))
+            //    : "No Policies";
 
-            _mascotsList ??= new List<Mascot>(); // Ensure the list is not null
+            //Debug.Log($"✅ Adding Mascot: {mascot.Name} | Type: [{policiesDetails}] | Rarity: {mascot.Grade}");
+
+            _mascotsList ??= new List<Mascot>();
             _mascotsList.Add(mascot);
         }
 
