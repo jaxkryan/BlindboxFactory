@@ -18,6 +18,8 @@ namespace Script.Controller {
     public class MachineController : ControllerBase
     {
         [SerializeField] public List<BuildableCategory> Categories = new();
+
+        [SerializeField] public SerializedDictionary<string, bool> UnlockMachines = new();
         public List<MachineBase> Machines { get; private set; }
 
         public ReadOnlyDictionary<MachineBase, List<MachineCoreRecovery>> RecoveryMachines =>
@@ -97,6 +99,13 @@ namespace Script.Controller {
             if (Buildables.Select(b => b.Name).GroupBy(n => n).Any(n => n.Count() > 1)) {
                 Debug.LogError("Buildable names conflict");
             }
+            foreach (var machine in Buildables)
+            {
+                if (UnlockMachines.ContainsKey(machine.Name)) continue;
+                else UnlockMachines.Add(machine.Name, false);
+            }
+            var redundantKeys = UnlockMachines.Where(m => Buildables.All(b => b.Name != m.Key)).Select(m => m.Key);
+            redundantKeys.ForEach(k => UnlockMachines.Remove(k));
         }
 
         public override void Load() {
