@@ -74,7 +74,6 @@ public class StoredBuildablesUI : MonoBehaviour
         _buildingPlacer.IsbuildMode = false;
         Debug.Log("clear ActiveBuildable");
         InventoryUI.SetActive(false);
-        generalUI.SetActive(true);
         _buildingPlacer.SetActiveBuildable(null);
         _buildingPlacer.ClearPreview();
     }

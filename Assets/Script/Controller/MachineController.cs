@@ -15,8 +15,9 @@ using UnityEngine;
 
 namespace Script.Controller {
     [Serializable]
-    public class MachineController : ControllerBase {
-        [SerializeField] public List<BuildableItem> Buildables;
+    public class MachineController : ControllerBase
+    {
+        [SerializeField] public List<BuildableCategory> Categories = new();
         public List<MachineBase> Machines { get; private set; }
 
         public ReadOnlyDictionary<MachineBase, List<MachineCoreRecovery>> RecoveryMachines =>
@@ -26,10 +27,22 @@ namespace Script.Controller {
 
         public List<MachineBase> FindMachinesOfType(Type type) {
             if (!type.IsSubclassOf(typeof(MachineBase))) return new();
-            
+
             return Machines.Where(m => m.GetType() == type).ToList();
         }
-        
+
+        public List<BuildableItem> Buildables
+        {
+            get
+            {
+                var cat = Categories;
+                var ret = new List<BuildableItem>();
+                cat.ForEach(c => ret.AddRange(c.buildables));
+
+                return ret;
+            }
+        }
+
         public MachineController(List<MachineBase> machines) => Machines = machines.ToList();
         public MachineController() : this(new List<MachineBase>()) { }
 
@@ -108,8 +121,9 @@ namespace Script.Controller {
                     machine.Load(m);
                 }
             }
-            catch {
+            catch (System.Exception e) {
                 Debug.LogError($"Cannot load {GetType()}");
+                Debug.LogException(e);
                 return;
             }
         }

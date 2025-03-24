@@ -5,6 +5,7 @@ using TMPro; // Use TextMeshPro
 using BuildingSystem.Models;
 using BuildingSystem;
 using System.Linq;
+using Script.Controller;
 
 [System.Serializable]
 public class BuildableCategory
@@ -15,7 +16,8 @@ public class BuildableCategory
 
 public class BuildingSelector : MonoBehaviour
 {
-    [SerializeField] private List<BuildableCategory> _categories = new List<BuildableCategory>();
+
+    List<BuildableCategory> Categories => GameController.Instance.MachineController.Categories;
     [SerializeField] private Button[] categoryButtons = new Button[6];
     [SerializeField] private Sprite[] categoryIcons = new Sprite[6];
 
@@ -24,13 +26,13 @@ public class BuildingSelector : MonoBehaviour
     [SerializeField] private Button _buttonPrefab;      // Button Prefab
     [SerializeField] private GameObject buildingSelectionUI;
     [SerializeField] private Button exitButton;
-    [SerializeField] private GameObject generalUI;
     [SerializeField] private Button InventoryButton;
     [SerializeField] private GameObject InventoryUI;
     [SerializeField] private Button StoreModeButton;
 
     private int _currentCategoryIndex = 0;
 
+    
     private void ToggleStoreMode()
     {
         bool newMode = !_buildingPlacer.GetStoreMode();
@@ -47,10 +49,6 @@ public class BuildingSelector : MonoBehaviour
             ColorBlock firstButtonColors = categoryButtons[0].colors;
             firstButtonColors.normalColor = selectedColor;
             categoryButtons[0].colors = firstButtonColors;
-        }
-        while (_categories.Count < 6)
-        {
-            _categories.Add(new BuildableCategory());
         }
 
         Debug.Log("Starting PopulateScrollView...");
@@ -89,8 +87,7 @@ public class BuildingSelector : MonoBehaviour
     {
         _buildingPlacer.IsbuildMode = false;
         Debug.Log("clear ActiveBuildable");
-        buildingSelectionUI.SetActive(false);  
-        generalUI.SetActive(true);
+        buildingSelectionUI.SetActive(false);
         _buildingPlacer.SetActiveBuildable(null);
         _buildingPlacer.ClearPreview();
     }
@@ -99,8 +96,7 @@ public class BuildingSelector : MonoBehaviour
     {
         _buildingPlacer.IsbuildMode = true;
         Debug.Log("open Panel Building Selection, clear General UI");
-        buildingSelectionUI.SetActive(true);   
-        generalUI.SetActive(false);            
+        buildingSelectionUI.SetActive(true);       
     }
 
     public void OpenInventory()
@@ -114,7 +110,7 @@ public class BuildingSelector : MonoBehaviour
 
     private void PopulateScrollView(int categoryIndex)
     {
-        if (_categories[categoryIndex] == null || _categories[categoryIndex].buildables.Count == 0)
+        if (Categories[categoryIndex] == null || Categories[categoryIndex].buildables.Count == 0)
         {
             //Debug.LogError("No buildable items found for category: " + categoryIndex);
             return;
@@ -138,7 +134,7 @@ public class BuildingSelector : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        foreach (var buildable in _categories[categoryIndex].buildables)
+        foreach (var buildable in Categories[categoryIndex].buildables)
         {
             Debug.Log("Creating button for: " + buildable.name);
 
@@ -199,7 +195,7 @@ public class BuildingSelector : MonoBehaviour
             if (i == _currentCategoryIndex)
             {
                 //categoryButtons[i].GetComponent<RectTransform>().sizeDelta = new Vector2(180, 60); // Expand selected
-                if (buttonText != null) buttonText.text = _categories[i].categoryName;
+                if (buttonText != null) buttonText.text = Categories[i].categoryName;
             }
             else
             {
@@ -216,7 +212,6 @@ public class BuildingSelector : MonoBehaviour
 
     private void SelectBuildable(BuildableItem buildable)
     {
-        Debug.Log("Selected Buildable: " + buildable.name);
         _buildingPlacer.SetActiveBuildable(buildable);
         _buildingPlacer.SetStoreMode(false);
 

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -36,6 +35,7 @@ public class BlindBoxQueueDisplay : MonoBehaviour
         float timesec = bbm.EstimateCompletionTime; 
         string timetext = FormatTimeFull(timesec);
         timeText.text = timetext;
+        UpdateQueueUI();
     }
     private void OnEnable()
     {
