@@ -96,7 +96,6 @@ public class GachaRevealPanelUI : MonoBehaviour
 
         // Step 1: Spin the card (stay at top center)
         _cardImage.transform.rotation = Quaternion.identity;
-        _cardImage.rectTransform.anchoredPosition = new Vector2(0, 300); // Top center (Y: 300)
         _animationSequence.Append(_cardImage.transform.DORotate(new Vector3(0, 360, 0), 2f, RotateMode.FastBeyond360)
             .SetLoops(3, LoopType.Restart)
             .SetEase(Ease.InOutQuad));
