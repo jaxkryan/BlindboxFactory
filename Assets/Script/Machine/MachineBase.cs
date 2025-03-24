@@ -291,7 +291,7 @@ namespace Script.Machine {
 
             #endregion
 
-            GameController.Instance.MachineController.AddMachine(this);
+            GameController.Instance.BuildNavMesh();
         }
 
         protected virtual void Update() {

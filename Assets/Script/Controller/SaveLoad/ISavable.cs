@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Script.Controller.SaveLoad {
     public interface ISavable {
-        void Save();
-        void Load();
+        void Save(SaveManager saveManager);
+        void Load(SaveManager saveManager);
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Script.Controller;
+using Script.Controller.SaveLoad;
 using Script.Gacha.Base;
 using Unity.VisualScripting;
 using UnityEditor;
@@ -231,9 +232,9 @@ namespace Script.HumanResource.Administrator {
             assignedMascots.ForEach(mascot => mascot.OnUpdate(Time.deltaTime));
         }
 
-        public override void Load() {
+        public override void Load(SaveManager saveManager) {
             try {
-                if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                       || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
                 ClearData();
 
@@ -273,8 +274,9 @@ namespace Script.HumanResource.Administrator {
                     StorageMascot = _mascotsList[data.StorageMascotIndex];
 
             }
-            catch {
+            catch (System.Exception ex) {
                 Debug.LogError($"Cannot load {GetType()}");
+                Debug.LogException(ex);
                 return;
             }
             void ClearData() {
@@ -288,7 +290,7 @@ namespace Script.HumanResource.Administrator {
             }
         }
 
-        public override void Save() {
+        public override void Save(SaveManager saveManager) {
             var newSave = new SaveData() { MascotsList = new() };
             foreach (var mascot in _mascotsList) {
                 if (GeneratorMascot == mascot) newSave.GeneratorMascotIndex = _mascotsList.IndexOf(mascot);
@@ -308,16 +310,17 @@ namespace Script.HumanResource.Administrator {
             }
 
             try {
-                if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                     || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data)
-                    GameController.Instance.SaveManager.SaveData.TryAdd(this.GetType().Name,
+                    saveManager.SaveData.TryAdd(this.GetType().Name,
                         JsonConvert.SerializeObject(newSave));
                 else
-                    GameController.Instance.SaveManager.SaveData[this.GetType().Name]
+                    saveManager.SaveData[this.GetType().Name]
                         = JsonConvert.SerializeObject(newSave);
             }
-            catch {
+            catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
+                Debug.LogException(ex);
             }
         }
         public class SaveData {

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
 using MyBox;
+using Script.Controller.SaveLoad;
 using UnityEngine;
 
 [Serializable]
@@ -140,7 +141,7 @@ namespace Script.Controller
             }
         }
 
-        public override void Load()
+        public override void Load(SaveManager saveManager)
         {
             Debug.Log("run Load");
             foreach (BoxTypeName btn in Enum.GetValues(typeof(BoxTypeName)))
@@ -149,7 +150,7 @@ namespace Script.Controller
             }
         }
 
-        public override void Save()
+        public override void Save(SaveManager saveManager)
         {
             //throw new System.NotImplementedException();
         }
