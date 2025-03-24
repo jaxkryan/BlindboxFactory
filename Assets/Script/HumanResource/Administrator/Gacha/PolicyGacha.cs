@@ -116,7 +116,7 @@ namespace Script.HumanResource.Administrator
                     {
                         MascotType.Generator => typeof(Generator),
                         MascotType.Canteen => typeof(Canteen),
-                        MascotType.Restroom => typeof(ResourceExtractor),
+                        MascotType.Restroom => typeof(ResourceExtractor), //placeholder
                         MascotType.MiningMachine => typeof(ResourceExtractor),
                         MascotType.ProductFactory => typeof(BlindBoxMachine),
                         MascotType.Storage => typeof(StorageMachine),
@@ -139,19 +139,32 @@ namespace Script.HumanResource.Administrator
                     break;
 
                 case CoreChangeOnWorkPolicy cc:
-                    cc.Multiplier = new SerializedDictionary<CoreType, Vector2> { { CoreType.Happiness, new Vector2(coefficient, coefficient) } };
+                    var coreTypes = System.Enum.GetValues(typeof(CoreType)).Cast<CoreType>().ToList();
+                    var randomCoreType = coreTypes[UnityEngine.Random.Range(0, coreTypes.Count)];
+
+                    cc.Multiplier = new SerializedDictionary<CoreType, Vector2> { { randomCoreType, new Vector2(coefficient, coefficient) } };
                     cc.Additives = new SerializedDictionary<CoreType, Vector2>();
                     cc.SetField("_forAllWorkers", true);
-                    cc.SetField("_description", $"Increase All Workers Happiness by {percentString}%");
+                    cc.SetField("_description", $"Increase All Workers {randomCoreType} by {percentString}%");
                     break;
 
                 case IncreaseMachineResourceGainPolicy im:
-                    var resource = (Resource)UnityEngine.Random.Range(2, 8);
-                    im.Multiplier = new SerializedDictionary<Resource, Vector2> { { resource, new Vector2(coefficient, coefficient) } };
+                    im.Multiplier = new SerializedDictionary<Resource, Vector2>();
                     im.Additives = new SerializedDictionary<Resource, Vector2>();
-                    im.SetField("_description", $"Increase {resource} Gain for All Machines by {percentString}%");
-                    break;
 
+                    // Apply the buff to all resources except Gold and Gem
+                    foreach (Resource resource in System.Enum.GetValues(typeof(Resource)))
+                    {
+                        if (resource == Resource.Gold || resource == Resource.Gem)
+                        {
+                            continue; // Skip Gold and Gem
+                        }
+                        im.Multiplier.Add(resource, new Vector2(coefficient, coefficient));
+                    }
+
+                    
+                    im.SetField("_description", $"Increase all resources gain for Resource Extractor Machines by {percentString}%");
+                    break;
                 case StorageModificationPolicy sm:
                     sm.SetField("amount", storageAmount);
                     sm.SetField("_forAllStorages", true);
