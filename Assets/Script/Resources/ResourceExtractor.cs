@@ -1,86 +1,133 @@
-﻿using System.Linq;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using DG.Tweening;
 using Script.Controller;
-using Script.HumanResource.Worker;
-using Script.Machine.Products;
-using UnityEngine;
+using Script.Machine;
+using Script.Resources;
 
-namespace Script.Machine
+public class ResourceExtractor : MachineBase
 {
-    public class ResourceExtractor : MachineBase
+    [System.Serializable]
+    public class MaterialDropRate
     {
-        [SerializeField] private int level = 1;
-        [SerializeField] private Transform miningOutputPoint; // Position where materials appear
-        [SerializeField] private GameObject materialPrefab;   // Prefab for material animation
+        public Resource material;
+        public float dropRate; // Xác suất rơi
+        public Sprite materialSprite; // Sprite của nguyên liệu
+    }
 
-        private ResourceExtractorProduct extractorProduct;
+    [System.Serializable]
+    public class QuantityDropRate
+    {
+        public int quantity;
+        public float probability; // Xác suất số lượng
+    }
 
-        protected override void Start()
+    public List<MaterialDropRate> materialDropRates = new List<MaterialDropRate>
+    {
+        new MaterialDropRate { material = Resource.Rainbow, dropRate = 0.20f },
+        new MaterialDropRate { material = Resource.Cloud, dropRate = 0.20f },
+        new MaterialDropRate { material = Resource.Gummy, dropRate = 0.20f },
+        new MaterialDropRate { material = Resource.Ruby, dropRate = 0.15f },
+        new MaterialDropRate { material = Resource.Star, dropRate = 0.15f },
+        new MaterialDropRate { material = Resource.Diamond, dropRate = 0.10f }
+    };
+
+    public List<QuantityDropRate> quantityDropRates = new List<QuantityDropRate>
+    {
+        new QuantityDropRate { quantity = 1, probability = 0.50f },
+        new QuantityDropRate { quantity = 2, probability = 0.25f },
+        new QuantityDropRate { quantity = 3, probability = 0.15f },
+        new QuantityDropRate { quantity = 4, probability = 0.08f },
+        new QuantityDropRate { quantity = 5, probability = 0.02f }
+    };
+
+    public int level = 1;
+    private float miningInterval = 5f;
+    public Transform miningOutputPoint; // Vị trí xuất nguyên liệu
+    public GameObject materialPrefab; // Prefab hiển thị nguyên liệu đào được
+
+    protected override void Start()
+    {
+        base.Start();
+        StartCoroutine(AutoMineMaterials());
+    }
+
+    private IEnumerator AutoMineMaterials()
+    {
+        while (true)
         {
-            base.Start();
-
-            // Initialize the product
-            extractorProduct = new ResourceExtractorProduct();
-            Product = extractorProduct;
-
-            // Set initial progression rate: 20 progress/sec to complete 100 progress in 5 seconds
-            ProgressionPerSec = 20f;
-
-            // Register with MachineController (handled by base.Start())
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            // Increase progress each frame if workable
-            if (IsWorkable)
-            {
-                IncreaseProgress(ProgressionPerSec * Time.deltaTime);
-            }
-        }
-
-        public override ProductBase CreateProduct()
-        {
-            // Call the base method to trigger OnProductCreated
-            var product = base.CreateProduct();
-
-            // Animate the produced resource
-            if (extractorProduct.SelectedMaterial.HasValue && extractorProduct.SelectedSprite != null)
-            {
-                AnimateMaterial(extractorProduct.SelectedSprite);
-            }
-
-            return product;
-        }
-
-        public void LevelUp()
-        {
-            level++;
-            ProgressionPerSec *= 1.1f; // Increase progress speed by 10% per level
-            Debug.Log($"Level Up! New Level: {level}, New ProgressionPerSec: {ProgressionPerSec}");
-        }
-
-        private void AnimateMaterial(Sprite materialSprite)
-        {
-            GameObject materialObject = Instantiate(materialPrefab, miningOutputPoint.position, Quaternion.identity);
-            SpriteRenderer spriteRenderer = materialObject.GetComponent<SpriteRenderer>();
-            spriteRenderer.sprite = materialSprite;
-
-            materialObject.transform.localScale = Vector3.one * 0.2f;
-            materialObject.transform.DOMoveY(miningOutputPoint.position.y + 0.7f, 0.5f).SetEase(Ease.OutQuad);
-            spriteRenderer.DOFade(0f, 0.8f).SetDelay(0.3f).OnComplete(() => Destroy(materialObject));
-        }
-
-        // Override to disable worker functionality (optional, since we’re not using workers)
-        public override void AddWorker(IWorker worker, MachineSlot slot)
-        {
-            Debug.LogWarning("ResourceExtractor does not support workers.");
-        }
-
-        public override void RemoveWorker(IWorker worker)
-        {
-            Debug.LogWarning("ResourceExtractor does not support workers.");
+            yield return new WaitForSeconds(miningInterval);
+            MineMaterials();
         }
     }
+
+    private void MineMaterials()
+    {
+        Resource? selectedMaterial = GetRandomMaterial();
+        if (selectedMaterial.HasValue)
+        {
+            int quantity = GetRandomQuantity() + (level - 1);
+            if (GameController.Instance.ResourceController.TryGetAmount(selectedMaterial.Value, out var value))
+                GameController.Instance.ResourceController.TrySetAmount(selectedMaterial.Value, quantity + value);
+            else Debug.LogError("Resource controller cannot find resource: " + selectedMaterial.Value);
+            Debug.Log($"Mined {quantity} of {selectedMaterial.Value}");
+
+            Sprite materialSprite = materialDropRates.First(m => m.material == selectedMaterial.Value).materialSprite;
+            AnimateMaterial(materialSprite);
+        }
+    }
+
+    private Resource? GetRandomMaterial()
+    {
+        float roll = Random.value;
+        float cumulative = 0f;
+
+        foreach (var materialRate in materialDropRates.OrderBy(m => m.dropRate))
+        {
+            cumulative += materialRate.dropRate;
+            if (roll <= cumulative)
+            {
+                return materialRate.material;
+            }
+        }
+        return materialDropRates.First().material; 
+    }
+
+
+    private int GetRandomQuantity()
+    {
+        float roll = Random.value;
+        float cumulative = 0f;
+
+        foreach (var quantityRate in quantityDropRates.OrderBy(q => q.quantity))
+        {
+            cumulative += quantityRate.probability;
+            if (roll <= cumulative)
+            {
+                return quantityRate.quantity;
+            }
+        }
+        return 1;
+    }
+
+    public void LevelUp()
+    {
+        level++;
+        miningInterval *= 0.9f;
+        Debug.Log($"Level Up! New Level: {level}, New Mining Interval: {miningInterval}s");
+    }
+
+    private void AnimateMaterial(Sprite materialSprite)
+    {
+        GameObject materialObject = Instantiate(materialPrefab, miningOutputPoint.position, Quaternion.identity);
+        SpriteRenderer spriteRenderer = materialObject.GetComponent<SpriteRenderer>();
+        spriteRenderer.sprite = materialSprite;
+
+        materialObject.transform.localScale = Vector3.one * 0.2f;
+        materialObject.transform.DOMoveY(miningOutputPoint.position.y + 0.7f, 0.5f).SetEase(Ease.OutQuad);
+        spriteRenderer.DOFade(0f, 0.8f).SetDelay(0.3f).OnComplete(() => Destroy(materialObject));
+    }
+
 }

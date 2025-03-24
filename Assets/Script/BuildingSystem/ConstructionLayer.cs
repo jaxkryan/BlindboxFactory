@@ -1,3 +1,4 @@
+using System;
 using BuildingSystem.Models;
 using Exception;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace BuildingSystem
         private Dictionary<Vector3Int, Buildable> _buildables = new();
         [SerializeField]
         private CollisionLayer _collisionLayer;
+        public event Action<GameObject> onItemBuilt = delegate { };
         public GameObject Build(Vector3 worldCoords, BuildableItem item)
         {
             worldCoords.z = 0;
@@ -67,6 +69,10 @@ namespace BuildingSystem
                 //if(building is MachineBase machine &&  !gamecontroller.machinecontroller.recovermachine.any (m => m.gettype == machine.gettype)
                 // => spawn machine.slot.count worker
                 FindFirstObjectByType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
+            }
+            //Invoke built event
+            if (itemObject) {
+                onItemBuilt?.Invoke(itemObject);
             }
 
             return itemObject;
