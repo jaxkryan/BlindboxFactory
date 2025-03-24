@@ -54637,7 +54637,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AutoUnparentOnLoad: 1
   MachineController:
-    Categories: []
+    Categories:
+    - categoryName: Canteen
+      buildables:
+      - {fileID: 11400000, guid: 26f3d6c9866885b46b3fffc9633f52eb, type: 2}
+      - {fileID: 11400000, guid: eee8dbb741aa7fe488869db1c582b85b, type: 2}
+    - categoryName: Excavator
+      buildables:
+      - {fileID: 11400000, guid: 964efe4fb23f9f549b59b3872074d8a8, type: 2}
+      - {fileID: 11400000, guid: 5c98395d1ef19534baa0e30882076de1, type: 2}
+    - categoryName: Electric
+      buildables:
+      - {fileID: 11400000, guid: 1dc766f96fc778c4097d90b506593080, type: 2}
+      - {fileID: 11400000, guid: 0fd42ac701aa54c4aa756c95cf18dca4, type: 2}
+      - {fileID: 11400000, guid: aa59eb1c7d21f1c4aaf3ad083f48a6c2, type: 2}
+      - {fileID: 11400000, guid: fbba7ebfa78406b4aa3d3a487b886bc5, type: 2}
+    - categoryName: Ware House
+      buildables:
+      - {fileID: 11400000, guid: b532705f473e9c04baf578ae1d3c17af, type: 2}
+      - {fileID: 11400000, guid: 5bb83ee99d30cb64382efd764c7599be, type: 2}
+    - categoryName: Productor
+      buildables:
+      - {fileID: 11400000, guid: e348164e5c8ddda46a2225eb3ed38feb, type: 2}
+    - categoryName: Rest Room
+      buildables:
+      - {fileID: 11400000, guid: c15e03bda8962d74ebc5f219151bbbe4, type: 2}
     _recoverMachines:
       _serializedList: []
   BoxController:

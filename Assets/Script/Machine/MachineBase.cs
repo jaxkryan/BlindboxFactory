@@ -185,7 +185,7 @@ namespace Script.Machine {
                 _resourceManager.SetResourceUses(ResourceUse.ToArray());
                 TryPullResource();
                 if (!HasResourceForWork) {
-                    Debug.LogError($"Machine {name} does not have enough resource to work. {Product.GetType()}");
+                    Debug.LogWarning($"Machine {name} does not have enough resource to work. {Product.GetType()}");
                     return;
                 }
             }
