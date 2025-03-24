@@ -146,7 +146,7 @@ namespace Script.Machine {
             get => _workDetails;
         }
 
-        [SerializeReference, SubclassSelector] private List<WorkDetail> _workDetails;
+        [SerializeReference, SubclassSelector] private List<WorkDetail> _workDetails = new();
 
         public virtual ProductBase Product {
             get => _product;
@@ -160,7 +160,7 @@ namespace Script.Machine {
 
         public event Action<ProductBase> onProductChanged = delegate { };
 
-        [SerializeReference, SubclassSelector] private ProductBase _product;
+        [SerializeReference, SubclassSelector] private ProductBase _product = new NullProduct();
         public event Action<ProductBase> onCreateProduct = delegate { };
 
         public DateTimeOffset PlacedTime {
@@ -241,7 +241,7 @@ namespace Script.Machine {
             WorkDetails.ForEach(d => d.Start());
         }
 
-        private void OnValidate() {
+        private void OnValidate() { 
             WorkDetails.ForEach(d => d.Machine = this);
         }
 
