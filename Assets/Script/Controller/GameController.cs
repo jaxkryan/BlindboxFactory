@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MyBox;
+using NavMeshPlus.Components;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Administrator;
 using Script.HumanResource.Worker;
-using Unity.AI.Navigation;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
@@ -51,7 +51,11 @@ namespace Script.Controller {
             SaveManager = new();
         }
 
-        public void BuildNavMesh() => NavMeshSurface?.BuildNavMesh();
+        public void BuildNavMesh()
+        {
+            Debug.LogWarning("Building NavMesh");
+            NavMeshSurface?.BuildNavMesh();
+        }
         
         private void OnDestroy() => _controllers.ForEach(c => c.OnDestroy());
         private void OnEnable() => _controllers.ForEach(c => c.OnEnable());

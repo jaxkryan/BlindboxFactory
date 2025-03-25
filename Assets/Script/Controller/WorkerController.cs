@@ -43,17 +43,21 @@ namespace Script.Controller {
 
         public override void OnEnable() {
             base.OnEnable();
+            Subscribe();
         }
 
         public override void OnDisable() {
             base.OnDisable();
+            Unsubscribe();
         }
 
         private void Subscribe() {
             if (GameController.Instance.ConstructionLayer
-                .TryGetComponent<ConstructionLayer>(out var constructionLayer)) {
+                .TryGetComponent<ConstructionLayer>(out var constructionLayer))
+            {
                 constructionLayer.onItemBuilt += OnMachineOnItemBuilt;
             }
+            else Debug.LogWarning("Can't find ctrs layr");
         }
         private void Unsubscribe(){
             if (GameController.Instance.ConstructionLayer
@@ -62,6 +66,7 @@ namespace Script.Controller {
             }}
 
         private void OnMachineOnItemBuilt(GameObject obj) {
+            Debug.LogWarning(nameof(OnMachineOnItemBuilt));
             if (!obj.TryGetComponent<MachineBase>(out var machine)) return;
             for (int i = 0; i < machine.SpawnWorkers; i++) {
                 GameController.Instance.WorkerSpawner.Spawn(machine.SpawnWorkerType, out _);

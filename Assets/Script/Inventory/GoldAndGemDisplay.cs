@@ -28,8 +28,22 @@ public class GoldAndGemDisplay : MonoBehaviour
         }
 
         if (resource == Resource.Gem)
-            gemText.text = amount.ToString();
+            gemText.text = FormatNumber(amount);
         else if (resource == Resource.Gold)
-            goldText.text = amount.ToString();
+            goldText.text = FormatNumber(amount);
+    }
+
+    private string FormatNumber(long number)
+    {
+        if (number >= 1_000_000_000_000)
+            return (number / 1_000_000_000_000f).ToString("0.##") + "T";
+        else if (number >= 1_000_000_000)
+            return (number / 1_000_000_000f).ToString("0.##") + "B";
+        else if (number >= 1_000_000)
+            return (number / 1_000_000f).ToString("0.##") + "M";
+        else if (number >= 1_000)
+            return (number / 1_000f).ToString("0.##") + "k";
+        else
+            return number.ToString(); // normal number
     }
 }
