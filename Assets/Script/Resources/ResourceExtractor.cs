@@ -29,6 +29,8 @@ namespace Script.Machine
                 Debug.LogWarning($"Product on ResourceExtractor {gameObject.name} is not an AddResourceToStorageProduct. Please assign the correct product type in the Inspector.");
             }
 
+            Debug.Log("Machine workable: " + IsWorkable + CanCreateProduct + HasEnergyForWork + HasResourceForWork);
+
             // Subscribe to the product creation event to trigger animation
             onCreateProduct += OnProductCreatedHandler;
         }
