@@ -18,15 +18,19 @@ namespace Script.Controller.SaveLoad {
             Path = path;
             FileName = fileName;
         }
+
+        private static JsonSerializerSettings Settings {
+            get => new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All };
+        }
         
         public static string Serialize(ConcurrentDictionary<string, string> data) {
-            var x = JsonConvert.SerializeObject(data);
+            var x = JsonConvert.SerializeObject(data, Settings);
             Debug.LogWarning(x);
             return x;
         }
 
         public static ConcurrentDictionary<string, string> Deserialize(string data) {
-            return JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(data);
+            return JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(data, Settings);
         }
 
 #warning implement encryption

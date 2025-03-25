@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using Script.Controller.SaveLoad;
 using Script.Quest;
 using UnityEngine;
 
@@ -74,9 +75,9 @@ namespace Script.Controller {
         }
 
         public event Action<Quest.Quest> onQuestStateChanged = delegate { };
-        public override void Load() {
+        public override void Load(SaveManager saveManager) {
             try {
-                if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                       || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
 
                 _quest.ForEach(q => q.State = QuestState.Locked);
@@ -85,12 +86,13 @@ namespace Script.Controller {
                 }
                 QuestData = data.QuestData;
             }
-            catch {
+            catch (System.Exception ex) {
                 Debug.LogError($"Cannot load {GetType()}");
+                Debug.LogException(ex);
                 return;
             }
         }
-        public override void Save() {
+        public override void Save(SaveManager saveManager) {
             var newSave = new SaveData() { QuestData = QuestData, QuestStates =  new()};
 
             var list = _quest.Clone();
@@ -103,16 +105,17 @@ namespace Script.Controller {
             
             
             try {
-                if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                     || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data)
-                    GameController.Instance.SaveManager.SaveData.TryAdd(this.GetType().Name,
+                    saveManager.SaveData.TryAdd(this.GetType().Name,
                         JsonConvert.SerializeObject(newSave));
                 else
-                    GameController.Instance.SaveManager.SaveData[this.GetType().Name]
+                    saveManager.SaveData[this.GetType().Name]
                         = JsonConvert.SerializeObject(newSave);
             }
-            catch {
+            catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
+                Debug.LogException(ex);
             }
         }
 

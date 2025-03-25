@@ -5,6 +5,7 @@ using System.Linq;
 using MyBox;
 using Newtonsoft.Json;
 using Script.Controller.Commission;
+using Script.Controller.SaveLoad;
 using Script.Machine;
 using Script.Machine.Products;
 using UnityEngine;
@@ -153,10 +154,10 @@ namespace Script.Controller {
                 #warning Notify player that there's no commission
             }
         } 
-        public override void Load() { 
+        public override void Load(SaveManager saveManager) { 
             
             try {
-                if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                       || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
             
                 _forAllProducts = data.ForAllProducts;
@@ -169,15 +170,16 @@ namespace Script.Controller {
                 _expireHours = data.ExpireHours;
                 _commissions = data.Commissions;
             }
-            catch {
+            catch (System.Exception ex) {
                 Debug.LogError($"Cannot load {GetType()}");
+                Debug.LogException(ex);
                 return;
             }
             
             UpdateCommissions();
         }
 
-        public override void Save() {
+        public override void Save(SaveManager saveManager) {
             var newSave = new SaveData() {
                 ForAllProducts = _forAllProducts,
                 CommissionedProducts = _commissionedProducts,
@@ -192,16 +194,17 @@ namespace Script.Controller {
             
             
             try {
-                if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                     || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data)
-                    GameController.Instance.SaveManager.SaveData.TryAdd(this.GetType().Name,
+                    saveManager.SaveData.TryAdd(this.GetType().Name,
                         JsonConvert.SerializeObject(newSave));
                 else
-                    GameController.Instance.SaveManager.SaveData[this.GetType().Name]
+                    saveManager.SaveData[this.GetType().Name]
                         = JsonConvert.SerializeObject(newSave);
             }
-            catch {
+            catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
+                Debug.LogException(ex);
             }
         }
 

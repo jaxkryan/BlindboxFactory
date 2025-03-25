@@ -15,12 +15,17 @@ using UnityEngine;
 
 namespace Script.Controller {
     [Serializable]
-    public class MachineController : ControllerBase
-    {
+    public class MachineController : ControllerBase {
         [SerializeField] public List<BuildableCategory> Categories = new();
 
-        [SerializeField] public SerializedDictionary<string, bool> UnlockMachines = new();
-        public List<MachineBase> Machines { get; private set; }
+        public ReadOnlyDictionary<string, bool> UnlockMachines => new(_unlockMachines);
+        [SerializeField] private SerializedDictionary<string, bool> _unlockMachines = new();
+
+        public ReadOnlyCollection<MachineBase> Machines {
+            get => _machines.AsReadOnly();
+        }
+
+        private List<MachineBase> _machines;
 
         public ReadOnlyDictionary<MachineBase, List<MachineCoreRecovery>> RecoveryMachines =>
             new((Dictionary<MachineBase, List<MachineCoreRecovery>>)_recoverMachines);
@@ -33,10 +38,8 @@ namespace Script.Controller {
             return Machines.Where(m => m.GetType() == type).ToList();
         }
 
-        public List<BuildableItem> Buildables
-        {
-            get
-            {
+        public List<BuildableItem> Buildables {
+            get {
                 var cat = Categories;
                 var ret = new List<BuildableItem>();
                 cat.ForEach(c => ret.AddRange(c.buildables));
@@ -45,19 +48,27 @@ namespace Script.Controller {
             }
         }
 
-        public MachineController(List<MachineBase> machines) => Machines = machines.ToList();
+        public MachineController(List<MachineBase> machines) => _machines = machines.ToList();
         public MachineController() : this(new List<MachineBase>()) { }
 
         public event Action<MachineBase> onMachineAdded = delegate { };
         public event Action<MachineBase> onMachineRemoved = delegate { };
+        public event Action<string> onMachineUnlocked = delegate { };
+
+        public void UnlockMachine(string name) {
+            if (!_unlockMachines.TryGetValue(name, out var isUnlocked)) return;
+            if (isUnlocked) return;
+            _unlockMachines[name] = true;
+            onMachineUnlocked?.Invoke(name);
+        }
 
         public void AddMachine(MachineBase machine) {
-            Machines.Add(machine);
+            _machines.Add(machine);
             onMachineAdded?.Invoke(machine);
         }
 
         public void RemoveMachine(MachineBase machine) {
-            Machines.Remove(machine);
+            _machines.Remove(machine);
             onMachineRemoved?.Invoke(machine);
         }
 
@@ -83,7 +94,8 @@ namespace Script.Controller {
             return machines.Where(m => m.IsWorkable && m.Slots.Count() > m.Workers.Count());
         }
 
-        public IEnumerable<MachineBase> FindWorkableMachines(IWorker worker, [CanBeNull] IEnumerable<MachineBase> machines = null) =>
+        public IEnumerable<MachineBase> FindWorkableMachines(IWorker worker,
+            [CanBeNull] IEnumerable<MachineBase> machines = null) =>
             FindWorkableMachines(machines)
                 .Where(m => m.Slots.Any(s => s.CanAddWorker(worker)));
 
@@ -99,29 +111,32 @@ namespace Script.Controller {
             if (Buildables.Select(b => b.Name).GroupBy(n => n).Any(n => n.Count() > 1)) {
                 Debug.LogError("Buildable names conflict");
             }
-            foreach (var machine in Buildables)
-            {
+
+            foreach (var machine in Buildables) {
                 if (UnlockMachines.ContainsKey(machine.Name)) continue;
-                else UnlockMachines.Add(machine.Name, false);
+                else _unlockMachines.Add(machine.Name, false);
             }
+
             var redundantKeys = UnlockMachines.Where(m => Buildables.All(b => b.Name != m.Key)).Select(m => m.Key);
-            redundantKeys.ForEach(k => UnlockMachines.Remove(k));
+            redundantKeys.ForEach(k => _unlockMachines.Remove(k));
         }
 
-        public override void Load() {
+        public override void Load(SaveManager saveManager) {
             try {
-                if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                      || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                    || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
 
+                _unlockMachines = new(data.UnlockMachines);
                 var construction = GameController.Instance.ConstructionLayer.GetComponent<ConstructionLayer>();
                 if (construction == null || construction == default) {
                     Debug.LogError($"No collision layer found for {GameController.Instance.CollisionLayer.name}");
                     return;
                 }
+
                 foreach (var m in data.Machines) {
                     var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
                     if (prefab == default) continue;
-                
+
                     var worldPos = GameController.Instance.ConstructionLayer.CellToWorld(m.Position.ToVector3Int());
                     var constructedGameObject = construction.Build(worldPos, prefab);
 
@@ -136,32 +151,36 @@ namespace Script.Controller {
                 return;
             }
         }
-        public override void Save() {
-            var newSave = new SaveData() { Machines = new() };
+
+        public override void Save(SaveManager saveManager) {
+            var newSave = new SaveData() { 
+                Machines = new(), 
+                UnlockMachines = _unlockMachines };
             Machines.ForEach(m => {
                 var machine = m.Save();
                 newSave.Machines.Add(machine);
             });
             // Debug.LogWarning(JsonConvert.SerializeObject(newSave));
-            
-            
+
+
             try {
-                if (!GameController.Instance.SaveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                     || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data)
-                    GameController.Instance.SaveManager.SaveData.TryAdd(this.GetType().Name,
+                    saveManager.SaveData.TryAdd(this.GetType().Name,
                         JsonConvert.SerializeObject(newSave));
                 else
-                    GameController.Instance.SaveManager.SaveData[this.GetType().Name]
+                    saveManager.SaveData[this.GetType().Name]
                         = JsonConvert.SerializeObject(newSave);
             }
-            catch {
+            catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
+                Debug.LogException(ex);
             }
         }
 
         private class SaveData {
             public List<MachineBase.MachineBaseData> Machines;
+            public Dictionary<string, bool> UnlockMachines;
         }
-
     }
 }

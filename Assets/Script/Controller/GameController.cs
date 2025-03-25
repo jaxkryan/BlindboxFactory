@@ -6,7 +6,9 @@ using MyBox;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Administrator;
 using Script.HumanResource.Worker;
+using Unity.AI.Navigation;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
 
 namespace Script.Controller {
@@ -27,12 +29,14 @@ namespace Script.Controller {
         public Tilemap Background;
         public Tilemap ConstructionLayer;
         public Tilemap CollisionLayer;
+        public NavMeshSurface NavMeshSurface;
         
         [Space]
         [Header("Save")]
         [SerializeField] private bool _hasSaveTimer;
+        [FormerlySerializedAs("_timeBetweenSave")]
         [ConditionalField(nameof(_hasSaveTimer))]
-        [SerializeField] private float _timeBetweenSave = 5f;
+        [SerializeField] private float _minutesBetweenSave = 5f;
         public SaveManager SaveManager;
         private Timer _saveTimer;
         private List<ControllerBase> _controllers => typeof(GameController).GetFields()
@@ -44,39 +48,40 @@ namespace Script.Controller {
         protected override void Awake() {
             base.Awake();
             _controllers.ForEach(c => c.OnAwake());
+            SaveManager = new();
         }
 
+        public void BuildNavMesh() => NavMeshSurface?.BuildNavMesh();
+        
         private void OnDestroy() => _controllers.ForEach(c => c.OnDestroy());
         private void OnEnable() => _controllers.ForEach(c => c.OnEnable());
 
         private void OnDisable() {
             _controllers.ForEach(c => c.OnDisable());
-            Task.Run(Save);
+            Task.Run(async () => await Save(SaveManager));
         }
 
         private void Start() {
             if (_hasSaveTimer) {
-                _saveTimer = new CountdownTimer(_timeBetweenSave);
-                _saveTimer.OnTimerStop += () => Task.Run(OnSaveTimerOnTimerStop);
+                _saveTimer = new CountdownTimer(_minutesBetweenSave * 60);
+                _saveTimer.OnTimerStop += () => Task.Run(async () => await OnSaveTimerOnTimerStop(SaveManager));
                 _saveTimer.Start();
             }
 
             
             _controllers.ForEach(c => c.OnStart());
             // _controllers.ForEach(c => Debug.LogWarning(c.GetType().Name));
-            Task.Run(LoadOnStart);     
-            SaveManager = new();
-            Debug.LogWarning(SaveManager.FilePath);
-
+            Task.Run(async () => await LoadOnStart(SaveManager));  
+            
             return;
 
-            async Task LoadOnStart(){
-                await Load();
+            async Task LoadOnStart(SaveManager saveManager){
+                await Load(saveManager);
             }
         }
 
-        private async Task OnSaveTimerOnTimerStop() {
-            await Save();
+        private async Task OnSaveTimerOnTimerStop(SaveManager saveManager) {
+            await Save(saveManager);
             _saveTimer.Start();
         }
 
@@ -87,15 +92,15 @@ namespace Script.Controller {
 
         private void OnValidate() => _controllers.ForEach(c => c.OnValidate());
 
-        private async Task Load() { 
+        private async Task Load(SaveManager saveManager) { 
             await SaveManager.LoadFromCloud();
             await SaveManager.LoadFromLocal();
 
-            _controllers.ForEach(c => c.Load());
+            _controllers.ForEach(c => c.Load(saveManager));
         }
 
-        private async Task Save() {
-            _controllers.ForEach(c => c.Save());
+        private async Task Save(SaveManager saveManager) {
+            _controllers.ForEach(c => c.Save(saveManager));
             
             await SaveManager.SaveToLocal();
             await SaveManager.SaveToCloud();

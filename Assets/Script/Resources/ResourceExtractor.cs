@@ -1,133 +1,106 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+﻿using System.Linq;
 using DG.Tweening;
 using Script.Controller;
-using Script.Machine;
-using Script.Resources;
+using Script.HumanResource.Worker;
+using Script.Machine.Products;
+using UnityEngine;
 
-public class ResourceExtractor : MachineBase
+namespace Script.Machine
 {
-    [System.Serializable]
-    public class MaterialDropRate
+    public class ResourceExtractor : MachineBase
     {
-        public Resource material;
-        public float dropRate; // Xác suất rơi
-        public Sprite materialSprite; // Sprite của nguyên liệu
-    }
+        [SerializeField] private int level = 1;
+        [SerializeField] private Transform miningOutputPoint; // Position where materials appear
+        [SerializeField] private GameObject materialPrefab;   // Prefab for material animation
 
-    [System.Serializable]
-    public class QuantityDropRate
-    {
-        public int quantity;
-        public float probability; // Xác suất số lượng
-    }
-
-    public List<MaterialDropRate> materialDropRates = new List<MaterialDropRate>
-    {
-        new MaterialDropRate { material = Resource.Rainbow, dropRate = 0.20f },
-        new MaterialDropRate { material = Resource.Cloud, dropRate = 0.20f },
-        new MaterialDropRate { material = Resource.Gummy, dropRate = 0.20f },
-        new MaterialDropRate { material = Resource.Ruby, dropRate = 0.15f },
-        new MaterialDropRate { material = Resource.Star, dropRate = 0.15f },
-        new MaterialDropRate { material = Resource.Diamond, dropRate = 0.10f }
-    };
-
-    public List<QuantityDropRate> quantityDropRates = new List<QuantityDropRate>
-    {
-        new QuantityDropRate { quantity = 1, probability = 0.50f },
-        new QuantityDropRate { quantity = 2, probability = 0.25f },
-        new QuantityDropRate { quantity = 3, probability = 0.15f },
-        new QuantityDropRate { quantity = 4, probability = 0.08f },
-        new QuantityDropRate { quantity = 5, probability = 0.02f }
-    };
-
-    public int level = 1;
-    private float miningInterval = 5f;
-    public Transform miningOutputPoint; // Vị trí xuất nguyên liệu
-    public GameObject materialPrefab; // Prefab hiển thị nguyên liệu đào được
-
-    protected override void Start()
-    {
-        base.Start();
-        StartCoroutine(AutoMineMaterials());
-    }
-
-    private IEnumerator AutoMineMaterials()
-    {
-        while (true)
+        protected override void Start()
         {
-            yield return new WaitForSeconds(miningInterval);
-            MineMaterials();
-        }
-    }
+            base.Start();
 
-    private void MineMaterials()
-    {
-        Resource? selectedMaterial = GetRandomMaterial();
-        if (selectedMaterial.HasValue)
-        {
-            int quantity = GetRandomQuantity() + (level - 1);
-            if (GameController.Instance.ResourceController.TryGetAmount(selectedMaterial.Value, out var value))
-                GameController.Instance.ResourceController.TrySetAmount(selectedMaterial.Value, quantity + value);
-            else Debug.LogError("Resource controller cannot find resource: " + selectedMaterial.Value);
-            Debug.Log($"Mined {quantity} of {selectedMaterial.Value}");
+            ProgressionPerSec = 20f;
+            if (level > 1) ProgressionPerSec *= 1.5f;
 
-            Sprite materialSprite = materialDropRates.First(m => m.material == selectedMaterial.Value).materialSprite;
-            AnimateMaterial(materialSprite);
-        }
-    }
-
-    private Resource? GetRandomMaterial()
-    {
-        float roll = Random.value;
-        float cumulative = 0f;
-
-        foreach (var materialRate in materialDropRates.OrderBy(m => m.dropRate))
-        {
-            cumulative += materialRate.dropRate;
-            if (roll <= cumulative)
+            if (Product == null)
             {
-                return materialRate.material;
+                Debug.LogWarning($"Product is not set for ResourceExtractor on {gameObject.name}. Please assign AddResourceToStorageProduct in the Inspector.");
+            }
+            else if (!(Product is AddResourceToStorageProduct))
+            {
+                Debug.LogWarning($"Product on ResourceExtractor {gameObject.name} is not an AddResourceToStorageProduct. Please assign the correct product type in the Inspector.");
+            }
+
+            // Subscribe to the product creation event to trigger animation
+            onCreateProduct += OnProductCreatedHandler;
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            // Increase progress each frame if workable
+            if (IsWorkable)
+            {
+                IncreaseProgress(ProgressionPerSec * Time.deltaTime);
+            }
+           
+        }
+
+        public override ProductBase CreateProduct()
+        {
+            var product = base.CreateProduct();
+            return product;
+        }
+
+        private void OnProductCreatedHandler(ProductBase product)
+        {
+            // Ensure the product is AddResourceToStorageProduct and cast it
+            if (product is AddResourceToStorageProduct resourceProduct && resourceProduct.SelectedMaterial.HasValue)
+            {
+                // Trigger the animation with the selected sprite
+                AnimateMaterial(resourceProduct.SelectedSprite);
             }
         }
-        return materialDropRates.First().material; 
-    }
 
-
-    private int GetRandomQuantity()
-    {
-        float roll = Random.value;
-        float cumulative = 0f;
-
-        foreach (var quantityRate in quantityDropRates.OrderBy(q => q.quantity))
+        public void LevelUp()
         {
-            cumulative += quantityRate.probability;
-            if (roll <= cumulative)
-            {
-                return quantityRate.quantity;
-            }
+            level++;
         }
-        return 1;
+
+        private void AnimateMaterial(Sprite materialSprite)
+        {
+            if (materialSprite == null)
+            {
+                Debug.LogWarning("Material sprite is null, cannot animate.");
+                return;
+            }
+
+            GameObject materialObject = Instantiate(materialPrefab, miningOutputPoint.position, Quaternion.identity);
+            SpriteRenderer spriteRenderer = materialObject.GetComponent<SpriteRenderer>();
+            if (spriteRenderer == null)
+            {
+                Debug.LogError("Material prefab does not have a SpriteRenderer component.");
+                Destroy(materialObject);
+                return;
+            }
+
+            spriteRenderer.sprite = materialSprite;
+
+            materialObject.transform.localScale = Vector3.one * 0.2f;
+            materialObject.transform.DOMoveY(miningOutputPoint.position.y + 0.7f, 0.5f).SetEase(Ease.OutQuad);
+            spriteRenderer.DOFade(0f, 0.8f).SetDelay(0.3f).OnComplete(() => Destroy(materialObject));
+        }
+
+        // Override to disable worker functionality
+        public override void AddWorker(IWorker worker, MachineSlot slot)
+        {
+            Debug.LogWarning("ResourceExtractor does not support workers.");
+        }
+
+        public override void RemoveWorker(IWorker worker)
+        {
+            Debug.LogWarning("ResourceExtractor does not support workers.");
+        }
+
+       
     }
-
-    public void LevelUp()
-    {
-        level++;
-        miningInterval *= 0.9f;
-        Debug.Log($"Level Up! New Level: {level}, New Mining Interval: {miningInterval}s");
-    }
-
-    private void AnimateMaterial(Sprite materialSprite)
-    {
-        GameObject materialObject = Instantiate(materialPrefab, miningOutputPoint.position, Quaternion.identity);
-        SpriteRenderer spriteRenderer = materialObject.GetComponent<SpriteRenderer>();
-        spriteRenderer.sprite = materialSprite;
-
-        materialObject.transform.localScale = Vector3.one * 0.2f;
-        materialObject.transform.DOMoveY(miningOutputPoint.position.y + 0.7f, 0.5f).SetEase(Ease.OutQuad);
-        spriteRenderer.DOFade(0f, 0.8f).SetDelay(0.3f).OnComplete(() => Destroy(materialObject));
-    }
-
 }

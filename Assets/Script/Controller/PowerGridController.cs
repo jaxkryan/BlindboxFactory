@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Script.Controller.SaveLoad;
 using Script.Machine;
 using Script.Machine.Machines.Generator;
 using Script.Resources;
@@ -63,10 +64,10 @@ namespace Script.Controller {
                 m.SetMachineHasEnergyForWork(false);
             }}
 
-        public override void Load() { 
+        public override void Load(SaveManager saveManager) { 
             //throw new System.NotImplementedException(); 
         }
-        public override void Save() { 
+        public override void Save(SaveManager saveManager) { 
             //throw new System.NotImplementedException(); 
         }
     }

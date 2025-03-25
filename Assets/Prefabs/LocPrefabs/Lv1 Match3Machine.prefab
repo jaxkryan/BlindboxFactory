@@ -99,8 +99,8 @@ GameObject:
   - component: {fileID: 554959473360154511}
   - component: {fileID: 2809312200942737498}
   - component: {fileID: 7174680500548955340}
-  - component: {fileID: 7187673940533982894}
   - component: {fileID: 5327533973648923819}
+  - component: {fileID: 8943527970880007234}
   m_Layer: 0
   m_Name: Lv1 Match3Machine
   m_TagString: ElectricMachine
@@ -116,7 +116,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3830224445500502897}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -5.82, y: -3.78, z: 0.013902388}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -221,65 +221,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &7187673940533982894
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3830224445500502897}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2620fb916e243964dbb841ddb1dd09ce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _powerUse: 0
-  _isClosed: 0
-  _slots: []
-  _workDetails: []
-  _product:
-    rid: 8006286844581904512
-  level: 1
-  miningOutputPoint: {fileID: 8710828764606895930}
-  materialPrefab: {fileID: 7869397467418778726}
-  references:
-    version: 2
-    RefIds:
-    - rid: 8006286844581904512
-      type: {class: ResourceExtractorProduct, ns: Script.Machine.Products, asm: Assembly-CSharp}
-      data:
-        _maxProgress: 100
-        _resourceUse: []
-        materialDropRates:
-        - material: 4
-          dropRate: 0.2
-          materialSprite: {fileID: 0}
-        - material: 3
-          dropRate: 0.2
-          materialSprite: {fileID: 0}
-        - material: 5
-          dropRate: 0.2
-          materialSprite: {fileID: 0}
-        - material: 6
-          dropRate: 0.15
-          materialSprite: {fileID: 0}
-        - material: 7
-          dropRate: 0.15
-          materialSprite: {fileID: 0}
-        - material: 2
-          dropRate: 0.1
-          materialSprite: {fileID: 0}
-        quantityDropRates:
-        - quantity: 1
-          probability: 0.5
-        - quantity: 2
-          probability: 0.25
-        - quantity: 3
-          probability: 0.15
-        - quantity: 4
-          probability: 0.08
-        - quantity: 5
-          probability: 0.02
 --- !u!60 &5327533973648923819
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -473,6 +414,69 @@ PolygonCollider2D:
       - {x: 0.12222222, y: 0.104444444}
       - {x: 0.15555556, y: 0.12666667}
   m_UseDelaunayMesh: 0
+--- !u!114 &8943527970880007234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3830224445500502897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2620fb916e243964dbb841ddb1dd09ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _powerUse: 0
+  _isClosed: 0
+  _slots: []
+  _spawnWorkers: 0
+  _spawnWorkerType: 0
+  _workDetails: []
+  _product:
+    rid: 8006286881648541818
+  level: 1
+  miningOutputPoint: {fileID: 8710828764606895930}
+  materialPrefab: {fileID: 7869397467418778726}
+  references:
+    version: 2
+    RefIds:
+    - rid: 8006286881648541818
+      type: {class: AddResourceToStorageProduct, ns: Script.Machine.Products, asm: Assembly-CSharp}
+      data:
+        _maxProgress: 100
+        _resourceUse: []
+        _amount: 0
+        Resource: 0
+        materialDropRates:
+        - material: 4
+          dropRate: 0.2
+          materialSprite: {fileID: 1485745076247685343, guid: 956df3db941515240afd5812a8afc78e, type: 3}
+        - material: 3
+          dropRate: 0.2
+          materialSprite: {fileID: -3491570356248207512, guid: 956df3db941515240afd5812a8afc78e, type: 3}
+        - material: 5
+          dropRate: 0.2
+          materialSprite: {fileID: 3481018892922865857, guid: 956df3db941515240afd5812a8afc78e, type: 3}
+        - material: 6
+          dropRate: 0.15
+          materialSprite: {fileID: -6367428789302381587, guid: 956df3db941515240afd5812a8afc78e, type: 3}
+        - material: 7
+          dropRate: 0.15
+          materialSprite: {fileID: -2341263756088440218, guid: 956df3db941515240afd5812a8afc78e, type: 3}
+        - material: 2
+          dropRate: 0.1
+          materialSprite: {fileID: -1460342257632746070, guid: 956df3db941515240afd5812a8afc78e, type: 3}
+        quantityDropRates:
+        - quantity: 1
+          probability: 0.5
+        - quantity: 2
+          probability: 0.25
+        - quantity: 3
+          probability: 0.15
+        - quantity: 4
+          probability: 0.08
+        - quantity: 5
+          probability: 0.02
 --- !u!1 &4030488645888617662
 GameObject:
   m_ObjectHideFlags: 0
