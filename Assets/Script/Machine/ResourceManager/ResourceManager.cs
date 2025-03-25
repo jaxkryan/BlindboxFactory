@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Script.Controller;
+using Script.Machine.Machines.Canteen;
 using Script.Resources;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -15,6 +16,11 @@ namespace Script.Machine.ResourceManager {
 
         private Dictionary<Resource, int> _lockedResources = new();
         private List<ResourceUse> _resourceUse = new();
+        private MachineBase _machine;
+        
+        public ResourceManager(MachineBase machine) {
+            _machine = machine;
+        }
 
         public void SetResourceUses(params ResourceUse[] uses) => _resourceUse = uses.ToList();
 
@@ -57,12 +63,12 @@ namespace Script.Machine.ResourceManager {
             Dictionary<Resource, int> resources = new();
             _resourceUse.ForEach(r => resources.TryAdd(r.Resource, 0));
 
-            var controller = GameController.Instance.ResourceController;
             actualTimes = 0;
             while (actualTimes < times) {
                 foreach (var resourceUse in _resourceUse) {
+                    var storage = ResourceStorageInterface.Get(resourceUse.Resource, _machine);
                     var amount = resourceUse.Amount;
-                    if (!controller.TryGetAmount(resourceUse.Resource, out var storedAmount) || storedAmount < amount) {
+                    if (!storage.TryGetAmount(out var storedAmount) || storedAmount < amount) {
                         return actualTimes > 0;
                     }
 
@@ -70,11 +76,12 @@ namespace Script.Machine.ResourceManager {
                 }
 
                 resources.ForEach(r => {
+                    var storage = ResourceStorageInterface.Get(r.Key, _machine);
                     if (_lockedResources.ContainsKey(r.Key)) _lockedResources[r.Key] += r.Value;
                     else _lockedResources.Add(r.Key, r.Value);
 
-                    if (controller.TryGetAmount(r.Key, out var storedAmount))
-                        controller.TrySetAmount(r.Key, storedAmount - r.Value);
+                    if (storage.TryGetAmount(out var storedAmount))
+                        storage.TrySetAmount(storedAmount - r.Value);
                 });
 
                 actualTimes++;
@@ -101,19 +108,72 @@ namespace Script.Machine.ResourceManager {
         public void UnlockResource() { UnlockResource(LockedResources.Keys?.ToArray()); }
 
         public void UnlockResource(params Resource[] resources) {
-            var controller = GameController.Instance.ResourceController;
             Func<Resource, long> newAmount = (resource) => {
+                var storage = ResourceStorageInterface.Get(resource, _machine);
                 if (!_lockedResources.TryGetValue(resource, out var locked)) locked = 0;
-                if (!controller.TryGetAmount(resource, out var oldAmount)) oldAmount = 0;
+                if (!storage.TryGetAmount(out var oldAmount)) oldAmount = 0;
                 return locked + oldAmount;
             };
             foreach (var resource in resources) {
+                var storage = ResourceStorageInterface.Get(resource, _machine);
                 Debug.LogWarning($"Resource {resource}, Unlock: {newAmount(resource)}");
-                if (newAmount(resource) > 0) controller.TrySetAmount(resource, newAmount(resource));
+                if (newAmount(resource) > 0) storage.TrySetAmount(newAmount(resource));
                 _lockedResources.Remove(resource);
             }
         }
 
+        #region Resource storage
+        private abstract class ResourceStorageInterface {
+            public Resource Resource;
+            public abstract bool TrySetAmount(long amount);
+            public abstract bool TryGetAmount(out long amount);
+            protected ResourceStorageInterface(Resource resource) => Resource = resource;
+
+            public static ResourceStorageInterface Get(Resource resource, MachineBase machine) {
+                var defaultResources = new List<Resource> {
+                    Resource.Gold,
+                    Resource.Gem,
+                    Resource.Diamond,
+                    Resource.Cloud,
+                    Resource.Rainbow,
+                    Resource.Gummy,
+                    Resource.Ruby,
+                    Resource.Star,
+                };
+                return resource switch {
+                    Resource.Meal => new MealStorageInterface(machine),
+                    _ => defaultResources.Contains(resource) ? new ControllerStorageInterface(resource) : throw new ArgumentOutOfRangeException(nameof(resource), resource, null)
+                };
+            }
+        }
+        private class ControllerStorageInterface : ResourceStorageInterface {
+            ResourceController _controller;
+            public ControllerStorageInterface(Resource resource) : base(resource) {
+                _controller = GameController.Instance.ResourceController;
+            }
+
+            public override bool TrySetAmount(long amount) => _controller.TrySetAmount(Resource, amount);
+            public override bool TryGetAmount(out long amount) => _controller.TryGetAmount(Resource, out amount);
+        }
+        private class MealStorageInterface : ResourceStorageInterface {
+            private CanteenFoodStorage _foodStorage;
+            public MealStorageInterface(MachineBase machine) : base(Resource.Meal) {
+                if (machine.TryGetComponent<CanteenFoodStorage>(out var foodStorage))
+                    _foodStorage = foodStorage;
+                else if (machine.GetComponentInChildren<CanteenFoodStorage>() is not null)
+                    _foodStorage = machine.GetComponentInChildren<CanteenFoodStorage>();
+                else throw new NullReferenceException(nameof(CanteenFoodStorage));
+            }
+
+            public override bool TrySetAmount(long amount) => _foodStorage.TryChangeMealAmount((int)amount);
+
+            public override bool TryGetAmount(out long amount) {
+                amount = _foodStorage.AvailableMeals;
+                return true;
+            }
+        }
+        #endregion
+        
         public SaveData ToSaveData() =>
             new SaveData() { LockedResources = _lockedResources, ResourceUse = _resourceUse };
         
@@ -121,7 +181,7 @@ namespace Script.Machine.ResourceManager {
             public Dictionary<Resource, int> LockedResources;
             public List<ResourceUse> ResourceUse;
             
-            public ResourceManager ToResourceManager() => new ResourceManager(){ _lockedResources = LockedResources, _resourceUse = ResourceUse };
+            public ResourceManager ToResourceManager(MachineBase machine) => new ResourceManager(machine){ _lockedResources = LockedResources, _resourceUse = ResourceUse };
         }
     }
 }

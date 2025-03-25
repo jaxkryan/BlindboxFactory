@@ -10,7 +10,7 @@ namespace Script.Quest {
         [SerializeField] public List<NewLandData> Data;
 
         public override void Grant() {
-            var tilemap = GameController.Instance.Background;
+            var tilemap = GameController.Instance.Ground;
             foreach (var data in Data) {
                 //With direction and offset, get the most outer tile
                 var direction = data.ExtendDirection switch {

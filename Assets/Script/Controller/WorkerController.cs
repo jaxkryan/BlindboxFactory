@@ -47,8 +47,8 @@ namespace Script.Controller {
         }
 
         public override void OnDisable() {
-            base.OnDisable();
             Unsubscribe();
+            base.OnDisable();
         }
 
         private void Subscribe() {
@@ -66,7 +66,6 @@ namespace Script.Controller {
             }}
 
         private void OnMachineOnItemBuilt(GameObject obj) {
-            Debug.LogWarning(nameof(OnMachineOnItemBuilt));
             if (!obj.TryGetComponent<MachineBase>(out var machine)) return;
             for (int i = 0; i < machine.SpawnWorkers; i++) {
                 GameController.Instance.WorkerSpawner.Spawn(machine.SpawnWorkerType, out _);

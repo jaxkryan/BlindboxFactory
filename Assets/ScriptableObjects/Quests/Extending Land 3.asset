@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da321e9aa28f4dfb88d58ddfcb6f0b5e, type: 3}
+  m_Name: Extending Land 3
+  m_EditorClassIdentifier: 
+  Name: Extending Land 3
+  Description: Extending land
+  State: 0
+  Preconditions:
+  - {fileID: 11400000, guid: 6b92aeeca4fe56440a9f2b37b29ab291, type: 2}
+  Objectives:
+  - {fileID: 11400000, guid: 94237f09c800fdd46a7075a2c5480532, type: 2}
+  Rewards:
+  - rid: 7204602187029151838
+  references:
+    version: 2
+    RefIds:
+    - rid: 7204602187029151838
+      type: {class: NewLandQuestReward, ns: Script.Quest, asm: Assembly-CSharp}
+      data:
+        Data:
+        - Tile: {fileID: 11400000, guid: 09fc4ff7de6892943863443b02f3bb4f, type: 2}
+          Extend: 2
+          ExtendDirection: 3
