@@ -136,6 +136,9 @@ public class BuildingSelector : MonoBehaviour
 
         foreach (var buildable in Categories[categoryIndex].buildables)
         {
+            GameController.Instance.MachineController.UnlockMachines.TryGetValue(buildable.Name, out bool lockstatus);
+            Debug.Log(lockstatus);
+            if(!lockstatus) continue;
             Debug.Log("Creating button for: " + buildable.name);
 
             Button newButton = Instantiate(_buttonPrefab, _contentParent);
@@ -144,7 +147,7 @@ public class BuildingSelector : MonoBehaviour
             TMP_Text buttonText = newButton.GetComponentInChildren<TMP_Text>();
             if (buttonText != null)
             {
-                buttonText.text = buildable.name;
+                buttonText.text = buildable.Name;
             }
 
             Image buttonImage = newButton.GetComponentsInChildren<Image>()
@@ -162,6 +165,8 @@ public class BuildingSelector : MonoBehaviour
 
     private void SwitchCategory(int newCategoryIndex)
     {
+        _buildingPlacer.SetActiveBuildable(null);
+        _buildingPlacer.ClearPreview();
         foreach (Button btn in categoryButtons)
         {
             ColorBlock colors = btn.colors;
