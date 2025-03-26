@@ -112,7 +112,7 @@ namespace Script.Machine.Products {
                 }
                 else
                 {
-                   // Debug.LogWarning("materialDropRates is empty. Falling back to Resource field.");
+                    Debug.LogWarning("materialDropRates is empty. Falling back to Resource field.");
                 }
 
                 Debug.Log("Cannot create product: No materials have available capacity.");
