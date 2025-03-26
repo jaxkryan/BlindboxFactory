@@ -572,7 +572,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _wishlistTravelTimer: 100
-  _forAll: 0
+  _forAll: 1
   _forWorker:
     Value: 01000000
 --- !u!1 &4280377091317516067
@@ -1304,31 +1304,37 @@ MonoBehaviour:
       data:
         _resource: 3
         _amount: 10
+        Machine: {fileID: 0}
     - rid: 7910668519338934395
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 2
         _amount: 5
+        Machine: {fileID: 0}
     - rid: 7910668519338934396
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 4
         _amount: 10
+        Machine: {fileID: 0}
     - rid: 7910668519338934397
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 7
         _amount: 5
+        Machine: {fileID: 0}
     - rid: 7910668519338934398
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 5
         _amount: 6
+        Machine: {fileID: 0}
     - rid: 7910668519338934399
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 6
         _amount: 5
+        Machine: {fileID: 0}
     - rid: 7910668632747933989
       type: {class: BlindBox, ns: , asm: Assembly-CSharp}
       data:
