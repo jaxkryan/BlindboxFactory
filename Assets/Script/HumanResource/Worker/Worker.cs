@@ -79,6 +79,8 @@ namespace Script.HumanResource.Worker {
             
             WorkingSlot = slot;
             Machine = slot.Machine;
+            Agent.enabled = false;
+            transform.position = WorkingSlot.transform.position;
             onWorking?.Invoke();
         }
         public virtual void StopWorking() {
@@ -94,6 +96,9 @@ namespace Script.HumanResource.Worker {
 
             WorkingSlot = null;
             Machine = null;
+            Agent.enabled = true;
+            if (NavMesh.SamplePosition(transform.position, out var hit, Single.MaxValue, 1))
+                transform.position = hit.position;
             onStopWorking?.Invoke();
         }
         public void AddBonus(Bonus bonus) {
