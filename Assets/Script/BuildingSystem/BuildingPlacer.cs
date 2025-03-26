@@ -1,11 +1,12 @@
 using BuildingSystem.Models;
+using Script.Controller;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace BuildingSystem
 {
-    public class BuildingPlacer : MonoBehaviour
+    public class BuildingPlacer : PersistentSingleton<BuildingPlacer>
     {
         [field:SerializeField]
         public BuildableItem ActiveBuildable {  get; private set; }
@@ -34,6 +35,7 @@ namespace BuildingSystem
         {
             if (IsbuildMode)
             {
+                bool isEnoughtGold;
                 Vector3 position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 position.z = 0;
 
@@ -44,12 +46,34 @@ namespace BuildingSystem
                     return;
                 }
 
+                if (_constructionLayer.HasMovedBuildable())
+                {
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        isTouching = true;
+                        touchStartTime = Time.time;
+                    }
+                    if (Input.GetMouseButtonUp(0))
+                    {
+                        if (_constructionLayer.TryPlaceMovedBuildable(position))
+                        {
+                            Debug.Log("Moved buildable placed successfully.");
+                        }
+                        else
+                        {
+                            Debug.Log("Cannot place moved buildable here.");
+                        }
+                    }
+                    return;
+                }
+
+
                 if (_storeMode)
                 {
                     if (Input.GetMouseButtonDown(0))
                     {
                         isTouching = true;
-                        touchStartTime = Time.time; // Record touch start time
+                        touchStartTime = Time.time; 
                     }
 
                     if (Input.GetMouseButtonUp(0) && isTouching)
@@ -80,10 +104,30 @@ namespace BuildingSystem
                     ActiveBuildable.UseCustomCollisionSpace ? ActiveBuildable.CollisionSpace : default
                 );
 
+                var itemCost = 0;
+                if (ActiveBuildable.Cost == null)
+                {
+                    itemCost = 0;
+                }
+                else
+                {
+                    itemCost = ActiveBuildable.Cost;
+                }
+                GameController.Instance.ResourceController.TryGetAmount(Script.Resources.Resource.Gold, out long currentMoney);
+                if (currentMoney < itemCost)
+                {
+                    isEnoughtGold = false;
+                }
+                else
+                {
+                    isEnoughtGold = true;
+                }
+
                 _previewLayer.ShowPreview(
                     ActiveBuildable,
                     position,
-                    isSpaceEmpty
+                    isSpaceEmpty,
+                    isEnoughtGold
                 );
 
                 if (Input.GetMouseButtonDown(0))
@@ -97,6 +141,7 @@ namespace BuildingSystem
                     float touchDuration = Time.time - touchStartTime;
                     if (touchDuration <= maxTouchDuration && ActiveBuildable != null && _constructionLayer != null && isSpaceEmpty)
                     {
+                        Debug.LogWarning(ActiveBuildable.gameObject.name);
                         _constructionLayer.Build(position, ActiveBuildable);
                     }
                     isTouching = false;
