@@ -100,11 +100,11 @@ namespace Script.Machine {
         public WorkerType SpawnWorkerType { get => _spawnWorkerType; set => _spawnWorkerType = value; }
         [SerializeField] WorkerType _spawnWorkerType;
 
-        public IEnumerable<IWorker> Workers {
+        public IEnumerable<Worker> Workers {
             get => _slots.Select(s => s.CurrentWorker).Where(w => w != null);
         }
 
-        public virtual void AddWorker(IWorker worker, MachineSlot slot) {
+        public virtual void AddWorker(Worker worker, MachineSlot slot) {
             if (!IsWorkable) {
                 Debug.LogWarning($"Machine({name}) is not workable.");
                 return;
@@ -128,9 +128,9 @@ namespace Script.Machine {
             onWorkerChanged?.Invoke();
         }
 
-        public virtual void AddWorker(IWorker worker) => AddWorker(worker, Slots.First(s => s.CurrentWorker == null));
+        public virtual void AddWorker(Worker worker) => AddWorker(worker, Slots.First(s => s.CurrentWorker == null));
 
-        public virtual void RemoveWorker(IWorker worker) {
+        public virtual void RemoveWorker(Worker worker) {
             if (!Workers.Contains(worker)) {
                 string str = "";
                 if (worker is MonoBehaviour monoWorker) str = $"({monoWorker.name})";

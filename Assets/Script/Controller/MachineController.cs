@@ -12,6 +12,7 @@ using Script.HumanResource.Worker;
 using Script.Machine;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Tilemaps;
 
 namespace Script.Controller {
@@ -106,10 +107,16 @@ namespace Script.Controller {
             return machines.Where(m => m.IsWorkable && m.Slots.Count() > m.Workers.Count());
         }
 
-        public IEnumerable<MachineBase> FindWorkableMachines(IWorker worker,
+        public IEnumerable<MachineBase> FindWorkableMachines(Worker worker,
             [CanBeNull] IEnumerable<MachineBase> machines = null) =>
             FindWorkableMachines(machines)
-                .Where(m => m.Slots.Any(s => s.CanAddWorker(worker)));
+                .Where(m => m.Slots.Any(s => s.CanAddWorker(worker) && worker.Agent.CalculatePath(GetNavMeshHit(worker), new())));
+
+        private Vector3 GetNavMeshHit(Worker worker) {
+            NavMeshHit hit;
+            if (!NavMesh.SamplePosition(worker.transform.position, out hit, Single.MaxValue, 1)) return Vector3.zero;
+            return hit.position;
+        }
 
         [Serializable]
         public struct MachineCoreRecovery {
@@ -136,7 +143,7 @@ namespace Script.Controller {
         public override void Load(SaveManager saveManager) {
             try {
                 if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                    || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
+                    || JsonConvert.DeserializeObject<SaveData>(saveData, _serializerSettings) is not SaveData data) return;
 
                 
                 _unlockMachines = new(data.UnlockMachines);
@@ -149,6 +156,7 @@ namespace Script.Controller {
                     if (prefab == default) continue;
 
                     var worldPos = _constructionLayer.CellToWorld(m.Position.ToVector3Int());
+                    Debug.LogWarning($"Building machine: {prefab.Name} at {worldPos}");
                     var constructedGameObject = _constructionLayerScript.Build(worldPos, prefab);
 
                     if (constructedGameObject is null
@@ -181,13 +189,16 @@ namespace Script.Controller {
                         JsonConvert.SerializeObject(newSave));
                 else
                     saveManager.SaveData[this.GetType().Name]
-                        = JsonConvert.SerializeObject(newSave);
+                        = JsonConvert.SerializeObject(newSave, _serializerSettings);
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
                 Debug.LogException(ex);
             }
         }
+
+        private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings()
+            { TypeNameHandling = TypeNameHandling.All };
 
         private class SaveData {
             public List<MachineBase.MachineBaseData> Machines;

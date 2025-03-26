@@ -93,12 +93,12 @@ namespace Script.Machine
         }
 
         // Override to disable worker functionality
-        public override void AddWorker(IWorker worker, MachineSlot slot)
+        public override void AddWorker(Worker worker, MachineSlot slot)
         {
             Debug.LogWarning("ResourceExtractor does not support workers.");
         }
 
-        public override void RemoveWorker(IWorker worker)
+        public override void RemoveWorker(Worker worker)
         {
             Debug.LogWarning("ResourceExtractor does not support workers.");
         }
