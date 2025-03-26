@@ -96,7 +96,7 @@ namespace Script.Machine.Products {
                             long capacity = resourceData.MaxAmount; // Get the capacity from ResourceData
                             if (capacity > amount)
                             {
-                                //Debug.Log($"Can create product: {materialRate.material} has capacity (amount: {amount}, capacity: {capacity})");
+                                Debug.Log($"Can create product: {materialRate.material} has capacity (amount: {amount}, capacity: {capacity})");
                                 return true;
                             }
                             else
@@ -112,7 +112,7 @@ namespace Script.Machine.Products {
                 }
                 else
                 {
-                   // Debug.LogWarning("materialDropRates is empty. Falling back to Resource field.");
+                    Debug.LogWarning("materialDropRates is empty. Falling back to Resource field.");
                 }
 
                 Debug.Log("Cannot create product: No materials have available capacity.");

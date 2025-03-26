@@ -8,8 +8,8 @@ public class StoreHouse : MachineBase
     public long boxamount;
     public long resorceamount;
 
-    BoxController _boxController = GameController.Instance.BoxController;
-    ResourceController _resoruceController = GameController.Instance.ResourceController;
+    BoxController _boxController => GameController.Instance.BoxController;
+    ResourceController _resoruceController => GameController.Instance.ResourceController;
 
     private void Start() 
     {

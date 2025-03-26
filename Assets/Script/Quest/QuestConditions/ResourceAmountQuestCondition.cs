@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Script.Quest {
     [CreateAssetMenu(menuName = "Quest/Condition/Resource Amount Condition", fileName = "Resource Amount Condition")]
     public class ResourceAmountQuestCondition : QuestCondition {
-        [SerializeReference] public SerializedDictionary<Resource, long> Resources;
+        [SerializeField] public SerializedDictionary<Resource, long> Resources;
 
         protected override string OnProgressCheck(Quest quest) {
             List<string> list = new List<string>();

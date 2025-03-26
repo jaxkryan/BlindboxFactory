@@ -9,5 +9,6 @@ namespace Script.Resources {
         Gummy,
         Ruby,
         Star,
+        Meal,
     }
 }
