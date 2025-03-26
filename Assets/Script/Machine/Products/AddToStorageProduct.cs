@@ -96,7 +96,7 @@ namespace Script.Machine.Products {
                             long capacity = resourceData.MaxAmount; // Get the capacity from ResourceData
                             if (capacity > amount)
                             {
-                                Debug.Log($"Can create product: {materialRate.material} has capacity (amount: {amount}, capacity: {capacity})");
+                                //Debug.Log($"Can create product: {materialRate.material} has capacity (amount: {amount}, capacity: {capacity})");
                                 return true;
                             }
                             else
