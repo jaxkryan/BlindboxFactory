@@ -40,6 +40,6 @@ public class StoreHouse : MachineBase
         }
 
         _boxController.TryGetWarehouseMaxAmount(out var maxAmount);
-        _boxController.TrySetWarehouseMaxAmount(maxAmount - maxAmount);
+        _boxController.TrySetWarehouseMaxAmount(maxAmount - boxamount);
     }
 }
