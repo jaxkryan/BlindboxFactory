@@ -16,6 +16,8 @@ namespace BuildingSystem.Models
         public bool UseCustomCollisionSpace {  get; private set; }
         [field: SerializeField]
         public RectInt CollisionSpace { get; private set; }
+        [field: SerializeField]
+        public int Cost { get; private set; }
     }
 
 }

@@ -6865,7 +6865,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &748432625
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8455,7 +8455,7 @@ Transform:
   m_GameObject: {fileID: 855253990}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -7.5630865}
+  m_LocalPosition: {x: 0, y: 0, z: -7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -50994,6 +50994,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 859dc52872064b44fbf259624ed77974, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AutoUnparentOnLoad: 1
   <ActiveBuildable>k__BackingField: {fileID: 0}
   _maxBuildingDistance: 3
   _constructionLayer: {fileID: 1253588326}
@@ -52657,6 +52658,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1c1c7446a83d4d4f82c3587c99926fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AutoUnparentOnLoad: 1
   _previewRenderer: {fileID: 1756288766}
 --- !u!114 &1253588326
 MonoBehaviour:
@@ -52670,6 +52672,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 899d6e61bcd5aa446a58e49255b8e18d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AutoUnparentOnLoad: 1
   _collisionLayer: {fileID: 1999813890}
 --- !u!483693784 &1253588327
 TilemapRenderer:
@@ -52732,7 +52735,7 @@ Transform:
   m_GameObject: {fileID: 1253588320}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.05, z: 0}
+  m_LocalPosition: {x: 0.043, y: 0.036, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -54904,7 +54907,7 @@ MonoBehaviour:
       - Key: WareHouse 1
         Value: 1
       - Key: WareHouse 2
-        Value: 0
+        Value: 1
       - Key: BoxMachine
         Value: 1
       - Key: Rest Room
@@ -57055,6 +57058,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 748432626}
     m_Modifications:
+    - target: {fileID: 13591077936852490, guid: 4b90fce0409ddf94b8b8fd90deed1adb, type: 3}
+      propertyPath: m_Name
+      value: Move
+      objectReference: {fileID: 0}
     - target: {fileID: 18814596148116868, guid: 4b90fce0409ddf94b8b8fd90deed1adb, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -57134,6 +57141,14 @@ PrefabInstance:
     - target: {fileID: 18814596148116868, guid: 4b90fce0409ddf94b8b8fd90deed1adb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2249638706626615108, guid: 4b90fce0409ddf94b8b8fd90deed1adb, type: 3}
+      propertyPath: m_text
+      value: Sell
+      objectReference: {fileID: 0}
+    - target: {fileID: 2318343620285331889, guid: 4b90fce0409ddf94b8b8fd90deed1adb, type: 3}
+      propertyPath: m_text
+      value: Move
       objectReference: {fileID: 0}
     - target: {fileID: 2650086063775298041, guid: 4b90fce0409ddf94b8b8fd90deed1adb, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
@@ -57237,7 +57252,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7470614615923285797, guid: 4b90fce0409ddf94b8b8fd90deed1adb, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8260711423805336770, guid: 4b90fce0409ddf94b8b8fd90deed1adb, type: 3}
+      propertyPath: m_Name
+      value: Sell Button
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -58449,6 +58468,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fdd117aa340df6439840febc663ae82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AutoUnparentOnLoad: 1
   _collisionTileBase: {fileID: 11400000, guid: f018430aa29860149be39ddc58aeab54, type: 2}
 --- !u!19719996 &1999813891
 TilemapCollider2D:
@@ -59893,7 +59913,7 @@ MonoBehaviour:
   - {fileID: 7567534319528678437, guid: 0dc6198494d79e744a3ed8e82ecc1986, type: 3}
   _buildingPlacer: {fileID: 1088030393}
   _contentParent: {fileID: 71508120}
-  _buttonPrefab: {fileID: 7929978558899535785, guid: 3b561ef48cb87914fbf57f8c3d90052e, type: 3}
+  _buttonPrefab: {fileID: 7929978558899535785, guid: 91dce4e7b5e76fc43bd99af154239e2d, type: 3}
   buildingSelectionUI: {fileID: 1766283580}
   exitButton: {fileID: 1941864611}
   InventoryButton: {fileID: 2134620022}

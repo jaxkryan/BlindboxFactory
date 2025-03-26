@@ -144,10 +144,25 @@ public class BuildingSelector : MonoBehaviour
             Button newButton = Instantiate(_buttonPrefab, _contentParent);
             newButton.name = "Button_" + buildable.name;
 
-            TMP_Text buttonText = newButton.GetComponentInChildren<TMP_Text>();
+            TMP_Text goldText = newButton.transform.Find("Gold")?.GetComponentInChildren<TMP_Text>();
+            TMP_Text buttonText = newButton.transform.Find("Name")?.GetComponentInChildren<TMP_Text>();
+            Image goldImg = newButton.transform.Find("GoldImg")?.GetComponentInChildren<Image>();
             if (buttonText != null)
             {
                 buttonText.text = buildable.Name;
+            }
+
+            if (goldText != null)
+            {
+                if (buildable.Cost == null || buildable.Cost == 0)
+                {
+                    goldText.text = "Free   ";
+                    goldImg.gameObject.SetActive(false);
+                }
+                else 
+                {
+                    goldText.text = FormatNumber(buildable.Cost);
+                }
             }
 
             Image buttonImage = newButton.GetComponentsInChildren<Image>()
@@ -228,5 +243,19 @@ public class BuildingSelector : MonoBehaviour
                 buttonText.text = "Store Mode: OFF";
             }
         }
+    }
+
+    private string FormatNumber(long number)
+    {
+        if (number >= 1_000_000_000_000)
+            return (number / 1_000_000_000_000f).ToString("0.##") + "T";
+        else if (number >= 1_000_000_000)
+            return (number / 1_000_000_000f).ToString("0.##") + "B";
+        else if (number >= 1_000_000)
+            return (number / 1_000_000f).ToString("0.##") + "M";
+        else if (number >= 1_000)
+            return (number / 1_000f).ToString("0.##") + "k";
+        else
+            return number.ToString(); // normal number
     }
 }

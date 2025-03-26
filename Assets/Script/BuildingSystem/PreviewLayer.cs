@@ -8,7 +8,7 @@ namespace BuildingSystem
         [SerializeField] 
         private SpriteRenderer _previewRenderer;
 
-        public void ShowPreview(BuildableItem item, Vector3 worldCoords, bool isValid)
+        public void ShowPreview(BuildableItem item, Vector3 worldCoords, bool isValid, bool isEnoughtGold)
         {
             var coords = _tilemap.WorldToCell(worldCoords);
 
@@ -39,8 +39,21 @@ namespace BuildingSystem
                 _previewRenderer.sprite = item.PreviewSprite;
                 _previewRenderer.transform.localScale = Vector3.one;
             }
-
-            _previewRenderer.color = isValid ? new Color(0, 1, 0, 0.5f) : new Color(1, 0, 0, 0.5f);
+            if (isEnoughtGold)
+            {
+                if (isValid)
+                {
+                    _previewRenderer.color = new Color(0, 1, 0, 0.5f);
+                }
+                else
+                {
+                    _previewRenderer.color = new Color(1, 0, 0, 0.5f);
+                }
+            }
+            else
+            {
+                _previewRenderer.color = new Color(1, 1, 0, 0.5f);
+            }
         }
 
 
