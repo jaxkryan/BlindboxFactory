@@ -8,6 +8,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Users;
 using UnityEngine.Tilemaps;
+using Script.Controller;
 
 namespace BuildingSystem
 {
@@ -40,6 +41,7 @@ namespace BuildingSystem
                 if (machine is not null) {
                     machine.Position = coords.ToVector2Int();
                     machine.PrefabName = item.name;
+                    GameController.Instance.MachineController.AddMachine(machine);
                 }
             }
             var buildable = new Buildable(item, coords, _tilemap, itemObject);

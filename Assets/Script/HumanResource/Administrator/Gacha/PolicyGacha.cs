@@ -23,7 +23,8 @@ namespace Script.HumanResource.Administrator
     [CreateAssetMenu(fileName = "PolicyGacha", menuName = "HumanResource/Administrator/Gacha")]
     public class PolicyGacha : ScriptableGachaMachineBase<Policy>, ILootbox<Policy, PolicySettings>
     {
-        private readonly List<(float coefficient, float probability, Grade grade, int storageAmount, string percentString)> coefficientRates = new() {
+        private readonly List<(float coefficient, float probability, Grade grade, int storageAmount, string percentString)> coefficientRates = new()
+        {
             (1.02f, 0.40f, Grade.Common, 20, "2"),   // 2% - 40%
             (1.05f, 0.20f, Grade.Rare, 50, "5"),     // 5% - 20%
             (1.10f, 0.15f, Grade.Special, 100, "10"), // 10% - 15%
@@ -31,11 +32,13 @@ namespace Script.HumanResource.Administrator
             (1.20f, 0.05f, Grade.Legendary, 200, "20") // 20% - 5%
         };
 
-        private readonly Type[] policyTypes = new Type[] {
+        private readonly Type[] policyTypes = new Type[]
+        {
             typeof(MachineProgressionPolicy),
             typeof(CoreChangeOnWorkPolicy),
             typeof(IncreaseMachineResourceGainPolicy),
-            typeof(StorageModificationPolicy)
+            typeof(StorageModificationPolicy),
+            typeof(IncreaseGeneratorPowerPolicy)
         };
 
         public IEnumerable<Policy> GeneratePoliciesForMascot(Grade grade)
@@ -46,6 +49,7 @@ namespace Script.HumanResource.Administrator
                 Grade.Rare => 2,     // 3*
                 Grade.Special => 3,  // 4*
                 Grade.Epic => 4,     // 5*
+                Grade.Legendary => 5, // 6*
                 _ => 0
             };
 
@@ -89,7 +93,7 @@ namespace Script.HumanResource.Administrator
                 }
             }
 
-            Debug.Log($"Generated {policies.Count} policies for {grade} mascot: [{string.Join(", ", policies.Select(p => p.GetType().Name))}]");
+            Debug.Log($"Generated {policies.Count} policies for {grade} mascot: [{string.Join(", ", policies.Select(p => $"{p.GetType().Name} ({p.Grade})"))}]");
             return policies;
         }
 
@@ -100,12 +104,22 @@ namespace Script.HumanResource.Administrator
             var policy = ScriptableObject.CreateInstance(policyType) as Policy;
             if (policy == null) return null;
 
-            // Pick a coefficient that matches the mascot's grade
-            var rate = coefficientRates.First(r => r.grade == mascotGrade);
+            // Pick a random policy grade (weighted by probabilities in coefficientRates)
+            float roll = UnityEngine.Random.value;
+            float cumulative = 0f;
+            (float coefficient, float probability, Grade policyGrade, int storageAmount, string percentString) rate = coefficientRates[0]; // Default to first rate
+            foreach (var r in coefficientRates)
+            {
+                cumulative += r.probability;
+                if (roll <= cumulative)
+                {
+                    rate = r;
+                    break;
+                }
+            }
             var (coefficient, _, policyGrade, storageAmount, percentString) = rate;
             policy.SetGrade(policyGrade);
 
-            // Configure the policy
             switch (policy)
             {
                 case MachineProgressionPolicy mp:
@@ -116,7 +130,7 @@ namespace Script.HumanResource.Administrator
                     {
                         MascotType.Generator => typeof(Generator),
                         MascotType.Canteen => typeof(Canteen),
-                        MascotType.Restroom => typeof(ResourceExtractor), //placeholder
+                        MascotType.Restroom => typeof(ResourceExtractor),
                         MascotType.MiningMachine => typeof(ResourceExtractor),
                         MascotType.ProductFactory => typeof(BlindBoxMachine),
                         MascotType.Storage => typeof(StorageMachine),
@@ -145,30 +159,46 @@ namespace Script.HumanResource.Administrator
                     cc.Multiplier = new SerializedDictionary<CoreType, Vector2> { { randomCoreType, new Vector2(coefficient, coefficient) } };
                     cc.Additives = new SerializedDictionary<CoreType, Vector2>();
                     cc.SetField("_forAllWorkers", true);
-                    cc.SetField("_description", $"Increase All Workers {randomCoreType} by {percentString}%");
+
+                    // khong phai increase hunger r nhe
+                    if (randomCoreType == CoreType.Hunger)
+                    {
+                        cc.SetField("_description", $"Decrease All Workers Hunger by {percentString}%");
+                    }
+                    else
+                    {
+                        cc.SetField("_description", $"Increase All Workers {randomCoreType} by {percentString}%");
+                    }
                     break;
 
                 case IncreaseMachineResourceGainPolicy im:
                     im.Multiplier = new SerializedDictionary<Resource, Vector2>();
                     im.Additives = new SerializedDictionary<Resource, Vector2>();
 
-                    // Apply the buff to all resources except Gold and Gem
                     foreach (Resource resource in System.Enum.GetValues(typeof(Resource)))
                     {
                         if (resource == Resource.Gold || resource == Resource.Gem)
                         {
-                            continue; // Skip Gold and Gem
+                            continue;
                         }
                         im.Multiplier.Add(resource, new Vector2(coefficient, coefficient));
                     }
 
-                    
                     im.SetField("_description", $"Increase all resources gain for Resource Extractor Machines by {percentString}%");
                     break;
+
                 case StorageModificationPolicy sm:
                     sm.SetField("amount", storageAmount);
                     sm.SetField("_forAllStorages", true);
                     sm.SetField("_description", $"Increase All Storages Capacity by {percentString}%");
+                    break;
+
+                case IncreaseGeneratorPowerPolicy gp:
+                    gp.SetField("amount", 0); 
+                    gp.Multiplier = new Vector2(coefficient, coefficient);
+                    gp.Additives = Vector2.zero; 
+                    gp.SetField("_forAllGenerators", true);
+                    gp.SetField("_description", $"Increase All Generator Capacity by {percentString}%");
                     break;
             }
 
@@ -210,7 +240,8 @@ namespace Script.HumanResource.Administrator
                 pullCount++;
                 pool = pool.Shuffle().ToList();
                 var weightedPool = new List<WeightedOption<Policy>>();
-                pool.ForEach(item => {
+                pool.ForEach(item =>
+                {
                     var settings = this.GetSettingsByGrade(item.Grade);
                     var option = new WeightedOption<Policy> { Option = item, Weight = settings.Rate };
                     weightedPool.Add(option);

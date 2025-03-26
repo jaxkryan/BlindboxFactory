@@ -19,7 +19,7 @@ namespace Script.Machine
 
             ProgressionPerSec = 20f;
             if (level > 1) ProgressionPerSec *= 1.5f;
-
+            //SetMachineHasEnergyForWork(true);
             if (Product == null)
             {
                 Debug.LogWarning($"Product is not set for ResourceExtractor on {gameObject.name}. Please assign AddResourceToStorageProduct in the Inspector.");
@@ -29,7 +29,7 @@ namespace Script.Machine
                 Debug.LogWarning($"Product on ResourceExtractor {gameObject.name} is not an AddResourceToStorageProduct. Please assign the correct product type in the Inspector.");
             }
 
-            Debug.Log("Machine workable: " + IsWorkable + CanCreateProduct + HasEnergyForWork + HasResourceForWork);
+            //Debug.Log("Machine workable: " + IsWorkable + CanCreateProduct + HasEnergyForWork + HasResourceForWork);
 
             // Subscribe to the product creation event to trigger animation
             onCreateProduct += OnProductCreatedHandler;
