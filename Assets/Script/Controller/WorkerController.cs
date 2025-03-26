@@ -57,13 +57,21 @@ namespace Script.Controller {
             {
                 constructionLayer.onItemBuilt += OnMachineOnItemBuilt;
             }
-            else Debug.LogWarning("Can't find ctrs layr");
+            else Debug.LogWarning("Can't find construction layer");
         }
         private void Unsubscribe(){
-            if (GameController.Instance.ConstructionLayer
-                .TryGetComponent<ConstructionLayer>(out var constructionLayer)) {
-                constructionLayer.onItemBuilt -= OnMachineOnItemBuilt;
-            }}
+            try { 
+                if (GameController.Instance.ConstructionLayer is not null
+                && GameController.Instance.ConstructionLayer
+                    .TryGetComponent<ConstructionLayer>(out var constructionLayer)) {
+                    constructionLayer.onItemBuilt -= OnMachineOnItemBuilt;
+                }
+            }
+            catch (System.Exception e) {
+                Debug.LogWarning(e.Message);
+            }
+            
+        }
 
         private void OnMachineOnItemBuilt(GameObject obj) {
             if (!obj.TryGetComponent<MachineBase>(out var machine)) return;
