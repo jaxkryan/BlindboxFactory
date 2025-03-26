@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,37 +45,34 @@ namespace Script.HumanResource.Administrator
         {
             int buffCount = grade switch
             {
-                Grade.Common => 1,   // 2*
-                Grade.Rare => 2,     // 3*
-                Grade.Special => 3,  // 4*
-                Grade.Epic => 4,     // 5*
-                Grade.Legendary => 5, // 6*
+                Grade.Common => 1,
+                Grade.Rare => 2,
+                Grade.Special => 3,
+                Grade.Epic => 4,
+                Grade.Legendary => 5,
                 _ => 0
             };
 
             var policies = new List<Policy>();
-            var usedPolicyTypes = new HashSet<Type>(); // Track used policy types
+            var usedPolicyTypes = new HashSet<Type>();
 
             for (int i = 0; i < buffCount; i++)
             {
                 Policy? policy = null;
                 int attempts = 0;
-                const int maxAttempts = 10; // Prevent infinite loops
+                const int maxAttempts = 10;
 
-                // Keep trying to generate a policy until we get a unique type
                 while (attempts < maxAttempts)
                 {
                     policy = GenerateRandomPolicy(grade);
                     if (policy == null) break;
 
-                    // Check if this policy type has already been used
                     if (!usedPolicyTypes.Contains(policy.GetType()))
                     {
                         usedPolicyTypes.Add(policy.GetType());
-                        break; // Unique policy type found, exit the loop
+                        break;
                     }
 
-                    // If the policy type is a duplicate, destroy the policy and try again
                     UnityEngine.Object.DestroyImmediate(policy);
                     policy = null;
                     attempts++;
@@ -99,15 +96,13 @@ namespace Script.HumanResource.Administrator
 
         private Policy? GenerateRandomPolicy(Grade mascotGrade)
         {
-            // Pick a random policy type
             var policyType = policyTypes[UnityEngine.Random.Range(0, policyTypes.Length)];
             var policy = ScriptableObject.CreateInstance(policyType) as Policy;
             if (policy == null) return null;
 
-            // Pick a random policy grade (weighted by probabilities in coefficientRates)
             float roll = UnityEngine.Random.value;
             float cumulative = 0f;
-            (float coefficient, float probability, Grade policyGrade, int storageAmount, string percentString) rate = coefficientRates[0]; // Default to first rate
+            (float coefficient, float probability, Grade policyGrade, int storageAmount, string percentString) rate = coefficientRates[0];
             foreach (var r in coefficientRates)
             {
                 cumulative += r.probability;
@@ -117,7 +112,7 @@ namespace Script.HumanResource.Administrator
                     break;
                 }
             }
-            var (coefficient, _, policyGrade, storageAmount, percentString) = rate;
+            var (coefficient, _, policyGrade, _, percentString) = rate;
             policy.SetGrade(policyGrade);
 
             switch (policy)
@@ -133,7 +128,7 @@ namespace Script.HumanResource.Administrator
                         MascotType.Restroom => typeof(ResourceExtractor),
                         MascotType.MiningMachine => typeof(ResourceExtractor),
                         MascotType.ProductFactory => typeof(BlindBoxMachine),
-                        MascotType.Storage => typeof(StorageMachine),
+                        MascotType.Storage => typeof(StoreHouse),
                         _ => typeof(ResourceExtractor)
                     };
                     var machineInstance = GameController.Instance.MachineController.Machines
@@ -153,14 +148,11 @@ namespace Script.HumanResource.Administrator
                     break;
 
                 case CoreChangeOnWorkPolicy cc:
-                    var coreTypes = System.Enum.GetValues(typeof(CoreType)).Cast<CoreType>().ToList();
+                    var coreTypes = Enum.GetValues(typeof(CoreType)).Cast<CoreType>().ToList();
                     var randomCoreType = coreTypes[UnityEngine.Random.Range(0, coreTypes.Count)];
-
                     cc.Multiplier = new SerializedDictionary<CoreType, Vector2> { { randomCoreType, new Vector2(coefficient, coefficient) } };
                     cc.Additives = new SerializedDictionary<CoreType, Vector2>();
                     cc.SetField("_forAllWorkers", true);
-
-                    // khong phai increase hunger r nhe
                     if (randomCoreType == CoreType.Hunger)
                     {
                         cc.SetField("_description", $"Decrease All Workers Hunger by {percentString}%");
@@ -174,29 +166,24 @@ namespace Script.HumanResource.Administrator
                 case IncreaseMachineResourceGainPolicy im:
                     im.Multiplier = new SerializedDictionary<Resource, Vector2>();
                     im.Additives = new SerializedDictionary<Resource, Vector2>();
-
-                    foreach (Resource resource in System.Enum.GetValues(typeof(Resource)))
+                    foreach (Resource resource in Enum.GetValues(typeof(Resource)))
                     {
-                        if (resource == Resource.Gold || resource == Resource.Gem)
-                        {
-                            continue;
-                        }
+                        if (resource == Resource.Gold || resource == Resource.Gem) continue;
                         im.Multiplier.Add(resource, new Vector2(coefficient, coefficient));
                     }
-
                     im.SetField("_description", $"Increase all resources gain for Resource Extractor Machines by {percentString}%");
                     break;
 
                 case StorageModificationPolicy sm:
-                    sm.SetField("amount", storageAmount);
+                    sm.Multiplier = new Vector2(coefficient, coefficient);
+                    sm.Additives = Vector2.zero;
                     sm.SetField("_forAllStorages", true);
                     sm.SetField("_description", $"Increase All Storages Capacity by {percentString}%");
                     break;
 
                 case IncreaseGeneratorPowerPolicy gp:
-                    gp.SetField("amount", 0); 
                     gp.Multiplier = new Vector2(coefficient, coefficient);
-                    gp.Additives = Vector2.zero; 
+                    gp.Additives = Vector2.zero;
                     gp.SetField("_forAllGenerators", true);
                     gp.SetField("_description", $"Increase All Generator Capacity by {percentString}%");
                     break;
@@ -209,7 +196,6 @@ namespace Script.HumanResource.Administrator
         {
             float roll = UnityEngine.Random.value;
             float cumulative = 0f;
-
             foreach (var rate in coefficientRates)
             {
                 cumulative += rate.probability;
@@ -220,18 +206,10 @@ namespace Script.HumanResource.Administrator
 
         public override Policy? Pull(IEnumerable<Policy> itemPool)
         {
-            if (itemPool == null || !itemPool.Any())
-            {
-                Debug.LogWarning("Pull failed: itemPool is null or empty.");
-                return null;
-            }
+            if (itemPool == null || !itemPool.Any()) return null;
 
             var pool = Requirement.ProcessItemPool(this, itemPool).ToList();
-            if (!pool.Any())
-            {
-                Debug.LogWarning("Pull cannot be completed due to acting requirement(s).");
-                return null;
-            }
+            if (!pool.Any()) return null;
 
             Policy? pull = null;
             int pullCount = 0;
@@ -239,20 +217,9 @@ namespace Script.HumanResource.Administrator
             {
                 pullCount++;
                 pool = pool.Shuffle().ToList();
-                var weightedPool = new List<WeightedOption<Policy>>();
-                pool.ForEach(item =>
-                {
-                    var settings = this.GetSettingsByGrade(item.Grade);
-                    var option = new WeightedOption<Policy> { Option = item, Weight = settings.Rate };
-                    weightedPool.Add(option);
-                });
-
-                pull = Requirement.ProcessPulledItem(this, weightedPool.ToArray().PickRandom());
-                if (pullCount > _requirementFailPullsCount)
-                {
-                    Debug.LogWarning("Pull cannot be completed due to acting requirement(s).");
-                    return null;
-                }
+                var weightedPool = pool.Select(item => new WeightedOption<Policy> { Option = item, Weight = this.GetSettingsByGrade(item.Grade).Rate }).ToArray();
+                pull = Requirement.ProcessPulledItem(this, weightedPool.PickRandom());
+                if (pullCount > _requirementFailPullsCount) return null;
             }
 
             Pulls++;
@@ -299,11 +266,7 @@ namespace Script.HumanResource.Administrator
             var currentPolicies = 0;
             int maxAttempts = 100;
 
-            if (settings.MaximumPolicies == 0 || settings.MaximumTotalLevel < CommonSettings.GradeLevel)
-            {
-                Debug.LogWarning($"Maximum total level is less than common item level");
-                return pulledPolicies;
-            }
+            if (settings.MaximumPolicies == 0 || settings.MaximumTotalLevel < CommonSettings.GradeLevel) return pulledPolicies;
 
             while (maxAttempts-- > 0)
             {
@@ -321,10 +284,7 @@ namespace Script.HumanResource.Administrator
                             && currentPolicies + 1 <= settings.MaximumPolicies)
                         {
                             var newPull = PullFromGrade(g, true);
-                            if (newPull != null)
-                            {
-                                pulledPolicies.Add(newPull);
-                            }
+                            if (newPull != null) pulledPolicies.Add(newPull);
                             break;
                         }
                     }
@@ -340,23 +300,12 @@ namespace Script.HumanResource.Administrator
                 else
                 {
                     var newPull = Pull();
-                    if (newPull != null)
-                    {
-                        pulledPolicies.Add(newPull);
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Failed to pull a policy, breaking loop to prevent freeze.");
-                        break;
-                    }
+                    if (newPull != null) pulledPolicies.Add(newPull);
+                    else break;
                 }
             }
 
-            if (maxAttempts <= 0)
-            {
-                Debug.LogWarning("PullByAdminGrade exceeded maximum attempts, possible configuration issue.");
-            }
-
+            if (maxAttempts <= 0) Debug.LogWarning("PullByAdminGrade exceeded maximum attempts.");
             return pulledPolicies;
         }
 
