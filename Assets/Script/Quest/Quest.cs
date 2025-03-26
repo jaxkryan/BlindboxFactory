@@ -59,7 +59,7 @@ namespace Script.Quest {
             while (oriState != State);
             
         }
-        
+
         public event Action<Quest, QuestState> onQuestStateChanged = delegate { };
         
         [SerializeField] public List<QuestCondition> Preconditions;

@@ -231,7 +231,7 @@ namespace Script.Machine {
         protected virtual void Awake() {
             WorkDetails.ForEach(d => d.Machine = this);
             _progressPerSecTimer = new CountdownTimer(1);
-            _resourceManager = new();
+            _resourceManager = new(this);
         }
 
         private void OnEnable() {
@@ -330,7 +330,7 @@ namespace Script.Machine {
             PrefabName = data.PrefabName;
             Position = data.Position;
             PowerUse = data.PowerUse;
-            _resourceManager = data.ResourceManager.ToResourceManager();
+            _resourceManager = data.ResourceManager.ToResourceManager(this);
             HasEnergyForWork = data.HasEnergyForWork;
             if (data.HasTimer) {
                 _progressPerSecTimer = new CountdownTimer(data.TimerTime);

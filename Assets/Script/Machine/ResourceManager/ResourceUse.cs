@@ -3,6 +3,7 @@ using Script.Controller;
 using Script.Machine.Products;
 using Script.Resources;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Script.Machine.ResourceManager {
     [Serializable]
@@ -11,14 +12,14 @@ namespace Script.Machine.ResourceManager {
         [SerializeField]private Resource _resource;
         public int Amount { get => _amount; }
         [SerializeField]private int _amount;
-        protected MachineBase _machine;
+        [FormerlySerializedAs("_machine")] public MachineBase Machine;
         protected ResourceManager _resourceManager;
         private bool _started = false;
 
         public void Start(MachineBase machine, ResourceManager resourceManager) {
 
             if (_started) return;
-            _machine = machine;
+            Machine = machine;
             _resourceManager = resourceManager;
             _started = true;
             OnStart();
@@ -43,13 +44,13 @@ namespace Script.Machine.ResourceManager {
     [Serializable]
     public class ResourceUseOnProductCreated : ResourceUse {
         protected override void OnStart() {
-            _machine.onCreateProduct += OnCreateProduct;
+            Machine.onCreateProduct += OnCreateProduct;
         }
         
         private void OnCreateProduct(ProductBase product) => UseResource();
 
         protected override void OnStop() {
-            _machine.onCreateProduct -= OnCreateProduct;
+            Machine.onCreateProduct -= OnCreateProduct;
         }
     }
 
