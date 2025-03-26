@@ -56,14 +56,14 @@ namespace Script.Controller {
 
         public override void OnAwake() {
             base.OnAwake();
-            
+
             _constructionLayer = GameController.Instance.ConstructionLayer;
             _constructionLayer.TryGetComponent<ConstructionLayer>(out _constructionLayerScript);
         }
 
         private Tilemap _constructionLayer;
         private ConstructionLayer _constructionLayerScript;
-        
+
         public event Action<MachineBase> onMachineAdded = delegate { };
         public event Action<MachineBase> onMachineRemoved = delegate { };
         public event Action<string> onMachineUnlocked = delegate { };
@@ -110,7 +110,8 @@ namespace Script.Controller {
         public IEnumerable<MachineBase> FindWorkableMachines(Worker worker,
             [CanBeNull] IEnumerable<MachineBase> machines = null) =>
             FindWorkableMachines(machines)
-                .Where(m => m.Slots.Any(s => s.CanAddWorker(worker) && worker.Agent.CalculatePath(GetNavMeshHit(worker), new())));
+                .Where(m => m.Slots.Any(s =>
+                    s.CanAddWorker(worker) && worker.Agent.CalculatePath(GetNavMeshHit(worker), new())));
 
         private Vector3 GetNavMeshHit(Worker worker) {
             NavMeshHit hit;
@@ -143,26 +144,31 @@ namespace Script.Controller {
         public override void Load(SaveManager saveManager) {
             try {
                 if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                    || JsonConvert.DeserializeObject<SaveData>(saveData, _serializerSettings) is not SaveData data) return;
-
-                
-                _unlockMachines = new(data.UnlockMachines);
-                if (_constructionLayerScript == null || _constructionLayerScript == default) {
+                    || JsonConvert.DeserializeObject<SaveData>(saveData, _serializerSettings) is not SaveData data)
                     return;
-                }
 
-                foreach (var m in data.Machines) {
-                    var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
-                    if (prefab == default) continue;
 
-                    var worldPos = _constructionLayer.CellToWorld(m.Position.ToVector3Int());
-                    Debug.LogWarning($"Building machine: {prefab.Name} at {worldPos}");
-                    var constructedGameObject = _constructionLayerScript.Build(worldPos, prefab);
+                _unlockMachines = new(data.UnlockMachines);
+                if (_constructionLayerScript == null || _constructionLayerScript == default) { return; }
 
-                    if (constructedGameObject is null
-                        || !constructedGameObject.TryGetComponent<MachineBase>(out var machine)) continue;
-                    machine.Load(m);
-                }
+                Debug.LogWarning($"Machine count: {data.Machines.Count}");
+                Debug.LogWarning($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
+
+                UnityMainThreadDispatcher.Instance().Enqueue(() => {
+                    foreach (var m in data.Machines) {
+                        Debug.LogWarning($"Building prefab: {m.PrefabName}");
+                        var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
+                        if (prefab == default) continue;
+
+                        var worldPos = _constructionLayer.CellToWorld(m.Position.ToVector3Int());
+                        Debug.LogWarning($"Building machine: {prefab.Name} at {worldPos}");
+                        var constructedGameObject = _constructionLayerScript.Build(worldPos, prefab);
+
+                        if (constructedGameObject is null
+                            || !constructedGameObject.TryGetComponent<MachineBase>(out var machine)) continue;
+                        machine.Load(m);
+                    }
+                });
             }
             catch (System.Exception e) {
                 Debug.LogError($"Cannot load {GetType()}");
@@ -172,9 +178,10 @@ namespace Script.Controller {
         }
 
         public override void Save(SaveManager saveManager) {
-            var newSave = new SaveData() { 
-                Machines = new(), 
-                UnlockMachines = _unlockMachines };
+            var newSave = new SaveData() {
+                Machines = new(),
+                UnlockMachines = _unlockMachines
+            };
             Machines.ForEach(m => {
                 var machine = m.Save();
                 newSave.Machines.Add(machine);

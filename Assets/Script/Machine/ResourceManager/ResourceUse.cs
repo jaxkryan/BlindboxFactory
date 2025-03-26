@@ -8,9 +8,9 @@ using UnityEngine.Serialization;
 namespace Script.Machine.ResourceManager {
     [Serializable]
     public abstract class ResourceUse {
-        public Resource Resource { get => _resource; }
+        public Resource Resource { get => _resource; set => _resource = value; }
         [SerializeField]private Resource _resource;
-        public int Amount { get => _amount; }
+        public int Amount { get => _amount; set => _amount = value; }
         [SerializeField]private int _amount;
         [FormerlySerializedAs("_machine")] public MachineBase Machine;
         protected ResourceManager _resourceManager;
@@ -56,26 +56,26 @@ namespace Script.Machine.ResourceManager {
 
     [Serializable]
     public class ResourceUseOvertime : ResourceUse {
-        public float TimeInterval { get => _timeInterval; }
+        public float TimeInterval { get => _timeInterval; set => _timeInterval = value; }
         [SerializeField]private float _timeInterval;
 
-        private Timer _timer;
+        public Timer Timer;
         
         protected override void OnStart() {
-            if (_timer is null) {
-                _timer = new CountdownTimer(TimeInterval);
-                _timer.OnTimerStop += OnTimerStop;
+            if (Timer is null) {
+                Timer = new CountdownTimer(TimeInterval);
+                Timer.OnTimerStop += OnTimerStop;
             }
-            _timer.Start();
+            Timer.Start();
         }
 
         private void OnTimerStop() {
             UseResource(); 
-            _timer.Start();
+            Timer.Start();
         }
 
         protected override void OnStop() {
-            _timer.Pause();
+            Timer.Pause();
         }
     }
 }
