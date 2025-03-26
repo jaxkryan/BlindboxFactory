@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Script.Controller;
+using Script.HumanResource.Worker.Workers;
 using Script.Machine;
 using UnityEngine;
 
@@ -39,11 +40,14 @@ namespace Script.HumanResource.Worker {
         public static WorkerType ToWorkerType<TWorker>(TWorker worker) where TWorker : IWorker => ToWorkerType<TWorker>();
 
         public static WorkerType ToWorkerType<TWorker>() where TWorker : IWorker { 
-            switch (typeof(TWorker)) {
+            switch (typeof(TWorker))
+            {
                 case Type @base when @base == typeof(Worker):
                     return WorkerType.Worker;
+                case Type @base when @base == typeof(FactoryWorker):
+                    return WorkerType.Worker;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(typeof(TWorker).Name);
             }
         }
     }

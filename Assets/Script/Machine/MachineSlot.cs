@@ -21,9 +21,10 @@ namespace Script.Machine {
         public MachineBase Machine { get; private set; }
 
         public bool SetCurrentWorker([CanBeNull] IWorker worker = null) {
-            if (worker != null) {
+            Debug.LogWarning($"Try setting {((Worker)worker).name} as the current worker");
+            if (worker is not null) {
                 if (CurrentWorker == worker) return true;
-                if (CurrentWorker != null) {
+                if (CurrentWorker is not null) {
                     Debug.LogError($"{this.name} slot is occupied!");
                     return false;
                 }
@@ -33,14 +34,17 @@ namespace Script.Machine {
                     return false;
                 }
 
-                if (WishListWorker != worker) {
-                    Debug.LogError($"{this.name} slot is wish listed!");
+                if (WishListWorker != worker && WishListWorker is not null) {
+                    Debug.LogError($"{this.name} slot is wish listed by {((Worker)WishListWorker).name}!");
                     return false;
                 }
             }
             CurrentWorker?.StopWorking();
             CurrentWorker = worker;
             CurrentWorker?.StartWorking(this);
+            if (worker is not null) {
+                if (WishListWorker is not null) WishListWorker = null;
+            }
             return true;
         }
 

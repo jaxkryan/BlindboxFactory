@@ -12,6 +12,7 @@ using Script.HumanResource.Worker;
 using Script.Machine;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 namespace Script.Controller {
     [Serializable]
@@ -49,8 +50,19 @@ namespace Script.Controller {
         }
 
         public MachineController(List<MachineBase> machines) => _machines = machines.ToList();
+
         public MachineController() : this(new List<MachineBase>()) { }
 
+        public override void OnAwake() {
+            base.OnAwake();
+            
+            _constructionLayer = GameController.Instance.ConstructionLayer;
+            _constructionLayer.TryGetComponent<ConstructionLayer>(out _constructionLayerScript);
+        }
+
+        private Tilemap _constructionLayer;
+        private ConstructionLayer _constructionLayerScript;
+        
         public event Action<MachineBase> onMachineAdded = delegate { };
         public event Action<MachineBase> onMachineRemoved = delegate { };
         public event Action<string> onMachineUnlocked = delegate { };
@@ -126,10 +138,9 @@ namespace Script.Controller {
                 if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                     || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
 
+                
                 _unlockMachines = new(data.UnlockMachines);
-                var construction = GameController.Instance.ConstructionLayer.GetComponent<ConstructionLayer>();
-                if (construction == null || construction == default) {
-                    Debug.LogError($"No collision layer found for {GameController.Instance.CollisionLayer.name}");
+                if (_constructionLayerScript == null || _constructionLayerScript == default) {
                     return;
                 }
 
@@ -137,8 +148,8 @@ namespace Script.Controller {
                     var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
                     if (prefab == default) continue;
 
-                    var worldPos = GameController.Instance.ConstructionLayer.CellToWorld(m.Position.ToVector3Int());
-                    var constructedGameObject = construction.Build(worldPos, prefab);
+                    var worldPos = _constructionLayer.CellToWorld(m.Position.ToVector3Int());
+                    var constructedGameObject = _constructionLayerScript.Build(worldPos, prefab);
 
                     if (constructedGameObject is null
                         || !constructedGameObject.TryGetComponent<MachineBase>(out var machine)) continue;

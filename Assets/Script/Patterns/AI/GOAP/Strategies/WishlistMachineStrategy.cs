@@ -54,8 +54,11 @@ namespace Script.Patterns.AI.GOAP.Strategies {
                     var path = new NavMeshPath();
                     if (!slot.CanAddWorker(_worker)) continue;
                     if (slot.WishListWorker != null) continue;
-                    if (!_agent.CalculatePath(slot.transform.position, path)) continue;
                     
+                    NavMeshHit hit;
+
+                    if (!NavMesh.SamplePosition(machine.transform.position, out hit, Single.MaxValue, 1)) continue;
+                    if (!_agent.CalculatePath(hit.position, path)) continue;
                     
                     slots.Add(slot, (CalculateWeight(slot, _agent, path), path, machine));
                 }
@@ -103,7 +106,6 @@ namespace Script.Patterns.AI.GOAP.Strategies {
 
         public void Update(float deltaTime) {
             _timer.Tick(deltaTime);
-            Debug.Log(_timer.Time);
         }
 
         public void Stop() {
