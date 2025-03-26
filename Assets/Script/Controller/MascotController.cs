@@ -204,9 +204,9 @@ namespace Script.HumanResource.Administrator {
             Debug.Log($"Removed mascot: {mascot.Name} from collection.");
         }
 
-        public override void OnDestroy() {
-            base.OnDestroy();
+        public override void OnApplicationQuit() {
             assignedMascots.ForEach(admin => admin.OnDismiss());
+            base.OnApplicationQuit();
         }
 
         public override void OnEnable() {

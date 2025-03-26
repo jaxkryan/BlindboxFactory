@@ -65,7 +65,7 @@ namespace Script.Controller {
         public override void Save(SaveManager saveManager) {
             var newSave = new SaveData() {
                 LastUpdate = _lastUpdate,
-                DailyMissionsState = _dailyMissions.Select(m => m.State).ToList(),
+                DailyMissionsState = _dailyMissions?.Select(m => m.State).ToList() ?? new (),
             };
             
             

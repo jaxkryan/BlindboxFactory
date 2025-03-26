@@ -6,6 +6,7 @@ namespace Script.Controller {
         public virtual void OnStart() {  }
         public virtual void OnAwake() { }
         public virtual void OnDestroy() { }
+        public virtual void OnApplicationQuit() { }
         public virtual void OnEnable() { }
         public virtual void OnDisable() { }
         public abstract void Load(SaveManager saveManager);

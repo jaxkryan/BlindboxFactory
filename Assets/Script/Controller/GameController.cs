@@ -39,11 +39,9 @@ namespace Script.Controller {
         [Header("Save")] 
         [SerializeField]
         public bool HasSaveTimer;
-
         [ConditionalField(nameof(HasSaveTimer))] 
         [SerializeField]
         public float MinutesBetweenSave = 5f;
-
         public SaveManager SaveManager;
         private Timer _saveTimer;
         
@@ -64,18 +62,21 @@ namespace Script.Controller {
         }
 
         public void BuildNavMesh() {
-            Debug.LogWarning("Rebuilding NavMesh");
+            Debug.Log("Rebuilding NavMesh");
             Physics2D.SyncTransforms();
             NavMeshSurface.BuildNavMesh();
         }
 
         private void OnDestroy() => _controllers.ForEach(c => c.OnDestroy());
-        private void OnEnable() => _controllers.ForEach(c => c.OnEnable());
 
-        private void OnDisable() {
-            _controllers.ForEach(c => c.OnDisable());
+        private void OnApplicationQuit() {
+            _controllers.ForEach(c => c.OnApplicationQuit());
             Task.Run(async () => await Save(SaveManager));
         }
+        
+        private void OnEnable() => _controllers.ForEach(c => c.OnEnable());
+
+        private void OnDisable() => _controllers.ForEach(c => c.OnDisable());
 
         private void Start() {
             if (HasSaveTimer) {
@@ -101,11 +102,11 @@ namespace Script.Controller {
             return;
 
             async Task LoadOnStart(SaveManager saveManager) { await Load(saveManager); }
-        }
 
-        private async Task OnSaveTimerOnTimerStop(SaveManager saveManager) {
-            await Save(saveManager);
-            _saveTimer.Start();
+            async Task OnSaveTimerOnTimerStop(SaveManager saveManager) {
+                await Save(saveManager);
+                _saveTimer.Start();
+            }
         }
 
         private void Update() {
@@ -116,6 +117,7 @@ namespace Script.Controller {
         private void OnValidate() => _controllers.ForEach(c => c.OnValidate());
 
         private async Task Load(SaveManager saveManager) {
+            Debug.LogWarning("Loading");
             await SaveManager.LoadFromCloud();
             await SaveManager.LoadFromLocal();
 
@@ -137,19 +139,28 @@ namespace Script.Controller {
             }
 
             #endregion
+            
             _controllers.ForEach(c => c.Load(saveManager));
         }
 
         private async Task Save(SaveManager saveManager) {
-            _controllers.ForEach(c => c.Save(saveManager));
+            Debug.LogWarning("Saving");
+            try { 
+                _controllers.ForEach(c => c.Save(saveManager));
 
-            #region Game Controller's own save
-            saveManager.SaveData.AddOrUpdate(nameof(HasSaveTimer), HasSaveTimer ? bool.TrueString : bool.FalseString, (s, s1) => HasSaveTimer ? bool.TrueString : bool.FalseString);
-            saveManager.SaveData.AddOrUpdate(nameof(MinutesBetweenSave), MinutesBetweenSave.ToString(CultureInfo.InvariantCulture),
-                (s, s1) => MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
-            saveManager.SaveData.AddOrUpdate(nameof(GroundAddedTiles), JsonConvert.SerializeObject(GroundAddedTiles.Select(V2Int.ToV2Int)), (s, s1) => JsonConvert.SerializeObject(GroundAddedTiles));
-            #endregion
+                #region Game Controller's own save
+                saveManager.SaveData.AddOrUpdate(nameof(HasSaveTimer), HasSaveTimer ? bool.TrueString : bool.FalseString, (s, s1) => HasSaveTimer ? bool.TrueString : bool.FalseString);
+                saveManager.SaveData.AddOrUpdate(nameof(MinutesBetweenSave), MinutesBetweenSave.ToString(CultureInfo.InvariantCulture),
+                    (s, s1) => MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
+                saveManager.SaveData.AddOrUpdate(nameof(GroundAddedTiles), JsonConvert.SerializeObject(GroundAddedTiles.Select(V2Int.ToV2Int)), (s, s1) => JsonConvert.SerializeObject(GroundAddedTiles));
+                #endregion
+            }
+            catch (System.Exception e) {
+                Debug.LogWarning(e);
+                throw;
+            }
 
+            Debug.LogWarning("Saving to file");
             await SaveManager.SaveToLocal();
             await SaveManager.SaveToCloud();
         }
