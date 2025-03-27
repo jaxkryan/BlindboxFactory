@@ -271,7 +271,7 @@ GameObject:
   - component: {fileID: 2650086063775298041}
   - component: {fileID: 247916964204914123}
   m_Layer: 5
-  m_Name: Infomation Button
+  m_Name: Sell Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -378,7 +378,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 571443018542113504}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: 
+        m_MethodName: 
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!111 &247916964204914123
 Animation:
   m_ObjectHideFlags: 0
@@ -1157,7 +1169,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Infomation
+  m_text: Sell
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 54d048f6a2f77d441b13f601960c3645, type: 2}
   m_sharedMaterial: {fileID: 1168077810829925963, guid: 54d048f6a2f77d441b13f601960c3645, type: 2}
@@ -1316,7 +1328,7 @@ GameObject:
   - component: {fileID: 6572002407601965414}
   - component: {fileID: 7922228994703792871}
   m_Layer: 5
-  m_Name: Chose Panel
+  m_Name: Chose Panel BB
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

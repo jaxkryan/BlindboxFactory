@@ -106,6 +106,7 @@ public class StructureManage : MonoBehaviour
                 if (machine != null)
                 {
                     BlindBoxInformationDisplay.Instance.SetCurrentDisplayedObject(machine);
+                    BlindBoxInformationDisplay.Instance.SetCurrentCoordinate(worldCoords);
                 }
             }
         }

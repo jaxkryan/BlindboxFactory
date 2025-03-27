@@ -1,3 +1,4 @@
+using BuildingSystem;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ public class BlindBoxInformationDisplay : MonoBehaviour
     public static BlindBoxInformationDisplay Instance { get; private set; }
     public GameObject ChosePanel;
     public BlindBoxMachine currentBlindBoxMachine;
+    public Vector3 currentCoordinate;
+    public ConstructionLayer _constructionLayer;
 
     private void Awake()
     {
@@ -31,4 +34,19 @@ public class BlindBoxInformationDisplay : MonoBehaviour
         currentBlindBoxMachine = current;
     }
 
+    public Vector3 GetCurrentCoordinate()
+    {
+        return currentCoordinate;
+    }
+
+    public void SetCurrentCoordinate(Vector3 current)
+    {
+        currentCoordinate = current;
+    }
+
+    public void SellThis()
+    {
+        _constructionLayer.Stored(currentCoordinate,true);
+        ChosePanel.SetActive(false);
+    }
 }
