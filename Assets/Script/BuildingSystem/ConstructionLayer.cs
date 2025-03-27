@@ -66,7 +66,7 @@ namespace BuildingSystem
                 if (machine is not null)
                 {
                     machine.Position = coords.ToVector2Int();
-                    machine.PrefabName = item.Name;
+                    machine.PrefabName = item.name;
                     GameController.Instance.MachineController.AddMachine(machine);
                 }
             }

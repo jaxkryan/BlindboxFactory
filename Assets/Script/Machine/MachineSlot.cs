@@ -21,8 +21,10 @@ namespace Script.Machine {
         [SerializeField] private CollectionWrapperList<WorkerType> _forWorker;
         public MachineBase Machine { get; private set; }
 
+
         public bool SetCurrentWorker([CanBeNull] Worker worker = null) {
             Debug.LogWarning($"Try setting {((Worker)worker)?.name ?? "null"} as the current worker");
+
             if (worker is not null) {
                 if (CurrentWorker == worker) return true;
                 if (CurrentWorker is not null) {
@@ -49,14 +51,14 @@ namespace Script.Machine {
             return true;
         }
 
-        public bool CanAddWorker(Worker worker) {
+        public bool CanAddWorker(IWorker worker) {
             if (!Machine.IsWorkable) return false;
             
             if (_forAll) return true;
             return _forWorker.Value.Any(w => w == IWorker.ToWorkerType(worker));
         }
         
-        public bool SetWishlist([CanBeNull] Worker worker = null) {
+        public bool SetWishlist([CanBeNull] IWorker worker = null) {
             if (worker != null) {
                 if (WishListWorker != null) {
                     Debug.LogError($"{this.name} slot is wish listed!");
@@ -69,8 +71,6 @@ namespace Script.Machine {
                     return false;
                 }
             }
-
-            Debug.LogWarning("Add worker to wishlist");
             WishListWorker = worker;
             if (WishListWorker != null) {
                 _wishlistTimer.Start();

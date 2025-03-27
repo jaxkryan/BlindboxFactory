@@ -12,9 +12,9 @@ public class WorkStrategy : IActionStrategy {
     public bool Complete { get; private set; }
 
     private MachineSlot _slot ;
-    readonly Worker _worker;
+    readonly IWorker _worker;
     
-    public WorkStrategy(Worker worker) {
+    public WorkStrategy(IWorker worker) {
         _worker = worker;
         Complete = false;
     }

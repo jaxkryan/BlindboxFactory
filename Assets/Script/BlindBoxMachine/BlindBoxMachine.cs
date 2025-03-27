@@ -28,7 +28,7 @@ public class BlindBoxMachine : MachineBase
     {
         BlindBox nullbb = new BlindBox()
         {
-            BoxTypeName = BoxTypeName.Null,
+            boxTypeName = BoxTypeName.Null,
         };
         if (CurrentProgress >= MaxProgress)
         {
@@ -52,12 +52,12 @@ public class BlindBoxMachine : MachineBase
     public override ProductBase CreateProduct()
     {
         var ret = base.CreateProduct();
-        if (amount-- <= 0 && !(Product is BlindBox bbProduct && bbProduct.BoxTypeName == BoxTypeName.Null))
+        if (amount-- <= 0 && !(Product is BlindBox bbProduct && bbProduct.boxTypeName == BoxTypeName.Null))
         {
             Debug.LogWarning("Product order completed");
             amount = 0;
-            ProductBase createdProduct = Product ?? new BlindBox { BoxTypeName = BoxTypeName.Null };
-            Product = new BlindBox { BoxTypeName = BoxTypeName.Null };
+            ProductBase createdProduct = Product ?? new BlindBox { boxTypeName = BoxTypeName.Null };
+            Product = new BlindBox { boxTypeName = BoxTypeName.Null };
         }
 
         return ret;

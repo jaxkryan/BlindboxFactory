@@ -19,16 +19,10 @@ namespace Script.Machine.Products {
     [Serializable]
     public class KitchenMealProduct : AddToStorageProduct {
         public override bool CanCreateProduct { get => _storage.MaxCapacity > _storage.AvailableMeals; }
-        CanteenFoodStorage _storage => _machine.GetComponentInParent<CanteenFoodStorage>();
+        [SerializeField] CanteenFoodStorage _storage;
         public override void OnProductCreated() {
-            if (_storage is null) {
-                Debug.LogError($"Cannot find food storage: {_machine.name}");
-                return;
-            }
             _storage.TryChangeMealAmount(Amount);
         }
-
-        public override void Load(IProduct.SaveData data) => BaseLoad(data); 
     }
 
 
@@ -211,39 +205,6 @@ namespace Script.Machine.Products {
                 }
             }
             return quantityDropRates.FirstOrDefault()?.quantity ?? 1; // Fallback to first quantity or 1
-        }
-
-
-        public override IProduct.SaveData Save() {
-            if (base.Save() is not AddResourceToStorageData data) return base.Save();
-
-            data.Resource = Resource;
-            data.MaterialDropRates = materialDropRates;
-            data.QuantityDropRates = quantityDropRates;
-            data.SelectedMaterial = SelectedMaterial;
-            data.SelectedQuantity = SelectedQuantity;
-            return data;
-        }
-
-        public override void Load(IProduct.SaveData saveData) {
-            BaseLoad(saveData);
-
-            if (saveData is not AddResourceToStorageData data) return;
-            
-            Resource = data.Resource;
-            materialDropRates = data.MaterialDropRates;
-            quantityDropRates = data.QuantityDropRates;
-            SelectedMaterial = data.SelectedMaterial;
-            SelectedQuantity = data.SelectedQuantity;
-            SelectedSprite = materialDropRates.First(m => m.material == SelectedMaterial.Value).materialSprite;
-        }
-
-        public class AddResourceToStorageData : IProduct.SaveData {
-            public Resource Resource;
-            public List<MaterialDropRate> MaterialDropRates;
-            public List<QuantityDropRate> QuantityDropRates;
-            public Resource? SelectedMaterial;
-            public int SelectedQuantity;
         }
     }
 }
