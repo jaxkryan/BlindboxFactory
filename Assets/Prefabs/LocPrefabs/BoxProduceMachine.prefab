@@ -184,7 +184,7 @@ MonoBehaviour:
   m_MinValue: 0
   m_MaxValue: 1
   m_WholeNumbers: 0
-  m_Value: 0
+  m_Value: 0.487
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
@@ -234,8 +234,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 100, y: 10}
-  m_SizeDelta: {x: 200, y: 20}
+  m_AnchoredPosition: {x: 0, y: 0.000009536743}
+  m_SizeDelta: {x: -0, y: -0.000022888}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5578986240499547487
 CanvasRenderer:
@@ -270,7 +270,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 0
+  m_FillAmount: 0.487
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -1207,6 +1207,7 @@ GameObject:
   - component: {fileID: 1518176329254882740}
   - component: {fileID: 7326187405951186412}
   - component: {fileID: 7022986040928576854}
+  - component: {fileID: 1077516869655075795}
   m_Layer: 0
   m_Name: BoxProduceMachine
   m_TagString: BoxMachine
@@ -1285,17 +1286,17 @@ MonoBehaviour:
     _resourceUse:
     - rid: 7910668519338934394
     - rid: 7910668519338934395
-    boxTypeName: 0
+    BoxTypeName: 0
   - _maxProgress: 5
     _resourceUse:
     - rid: 7910668519338934396
     - rid: 7910668519338934397
-    boxTypeName: 1
+    BoxTypeName: 1
   - _maxProgress: 5
     _resourceUse:
     - rid: 7910668519338934398
     - rid: 7910668519338934399
-    boxTypeName: 2
+    BoxTypeName: 2
   maxAmount: 2000000000
   references:
     version: 2
@@ -1341,7 +1342,7 @@ MonoBehaviour:
       data:
         _maxProgress: 1
         _resourceUse: []
-        boxTypeName: 0
+        BoxTypeName: 0
     - rid: 7910668793321357312
       type: {class: IncreaseProgressWorkDetail, ns: Script.Machine.WorkDetails, asm: Assembly-CSharp}
       data:
@@ -1645,3 +1646,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.936, y: 2.012}
   m_EdgeRadius: 0
+--- !u!114 &1077516869655075795
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9159193123509703617}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd951f3956a6b294a9fb02c1c960e200, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AutoUnparentOnLoad: 1
+  value: 0
+  uiProgess: {fileID: 1491588871440764375}
+  blindBoxMachine: {fileID: 7986783082072029475}

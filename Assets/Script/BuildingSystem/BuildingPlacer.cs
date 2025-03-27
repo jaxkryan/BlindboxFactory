@@ -46,27 +46,6 @@ namespace BuildingSystem
                     return;
                 }
 
-                if (_constructionLayer.HasMovedBuildable())
-                {
-                    if (Input.GetMouseButtonDown(0))
-                    {
-                        isTouching = true;
-                        touchStartTime = Time.time;
-                    }
-                    if (Input.GetMouseButtonUp(0))
-                    {
-                        if (_constructionLayer.TryPlaceMovedBuildable(position))
-                        {
-                            Debug.Log("Moved buildable placed successfully.");
-                        }
-                        else
-                        {
-                            Debug.Log("Cannot place moved buildable here.");
-                        }
-                    }
-                    return;
-                }
-
 
                 if (_storeMode)
                 {
@@ -83,7 +62,7 @@ namespace BuildingSystem
                         {
                             try
                             {
-                                _constructionLayer.Stored(position);
+                                _constructionLayer.Stored(position, false);
                             }
                             catch
                             {

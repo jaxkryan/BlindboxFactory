@@ -21,7 +21,7 @@ namespace Script.Machine {
         public MachineBase Machine { get; private set; }
 
         public bool SetCurrentWorker([CanBeNull] Worker worker = null) {
-            Debug.LogWarning($"Try setting {((Worker)worker).name} as the current worker");
+            Debug.LogWarning($"Try setting {((Worker)worker)?.name ?? "null"} as the current worker");
             if (worker is not null) {
                 if (CurrentWorker == worker) return true;
                 if (CurrentWorker is not null) {
