@@ -17,8 +17,8 @@ namespace Script.Machine
         {
             base.Start();
 
-            //ProgressionPerSec = 20f;
-            //if (level > 1) ProgressionPerSec *= 1.5f;
+            ProgressionPerSec = 20f;
+            if (level > 1) ProgressionPerSec *= 1.5f;
             //SetMachineHasEnergyForWork(true);
             if (Product == null)
             {
@@ -39,16 +39,12 @@ namespace Script.Machine
         {
             base.Update();
 
-            //// Increase progress each frame if workable
-            // tam thoi fix cung
+            // Increase progress each frame if workable
             if (IsWorkable)
             {
-                ProgressionPerSec = 20f;
-                if (level > 1) ProgressionPerSec *= 1.5f;
                 IncreaseProgress(ProgressionPerSec * Time.deltaTime);
             }
-            //Debug.Log("is workable: " + IsWorkable + !IsClosed + HasResourceForWork + HasEnergyForWork + CanCreateProduct);
-            //Debug.Log("Progress per sec now" + ProgressionPerSec);  
+           
         }
 
         public override ProductBase CreateProduct()
@@ -97,12 +93,12 @@ namespace Script.Machine
         }
 
         // Override to disable worker functionality
-        public override void AddWorker(Worker worker, MachineSlot slot)
+        public override void AddWorker(IWorker worker, MachineSlot slot)
         {
             Debug.LogWarning("ResourceExtractor does not support workers.");
         }
 
-        public override void RemoveWorker(Worker worker)
+        public override void RemoveWorker(IWorker worker)
         {
             Debug.LogWarning("ResourceExtractor does not support workers.");
         }

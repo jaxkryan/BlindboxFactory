@@ -19,10 +19,10 @@ namespace Script.Machine {
         float MaxProgress { get; }
         int SpawnWorkers { get; }
         WorkerType SpawnWorkerType { get; }
-        IEnumerable<Worker> Workers { get; }
-        void AddWorker(Worker worker);
-        void AddWorker(Worker worker, MachineSlot slot);
-        void RemoveWorker(Worker worker);
+        IEnumerable<IWorker> Workers { get; }
+        void AddWorker(IWorker worker);
+        void AddWorker(IWorker worker, MachineSlot slot);
+        void RemoveWorker(IWorker worker);
         IEnumerable<WorkDetail> WorkDetails { get; }
         ProductBase Product { get; }
         ProductBase CreateProduct();

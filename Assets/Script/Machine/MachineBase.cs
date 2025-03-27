@@ -95,25 +95,16 @@ namespace Script.Machine {
             get => Product.MaxProgress;
         }
 
-        public int SpawnWorkers {
-            get => _spawnWorkers;
-            set => _spawnWorkers = value;
-        }
-
+        public int SpawnWorkers { get => _spawnWorkers; set => _spawnWorkers = value; }
         [SerializeField] private int _spawnWorkers;
-
-        public WorkerType SpawnWorkerType {
-            get => _spawnWorkerType;
-            set => _spawnWorkerType = value;
-        }
-
+        public WorkerType SpawnWorkerType { get => _spawnWorkerType; set => _spawnWorkerType = value; }
         [SerializeField] WorkerType _spawnWorkerType;
 
-        public IEnumerable<Worker> Workers {
+        public IEnumerable<IWorker> Workers {
             get => _slots.Select(s => s.CurrentWorker).Where(w => w != null);
         }
 
-        public virtual void AddWorker(Worker worker, MachineSlot slot) {
+        public virtual void AddWorker(IWorker worker, MachineSlot slot) {
             if (!IsWorkable) {
                 Debug.LogWarning($"Machine({name}) is not workable.");
                 return;
@@ -137,9 +128,9 @@ namespace Script.Machine {
             onWorkerChanged?.Invoke();
         }
 
-        public virtual void AddWorker(Worker worker) => AddWorker(worker, Slots.First(s => s.CurrentWorker == null));
+        public virtual void AddWorker(IWorker worker) => AddWorker(worker, Slots.First(s => s.CurrentWorker == null));
 
-        public virtual void RemoveWorker(Worker worker) {
+        public virtual void RemoveWorker(IWorker worker) {
             if (!Workers.Contains(worker)) {
                 string str = "";
                 if (worker is MonoBehaviour monoWorker) str = $"({monoWorker.name})";
@@ -162,7 +153,6 @@ namespace Script.Machine {
             set {
                 ResourceUse.ForEach(r => r.Stop());
                 _product = value;
-                _product.SetParent(this);
                 ResourceUse.ForEach(r => r.Start(this, _resourceManager));
                 onProductChanged?.Invoke(value);
             }
@@ -204,9 +194,13 @@ namespace Script.Machine {
             onProgress?.Invoke(progress);
         }
 
-        protected virtual void UnlockResource() { _resourceManager.UnlockResource(); }
+        protected virtual void UnlockResource() {
+            _resourceManager.UnlockResource();
+        }
 
-        protected virtual void TryPullResource() { _resourceManager.TryPullResource(1, out _); }
+        protected virtual void TryPullResource() {
+            _resourceManager.TryPullResource(1, out _);
+        }
 
         public event Action<float> onProgress = delegate { };
 
@@ -238,7 +232,6 @@ namespace Script.Machine {
             WorkDetails.ForEach(d => d.Machine = this);
             _progressPerSecTimer = new CountdownTimer(1);
             _resourceManager = new(this);
-            _product?.SetParent(this);
         }
 
         private void OnEnable() {
@@ -248,7 +241,9 @@ namespace Script.Machine {
             WorkDetails.ForEach(d => d.Start());
         }
 
-        private void OnValidate() { WorkDetails.ForEach(d => d.Machine = this); }
+        private void OnValidate() { 
+            WorkDetails.ForEach(d => d.Machine = this);
+        }
 
         private void OnDisable() {
             ResourceUse?.ForEach(r => r.Stop());
@@ -304,26 +299,25 @@ namespace Script.Machine {
             WorkDetails.ForEach(d => d.Update(Time.deltaTime));
         }
 
-        public virtual MachineBaseData Save() =>
-            new MachineBaseData() {
-                PrefabName = PrefabName,
-                Position = Position,
-                PowerUse = _powerUse,
-                ResourceManager = _resourceManager.ToSaveData(),
-                HasEnergyForWork = HasEnergyForWork,
-                HasTimer = _progressPerSecTimer is not null && _progressPerSecTimer != default,
-                TimerTime = _progressPerSecTimer?.Time ?? 0f * _progressPerSecTimer?.Progress ?? 1f,
-                TimerCurrentTime = _progressPerSecTimer?.Time ?? 0f,
-                ProgressQueue = _progressQueue,
-                IsClosed = _isClosed,
-                CurrentProgress = _currentProgress,
-                LastProgress = _lastProgress,
-                WorkDetails = _workDetails.Select(w => w.Save()).ToList(),
-                Product = _product.Save(),
-                PlacedTime = _placedTime,
-                SpawnWorkers = _spawnWorkers,
-                SpawnWorkerType = _spawnWorkerType,
-            };
+        public virtual MachineBaseData Save() => new MachineBaseData(){
+            PrefabName = PrefabName,
+            Position = Position,
+            PowerUse = _powerUse,
+            ResourceManager = _resourceManager.ToSaveData(),
+            HasEnergyForWork = HasEnergyForWork,
+            HasTimer = _progressPerSecTimer is not null && _progressPerSecTimer != default,
+            TimerTime = _progressPerSecTimer?.Time ?? 0f * _progressPerSecTimer?.Progress ?? 1f,
+            TimerCurrentTime = _progressPerSecTimer?.Time ?? 0f,
+            ProgressQueue = _progressQueue,
+            IsClosed = _isClosed,
+            CurrentProgress = _currentProgress,
+            LastProgress = _lastProgress,
+            WorkDetails = _workDetails.Select(w => w.Save()).ToList(),
+            Product = _product,
+            PlacedTime = _placedTime,
+            SpawnWorkers = _spawnWorkers,
+            SpawnWorkerType = _spawnWorkerType,
+        };
 
         public virtual void Load(MachineBaseData data) {
             _workDetails.Clear();
@@ -333,7 +327,6 @@ namespace Script.Machine {
                 workDetail.Machine = this;
                 _workDetails.Add(workDetail);
             }
-
             PrefabName = data.PrefabName;
             Position = data.Position;
             PowerUse = data.PowerUse;
@@ -348,22 +341,11 @@ namespace Script.Machine {
             IsClosed = data.IsClosed;
             CurrentProgress = data.CurrentProgress;
             _lastProgress = data.LastProgress;
+            Product = data.Product;
             _placedTime = data.PlacedTime;
             _spawnWorkers = data.SpawnWorkers;
             _spawnWorkerType = data.SpawnWorkerType;
-            var pType = Type.GetType(data.Product.Type);
-            if (pType != null
-                && pType.IsSubclassOf(typeof(ProductBase))
-                && Activator.CreateInstance(pType) is ProductBase product) {
-                if (Product.GetType() == product.GetType()) {
-                    Product.Load(data.Product);
-                }
-                else {
-                    product.Load(data.Product);
-                    Product = product;
-                }
-            }
-
+            
             UpdateWorkDetails();
             OnDisable();
             OnEnable();
@@ -383,7 +365,7 @@ namespace Script.Machine {
             public float CurrentProgress;
             public float LastProgress;
             public List<WorkDetail.SaveData> WorkDetails;
-            public IProduct.SaveData Product;
+            public ProductBase Product;
             public DateTimeOffset PlacedTime;
             public int SpawnWorkers;
             public WorkerType SpawnWorkerType;
