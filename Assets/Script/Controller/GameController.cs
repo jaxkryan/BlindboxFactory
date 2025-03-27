@@ -35,16 +35,17 @@ namespace Script.Controller {
         public NavMeshSurface NavMeshSurface;
         public TileBase GroundTile;
 
-        [Space] [Header("Save")] [SerializeField]
+        [Space] 
+        [Header("Save")] 
+        [SerializeField]
         public bool HasSaveTimer;
-
-        [ConditionalField(nameof(HasSaveTimer))] [SerializeField]
+        [ConditionalField(nameof(HasSaveTimer))] 
+        [SerializeField]
         public float MinutesBetweenSave = 5f;
-
         public SaveManager SaveManager;
         private Timer _saveTimer;
-
-
+        
+        
         public List<Vector2Int> GroundAddedTiles = new();
 
         private List<ControllerBase> _controllers =>
@@ -72,7 +73,7 @@ namespace Script.Controller {
             _controllers.ForEach(c => c.OnApplicationQuit());
             Task.Run(async () => await Save(SaveManager));
         }
-
+        
         private void OnEnable() => _controllers.ForEach(c => c.OnEnable());
 
         private void OnDisable() => _controllers.ForEach(c => c.OnDisable());
@@ -120,13 +121,12 @@ namespace Script.Controller {
             await SaveManager.LoadFromCloud();
             await SaveManager.LoadFromLocal();
 
-            Debug.LogWarning("Loading from file complete");
 
-            try {
+            try { 
                 #region Game Controller's own save
 
                 if (saveManager.SaveData.TryGetValue(nameof(HasSaveTimer), out string hasSaveTimerString)) {
-                    HasSaveTimer = hasSaveTimerString == bool.TrueString;
+                    HasSaveTimer = hasSaveTimerString == bool.TrueString; 
                 }
 
                 if (saveManager.SaveData.TryGetValue(nameof(MinutesBetweenSave), out string minutesBetweenSaveString)) {
@@ -135,42 +135,39 @@ namespace Script.Controller {
                 }
 
                 if (saveManager.SaveData.TryGetValue(nameof(GroundAddedTiles), out string groundAddedTilesString)) {
-                    var list = SaveManager.Deserialize<List<V2Int>>(groundAddedTilesString);
+                    var list =SaveManager.Deserialize<List<V2Int>>(groundAddedTilesString);
 
                     list.Select(v => (Vector2Int)v).ForEach(v => Ground.SetTile(v.ToVector3Int(), GroundTile));
                 }
-
                 #endregion
-
+                
                 Debug.LogWarning("Loading controllers");
                 _controllers.ForEach(c => {
                     Debug.LogWarning($"Loading {c.GetType().Name}");
                     c.Load(saveManager);
-                });
+                }); 
+                
             }
-            catch (System.Exception ex) { Debug.LogWarning(ex); }
+            catch (System.Exception ex) {
+                Debug.LogWarning(ex);
+            }
         }
 
         private async Task Save(SaveManager saveManager) {
             Debug.LogWarning("Saving");
-            try {
+            try { 
                 _controllers.ForEach(c => c.Save(saveManager));
 
                 #region Game Controller's own save
-
-                saveManager.SaveData.AddOrUpdate(nameof(HasSaveTimer),
-                    HasSaveTimer ? bool.TrueString : bool.FalseString,
-                    (s, s1) => HasSaveTimer ? bool.TrueString : bool.FalseString);
-                saveManager.SaveData.AddOrUpdate(nameof(MinutesBetweenSave),
-                    MinutesBetweenSave.ToString(CultureInfo.InvariantCulture),
+                saveManager.SaveData.AddOrUpdate(nameof(HasSaveTimer), HasSaveTimer ? bool.TrueString : bool.FalseString, (s, s1) => HasSaveTimer ? bool.TrueString : bool.FalseString);
+                saveManager.SaveData.AddOrUpdate(nameof(MinutesBetweenSave), MinutesBetweenSave.ToString(CultureInfo.InvariantCulture),
                     (s, s1) => MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
-                saveManager.SaveData.AddOrUpdate(nameof(GroundAddedTiles),
-                    SaveManager.Serialize(GroundAddedTiles.Select(V2Int.ToV2Int).ToList()),
-                    (s, s1) => SaveManager.Serialize(GroundAddedTiles.Select(V2Int.ToV2Int).ToList()));
-
+                saveManager.SaveData.AddOrUpdate(nameof(GroundAddedTiles), SaveManager.Serialize(GroundAddedTiles.Select(V2Int.ToV2Int)), (s, s1) => SaveManager.Serialize(GroundAddedTiles));
                 #endregion
             }
-            catch (System.Exception e) { Debug.LogWarning(e); }
+            catch (System.Exception e) {
+                Debug.LogWarning(e);
+            }
 
             Debug.LogWarning("Saving to file");
             await SaveManager.SaveToLocal();
