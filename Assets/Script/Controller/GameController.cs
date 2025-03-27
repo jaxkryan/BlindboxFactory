@@ -135,7 +135,7 @@ namespace Script.Controller {
                 }
 
                 if (saveManager.SaveData.TryGetValue(nameof(GroundAddedTiles), out string groundAddedTilesString)) {
-                    var list = JsonConvert.DeserializeObject<List<V2Int>>(groundAddedTilesString);
+                    var list =SaveManager.Deserialize<List<V2Int>>(groundAddedTilesString);
 
                     list.Select(v => (Vector2Int)v).ForEach(v => Ground.SetTile(v.ToVector3Int(), GroundTile));
                 }
@@ -162,7 +162,7 @@ namespace Script.Controller {
                 saveManager.SaveData.AddOrUpdate(nameof(HasSaveTimer), HasSaveTimer ? bool.TrueString : bool.FalseString, (s, s1) => HasSaveTimer ? bool.TrueString : bool.FalseString);
                 saveManager.SaveData.AddOrUpdate(nameof(MinutesBetweenSave), MinutesBetweenSave.ToString(CultureInfo.InvariantCulture),
                     (s, s1) => MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
-                saveManager.SaveData.AddOrUpdate(nameof(GroundAddedTiles), JsonConvert.SerializeObject(GroundAddedTiles.Select(V2Int.ToV2Int)), (s, s1) => JsonConvert.SerializeObject(GroundAddedTiles));
+                saveManager.SaveData.AddOrUpdate(nameof(GroundAddedTiles), SaveManager.Serialize(GroundAddedTiles.Select(V2Int.ToV2Int)), (s, s1) => SaveManager.Serialize(GroundAddedTiles));
                 #endregion
             }
             catch (System.Exception e) {

@@ -14,13 +14,21 @@ namespace Script.Machine.Machines.Canteen {
         public bool TryChangeMealAmount(int amount) {
             var newAmount = amount + AvailableMeals;
 
+            if (!IsFoodAmountValid(ref newAmount)) return false;
+
+            AvailableMeals = newAmount;
+            onMealAmountChanged?.Invoke(amount);
+            return true;
+        }
+        
+        bool IsFoodAmountValid(ref int newAmount) {
             if (newAmount > MaxCapacity) {
                 if (AvailableMeals >= MaxCapacity) {
                     Debug.LogError("Meal amount exceeds max capacity");
                     return false;
                 }
                 
-                amount = MaxCapacity - AvailableMeals;
+                var amount = MaxCapacity - AvailableMeals;
                 newAmount = amount + AvailableMeals;
             }
 
@@ -29,8 +37,6 @@ namespace Script.Machine.Machines.Canteen {
                 return false;
             }
 
-            AvailableMeals = newAmount;
-            onMealAmountChanged?.Invoke(amount);
             return true;
         }
 
@@ -44,6 +50,17 @@ namespace Script.Machine.Machines.Canteen {
 
             _maxCapacity = capacity;
             return true;
+        }
+
+        public Canteen.CanteenData.FoodStorageData Save() =>
+            new() {
+                MaxCapacity = MaxCapacity,
+                AvailableMeals = AvailableMeals
+            };
+
+        public void Load(Canteen.CanteenData.FoodStorageData data) {
+            _maxCapacity = data.MaxCapacity;
+            AvailableMeals = data.AvailableMeals;
         }
     }
 }

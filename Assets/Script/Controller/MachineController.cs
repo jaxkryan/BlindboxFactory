@@ -144,7 +144,7 @@ namespace Script.Controller {
         public override void Load(SaveManager saveManager) {
             try {
                 if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                    || JsonConvert.DeserializeObject<SaveData>(saveData, _serializerSettings) is not SaveData data)
+                    || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data)
                     return;
 
 
@@ -186,26 +186,23 @@ namespace Script.Controller {
                 var machine = m.Save();
                 newSave.Machines.Add(machine);
             });
-            // Debug.LogWarning(JsonConvert.SerializeObject(newSave));
+            // Debug.LogWarning(SaveManager.Serialize(newSave));
 
 
             try {
                 if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                    || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data)
+                    || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
                     saveManager.SaveData.TryAdd(this.GetType().Name,
-                        JsonConvert.SerializeObject(newSave));
+                        SaveManager.Serialize(newSave));
                 else
                     saveManager.SaveData[this.GetType().Name]
-                        = JsonConvert.SerializeObject(newSave, _serializerSettings);
+                        = SaveManager.Serialize(newSave);
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
                 Debug.LogException(ex);
             }
         }
-
-        private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings()
-            { TypeNameHandling = TypeNameHandling.All };
 
         private class SaveData {
             public List<MachineBase.MachineBaseData> Machines;

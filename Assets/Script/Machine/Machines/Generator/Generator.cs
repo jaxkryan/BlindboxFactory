@@ -12,5 +12,22 @@ namespace Script.Machine.Machines.Generator {
         {
             base.Start();
         }
+
+        public override void Load(MachineBaseData data) {
+            base.Load(data);
+            if (data is not GeneratorData saveData) return;
+            _power = saveData.Power;
+        }
+
+        public override MachineBaseData Save() {
+            if (base.Save() is not GeneratorData saveData) return base.Save();
+            
+            saveData.Power = _power;
+            return saveData;
+        }
+
+        public class GeneratorData : MachineBaseData {
+            public int Power;
+        }
     }
 }
