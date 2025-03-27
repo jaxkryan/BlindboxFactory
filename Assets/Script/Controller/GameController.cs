@@ -121,7 +121,6 @@ namespace Script.Controller {
             await SaveManager.LoadFromCloud();
             await SaveManager.LoadFromLocal();
 
-            #region Game Controller's own save
 
             try { 
                 #region Game Controller's own save
@@ -149,21 +148,9 @@ namespace Script.Controller {
                 }); 
                 
             }
-
-            if (saveManager.SaveData.TryGetValue(nameof(MinutesBetweenSave), out string minutesBetweenSaveString)) {
-                if (float.TryParse(minutesBetweenSaveString, out var minutesBetweenSave))
-                    MinutesBetweenSave = minutesBetweenSave;
+            catch (System.Exception ex) {
+                Debug.LogWarning(ex);
             }
-
-            if (saveManager.SaveData.TryGetValue(nameof(GroundAddedTiles), out string groundAddedTilesString)) {
-                var list = JsonConvert.DeserializeObject<List<V2Int>>(groundAddedTilesString);
-
-                list.Select(v => (Vector2Int)v).ForEach(v => Ground.SetTile(v.ToVector3Int(), GroundTile));
-            }
-
-            #endregion
-            
-            _controllers.ForEach(c => c.Load(saveManager));
         }
 
         private async Task Save(SaveManager saveManager) {
@@ -180,7 +167,6 @@ namespace Script.Controller {
             }
             catch (System.Exception e) {
                 Debug.LogWarning(e);
-                throw;
             }
 
             Debug.LogWarning("Saving to file");
