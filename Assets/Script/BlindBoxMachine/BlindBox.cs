@@ -29,22 +29,26 @@ public class BlindBox : SingleProductBase
         }
     }
 
-    public override IProduct.SaveData Save() {
+    public override IProduct.SaveData Save()
+    {
         if (base.Save() is not BlindBoxSaveData data) return base.Save();
-        
+
         data.BoxTypeName = BoxTypeName;
 
         return data;
     }
 
-    public override void Load(IProduct.SaveData saveData) {
+    public override void Load(IProduct.SaveData saveData)
+    {
         BaseLoad(saveData);
         if (saveData is not BlindBoxSaveData data) return;
-        
+
         BoxTypeName = data.BoxTypeName;
     }
 
-    public class BlindBoxSaveData : IProduct.SaveData {
+    public class BlindBoxSaveData : IProduct.SaveData
+    {
         public BoxTypeName BoxTypeName;
     }
+    //note
 }

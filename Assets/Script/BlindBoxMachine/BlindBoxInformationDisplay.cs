@@ -46,7 +46,7 @@ public class BlindBoxInformationDisplay : MonoBehaviour
 
     public void SellThis()
     {
-        _constructionLayer.Stored(currentCoordinate,true);
+        _constructionLayer.Stored(currentCoordinate);
         ChosePanel.SetActive(false);
     }
 }
