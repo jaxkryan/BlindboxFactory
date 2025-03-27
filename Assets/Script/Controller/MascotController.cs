@@ -312,11 +312,8 @@ namespace Script.HumanResource.Administrator {
             try {
                 if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                     || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
-                    saveManager.SaveData.TryAdd(this.GetType().Name,
-                        SaveManager.Serialize(newSave));
-                else
-                    saveManager.SaveData[this.GetType().Name]
-                        = SaveManager.Serialize(newSave);
+                    saveManager.SaveData.AddOrUpdate(this.GetType().Name,
+                        SaveManager.Serialize(newSave), (s, s1) => SaveManager.Serialize(newSave));
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
