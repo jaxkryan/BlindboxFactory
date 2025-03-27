@@ -27,7 +27,7 @@ namespace Script.Controller {
             get => _machines.AsReadOnly();
         }
 
-        private List<MachineBase> _machines;
+        [SerializeField] private List<MachineBase> _machines;
 
         public ReadOnlyDictionary<MachineBase, List<MachineCoreRecovery>> RecoveryMachines =>
             new((Dictionary<MachineBase, List<MachineCoreRecovery>>)_recoverMachines);
@@ -151,10 +151,9 @@ namespace Script.Controller {
                 _unlockMachines = new(data.UnlockMachines);
                 if (_constructionLayerScript == null || _constructionLayerScript == default) { return; }
 
-                Debug.LogWarning($"Machine count: {data.Machines.Count}");
-                Debug.LogWarning($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
-
                 UnityMainThreadDispatcher.Instance().Enqueue(() => {
+                    Debug.LogWarning($"Machine count: {data.Machines.Count}");
+                    Debug.LogWarning($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
                     foreach (var m in data.Machines) {
                         Debug.LogWarning($"Building prefab: {m.PrefabName}");
                         var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
@@ -192,11 +191,8 @@ namespace Script.Controller {
             try {
                 if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                     || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
-                    saveManager.SaveData.TryAdd(this.GetType().Name,
-                        SaveManager.Serialize(newSave));
-                else
-                    saveManager.SaveData[this.GetType().Name]
-                        = SaveManager.Serialize(newSave);
+                    saveManager.SaveData.AddOrUpdate(this.GetType().Name,
+                        SaveManager.Serialize(newSave), (s, s1) => SaveManager.Serialize(newSave));
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");

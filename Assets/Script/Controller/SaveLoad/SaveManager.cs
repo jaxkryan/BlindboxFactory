@@ -42,7 +42,7 @@ namespace Script.Controller.SaveLoad {
                 var str = Serialize(SaveData);
                 Debug.Log($"Serialized data: {str}");
 
-                await using (StreamWriter sw = new StreamWriter(System.IO.File.Open(FilePath, FileMode.OpenOrCreate))) {
+                await using (StreamWriter sw = new StreamWriter(FilePath, false)) {
                     await sw.WriteAsync(str);
                     await sw.FlushAsync();
                     Debug.Log("Data saved successfully.");
