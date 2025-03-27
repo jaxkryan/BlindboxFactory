@@ -17,8 +17,8 @@ namespace Script.Machine
         {
             base.Start();
 
-            ProgressionPerSec = 20f;
-            if (level > 1) ProgressionPerSec *= 1.5f;
+            //ProgressionPerSec = 20f;
+            //if (level > 1) ProgressionPerSec *= 1.5f;
             //SetMachineHasEnergyForWork(true);
             if (Product == null)
             {
@@ -39,12 +39,16 @@ namespace Script.Machine
         {
             base.Update();
 
-            // Increase progress each frame if workable
+            //// Increase progress each frame if workable
+            // tam thoi fix cung
             if (IsWorkable)
             {
+                ProgressionPerSec = 20f;
+                if (level > 1) ProgressionPerSec *= 1.5f;
                 IncreaseProgress(ProgressionPerSec * Time.deltaTime);
             }
-           
+            //Debug.Log("is workable: " + IsWorkable + !IsClosed + HasResourceForWork + HasEnergyForWork + CanCreateProduct);
+            //Debug.Log("Progress per sec now" + ProgressionPerSec);  
         }
 
         public override ProductBase CreateProduct()
