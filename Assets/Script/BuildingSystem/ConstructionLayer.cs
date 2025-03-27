@@ -155,6 +155,9 @@ namespace BuildingSystem
 
             _buildables.Remove(coords);
             buildable.Destroy();
+
+
+
             FindFirstObjectByType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
         }
 
