@@ -110,31 +110,31 @@ public class RecipeButton : MonoBehaviour
 
         BoxTypeManager boxTypeManager = FindFirstObjectByType<BoxTypeManager>();
 
-        BoxData boxData = boxTypeManager.GetBoxData(blindbox.boxTypeName);
+        BoxData boxData = boxTypeManager.GetBoxData(blindbox.BoxTypeName);
         // Setup result and text
         if (resultImage && boxData.sprite)
         {
             if (boxData.sprite == null)
             {
-                Debug.LogError($"[RecipeButton] Missing boxSprite for recipe result: {blindbox.boxTypeName}");
+                Debug.LogError($"[RecipeButton] Missing boxSprite for recipe result: {blindbox.BoxTypeName}");
             }
             if (resultImage == null)
             {
                 Debug.LogError("[RecipeButton] resultImage reference is missing in the Inspector!");
             }
-            Debug.Log($"[RecipeButton] Setting sprite for {blindbox.boxTypeName}");
+            Debug.Log($"[RecipeButton] Setting sprite for {blindbox.BoxTypeName}");
             resultImage.sprite = boxData.sprite;
             resultImage.preserveAspect = true;
 
             if (recipeText)
             {
-                recipeText.text = $"{blindbox.boxTypeName}";
+                recipeText.text = $"{blindbox.BoxTypeName}";
             }
         }
 
         if (recipeText)
         {
-            string formulaText = $"{blindbox.boxTypeName}";
+            string formulaText = $"{blindbox.BoxTypeName}";
             recipeText.text = formulaText;
         }
     }
