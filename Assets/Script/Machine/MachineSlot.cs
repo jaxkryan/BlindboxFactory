@@ -20,13 +20,10 @@ namespace Script.Machine {
         [SerializeField] private CollectionWrapperList<WorkerType> _forWorker;
         public MachineBase Machine { get; private set; }
 
-<<<<<<< HEAD
-        public bool SetCurrentWorker([CanBeNull] IWorker worker = null) {
-            Debug.LogWarning($"Try setting {((Worker)worker).name} as the current worker");
-=======
+
         public bool SetCurrentWorker([CanBeNull] Worker worker = null) {
             Debug.LogWarning($"Try setting {((Worker)worker)?.name ?? "null"} as the current worker");
->>>>>>> 634613ce5cff7b5fcde87de71f4adfc1cb262873
+
             if (worker is not null) {
                 if (CurrentWorker == worker) return true;
                 if (CurrentWorker is not null) {
