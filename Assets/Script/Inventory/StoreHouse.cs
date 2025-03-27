@@ -42,4 +42,26 @@ public class StoreHouse : MachineBase
         _boxController.TryGetWarehouseMaxAmount(out var maxAmount);
         _boxController.TrySetWarehouseMaxAmount(maxAmount - boxamount);
     }
+
+    public override MachineBaseData Save() {
+        if (base.Save() is not StoreHouseData data) return base.Save();
+
+        data.ResourceAmount = resorceamount;
+        data.BoxAmount = boxamount;
+        return data;
+    }
+
+    public override void Load(MachineBaseData data) {
+        base.Load(data);
+        if (data is not StoreHouseData saveData) return;
+        
+        resorceamount = saveData.ResourceAmount;
+        boxamount = saveData.BoxAmount;
+    }
+
+
+    public class StoreHouseData : MachineBase.MachineBaseData {
+        public long BoxAmount;
+        public long ResourceAmount;
+    }
 }

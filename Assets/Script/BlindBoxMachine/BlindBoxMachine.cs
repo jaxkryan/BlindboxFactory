@@ -51,7 +51,6 @@ public class BlindBoxMachine : MachineBase
 
     public override ProductBase CreateProduct()
     {
-        Debug.Log("calling create");
         var ret = base.CreateProduct();
         if (amount-- <= 0 && !(Product is BlindBox bbProduct && bbProduct.BoxTypeName == BoxTypeName.Null))
         {
@@ -62,5 +61,35 @@ public class BlindBoxMachine : MachineBase
         }
 
         return ret;
+    }
+
+    public override void Load(MachineBaseData data) {
+        base.Load(data);
+        if (data is not BBMData saveData) return;
+
+        amount = saveData.Amount;
+        maxAmount = saveData.MaxAmount;
+        recipes.Clear();
+        foreach (var recipe in saveData.Recipes) {
+            var r = Activator.CreateInstance<BlindBox>();
+            r.Load(recipe);
+            recipes.Add(r);
+        }
+    }
+
+    public override MachineBaseData Save() {
+        var data = base.Save() as BBMData;
+        
+        if (data is null) return base.Save();
+        data.Amount = amount;
+        data.MaxAmount = maxAmount;
+        data.Recipes = recipes.Select(r => r.Save()).Cast<BlindBox.BlindBoxSaveData>().ToList();
+        return data;
+    }
+
+    public class BBMData : MachineBase.MachineBaseData {
+        public int Amount;
+        public List<BlindBox.BlindBoxSaveData> Recipes;
+        public int MaxAmount;
     }
 }

@@ -58437,6 +58437,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AutoUnparentOnLoad: 1
   _collisionTileBase: {fileID: 11400000, guid: f018430aa29860149be39ddc58aeab54, type: 2}
+  _foundationTileBase: {fileID: 11400000, guid: d2081c0e45d84a243bca52afe7158d90, type: 2}
 --- !u!19719996 &1999813891
 TilemapCollider2D:
   m_ObjectHideFlags: 0
@@ -58648,6 +58649,9 @@ MonoBehaviour:
   - tile: {fileID: 11400000, guid: f018430aa29860149be39ddc58aeab54, type: 2}
     overrideArea: 1
     area: 0
+  - tile: {fileID: 11400000, guid: d2081c0e45d84a243bca52afe7158d90, type: 2}
+    overrideArea: 1
+    area: 1
 --- !u!114 &1999813898
 MonoBehaviour:
   m_ObjectHideFlags: 0

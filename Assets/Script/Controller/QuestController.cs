@@ -78,7 +78,7 @@ namespace Script.Controller {
         public override void Load(SaveManager saveManager) {
             try {
                 if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                      || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
+                      || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
 
                 _quest.ForEach(q => q.State = QuestState.Locked);
                 for (var i = 0; i < data.QuestStates.Count; i++) {
@@ -106,12 +106,12 @@ namespace Script.Controller {
             
             try {
                 if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                    || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data)
+                    || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
                     saveManager.SaveData.TryAdd(this.GetType().Name,
-                        JsonConvert.SerializeObject(newSave));
+                        SaveManager.Serialize(newSave));
                 else
                     saveManager.SaveData[this.GetType().Name]
-                        = JsonConvert.SerializeObject(newSave);
+                        = SaveManager.Serialize(newSave);
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
