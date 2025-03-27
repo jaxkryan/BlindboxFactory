@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
 using JetBrains.Annotations;
+using MyBox;
+using Script.Controller;
 using Script.Machine;
 using UnityEngine;
 using UnityEngine.AI;
@@ -34,7 +36,7 @@ namespace Script.HumanResource.Worker {
         [Header("Work")] 
         [CanBeNull] public IMachine Machine {get; private set;}
         [CanBeNull] public MachineSlot WorkingSlot {get; private set;}
-        public HashSet<Bonus> Bonuses { get => _bonuses.ToHashSet();  }
+        public List<Bonus> Bonuses { get => _bonuses; }
         [SerializeReference, SubclassSelector] private List<Bonus> _bonuses;
         public event Action onWorking = delegate { };
         public event Action onStopWorking = delegate { };
@@ -77,6 +79,8 @@ namespace Script.HumanResource.Worker {
             
             WorkingSlot = slot;
             Machine = slot.Machine;
+            Agent.enabled = false;
+            transform.position = WorkingSlot.transform.position;
             onWorking?.Invoke();
         }
         public virtual void StopWorking() {
@@ -92,6 +96,9 @@ namespace Script.HumanResource.Worker {
 
             WorkingSlot = null;
             Machine = null;
+            Agent.enabled = true;
+            if (NavMesh.SamplePosition(transform.position, out var hit, Single.MaxValue, 1))
+                transform.position = hit.position;
             onStopWorking?.Invoke();
         }
         public void AddBonus(Bonus bonus) {
@@ -134,6 +141,61 @@ namespace Script.HumanResource.Worker {
             
             Animator.SetFloat(HorizontalMovement, Agent.velocity.x);
             Animator.SetFloat(VerticalMovement, Agent.velocity.y);
+        }
+
+        public virtual SaveData Save() => new SaveData() {
+            Name = Name,
+            Description = Description,
+            PortraitIndex = GameController.Instance.WorkerController.PortraitSprites.Any(p => p == Portrait)
+            ? GameController.Instance.WorkerController.PortraitSprites.FirstIndex(p => p == Portrait)
+            : 0,
+            Position = transform.position,
+            MaximumCores = MaximumCore,
+            StartingCores = _startingCores,
+            CurrentCores = CurrentCores,
+            Bonuses = Bonuses,
+            MachinePrefabName = Machine is MachineBase mbf ? mbf?.PrefabName ?? string.Empty : string.Empty,
+            MachinePosition = Machine is MachineBase mbp ? mbp?.Position ?? Vector2Int.zero : Vector2Int.zero,
+            MachineSlotName = WorkingSlot is not null ? WorkingSlot.name : string.Empty,
+        };
+
+        public virtual void Load(SaveData data) {
+            Name = data.Name;
+            _description = data.Description;
+            Portrait = GameController.Instance.WorkerController.PortraitSprites.Count >= data.PortraitIndex
+                ? GameController.Instance.WorkerController.PortraitSprites[data.PortraitIndex] : default;
+            transform.position = data.Position;
+            _maximumCores = new SerializedDictionary<CoreType, float>(data.MaximumCores);
+            _startingCores = new SerializedDictionary<CoreType, float>(data.StartingCores);
+            _currentCores = data.CurrentCores;
+            _bonuses = data.Bonuses;
+
+            if (data.MachinePrefabName != string.Empty) {
+                var machine = GameController.Instance.MachineController.Machines.FirstOrDefault(m =>
+                    m.PrefabName == data.MachinePrefabName && m.Position == data.MachinePosition);
+                if (machine is not null) {
+                    var slot = machine.Slots.FirstOrDefault(s => s.name == data.MachineSlotName);
+                    if (slot is not null && slot.CurrentWorker is null && slot.CanAddWorker(this)) {
+                        machine.AddWorker(this, slot);
+                    }
+                }
+            }
+            
+            
+        }
+
+        public class SaveData {
+            public string Name;
+            public string Description;
+            public int PortraitIndex;
+            public Vector3 Position;
+            public Dictionary<CoreType, float> MaximumCores;
+            public Dictionary<CoreType, float> StartingCores;
+            public Dictionary<CoreType, float> CurrentCores;
+            public List<Bonus> Bonuses;
+            public string MachinePrefabName;
+            public Vector2Int MachinePosition;
+            public string MachineSlotName;
         }
     }
 }

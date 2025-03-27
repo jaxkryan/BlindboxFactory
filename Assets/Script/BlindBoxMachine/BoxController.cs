@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
 using MyBox;
+using Script.Controller.SaveLoad;
 using UnityEngine;
 
 [Serializable]
@@ -52,8 +53,6 @@ namespace Script.Controller
         private List<SaleData> _saleData = new();
 
         [SerializeField] private long _wareHouseMaxAmount;
-
-        InventoryUIManager inventoryUIManager = new InventoryUIManager();
         public void AddSaleData(int UnitPrice, int TotalPrice, BoxTypeName BoxTypeName, int Amount, DateTime DateTime)
         {
             _saleData.Add(new SaleData
@@ -142,7 +141,7 @@ namespace Script.Controller
             }
         }
 
-        public override void Load()
+        public override void Load(SaveManager saveManager)
         {
             Debug.Log("run Load");
             foreach (BoxTypeName btn in Enum.GetValues(typeof(BoxTypeName)))
@@ -151,7 +150,7 @@ namespace Script.Controller
             }
         }
 
-        public override void Save()
+        public override void Save(SaveManager saveManager)
         {
             //throw new System.NotImplementedException();
         }
@@ -170,9 +169,17 @@ namespace Script.Controller
             base.OnValidate();
         }
 
-        private long GetTotalBlindBoxAmount()
+        public long GetTotalBlindBoxAmount()
         {
-            return _boxAmount.Sum(b => b.Value);
+            long boxamount = 0;
+            foreach (var box in _boxAmount)
+            {
+                if (box.Key != BoxTypeName.Null)
+                {
+                    boxamount += box.Value;
+                }
+            }
+            return boxamount;
         }
 
         public bool TryGetAllBoxAmounts(out Dictionary<BoxTypeName, long> boxAmounts)
@@ -185,6 +192,27 @@ namespace Script.Controller
             boxAmounts = new Dictionary<BoxTypeName, long>(_boxAmount);
             return true;
         }
+
+        public bool TrySetWarehouseMaxAmount(long newMaxAmount)
+        {
+            if (newMaxAmount < 0)
+            {
+                Debug.LogWarning("Warehouse max amount cannot be negative!");
+                return false;
+            }
+
+            _wareHouseMaxAmount = newMaxAmount;
+            Debug.Log($"Warehouse max amount updated to: {_wareHouseMaxAmount}");
+            return true;
+        }
+
+        public bool TryGetWarehouseMaxAmount(out long maxAmount)
+        {
+            maxAmount = _wareHouseMaxAmount;
+            return true; 
+        }
+
+
 
     }
 }

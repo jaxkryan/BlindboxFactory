@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 6096638752244611233}
   - component: {fileID: 8578813517459701503}
+  - component: {fileID: -4390113061857229255}
   - component: {fileID: 466119499461686248}
-  - component: {fileID: 1425931930053402569}
   m_Layer: 0
   m_Name: LV2 StoreHouse
   m_TagString: Untagged
@@ -29,7 +29,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 3.05, y: -5.95, z: -0.022068173}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1.25, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -50,6 +50,37 @@ Animation:
   m_AnimatePhysics: 0
   m_UpdateMode: 0
   m_CullingType: 0
+--- !u!114 &-4390113061857229255
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 556174007415281592}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a032d91bd0875bf4d93c7c8485d23779, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _powerUse: 0
+  _isClosed: 0
+  _slots: []
+  _spawnWorkers: 0
+  _spawnWorkerType: 0
+  _workDetails: []
+  _product:
+    rid: 7910668952546836581
+  boxamount: 300
+  resorceamount: 300
+  references:
+    version: 2
+    RefIds:
+    - rid: 7910668952546836581
+      type: {class: BlindBox, ns: , asm: Assembly-CSharp}
+      data:
+        _maxProgress: 100
+        _resourceUse: []
+        boxTypeName: 3
 --- !u!212 &466119499461686248
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -105,17 +136,3 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &1425931930053402569
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 556174007415281592}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 36bf2cf2faf1cea48a455f84318546b5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  storageMaxCapacity: 200
-  storageCurrentCapacity: 200

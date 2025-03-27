@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
 using Script.Controller;
+using Script.Controller.SaveLoad;
 using Script.Gacha.Base;
 using Script.Gacha.Shard;
 using UnityEngine;
@@ -42,10 +43,10 @@ namespace Script.Controller {
             }
         }
 
-        public override void Load() { 
+        public override void Load(SaveManager saveManager) { 
             //throw new NotImplementedException(); 
         }
-        public override void Save() { 
+        public override void Save(SaveManager saveManager) { 
             //throw new NotImplementedException(); 
         }
     }

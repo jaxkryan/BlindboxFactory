@@ -1,25 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
+using Script.Controller.SaveLoad;
 using Script.Quest;
 using UnityEngine;
 
 namespace Script.Controller {
     [Serializable]
     public class QuestController : ControllerBase {
-        public override void Load() { //throw new System.NotImplementedException();
-                                      }
-        public override void Save() { //throw new System.NotImplementedException();
-                                      }
 
         [SerializeField] private List<Quest.Quest> _quest;
-        public HashSet<Quest.Quest> Quests {
+        public List<Quest.Quest> Quests {
             get {
-                return _quest?.ToHashSet() ?? NewSetAndLog();
+                return _quest ?? NewSetAndLog();
 
-                HashSet<Quest.Quest> NewSetAndLog() {
+                List<Quest.Quest> NewSetAndLog() {
                     Debug.LogError("Quest list is empty!");
-                    return new HashSet<Quest.Quest>();
+                    return new ();
                 }
             }
         }
@@ -30,7 +28,7 @@ namespace Script.Controller {
         public HashSet<string> Keys() => QuestData.Keys.ToHashSet();
 
         public bool TryGetValue<T>(string key, out T value) {
-            if (QuestData.TryGetValue(key, out var entry) && entry is BlackboardEntry<T> castedEntry) {
+            if (QuestData.TryGetValue(key, out var entry) && entry is Entry<T> castedEntry) {
                 value = castedEntry.Value;
                 return true;
             }
@@ -77,6 +75,54 @@ namespace Script.Controller {
         }
 
         public event Action<Quest.Quest> onQuestStateChanged = delegate { };
+        public override void Load(SaveManager saveManager) {
+            try {
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                      || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
+
+                _quest.ForEach(q => q.State = QuestState.Locked);
+                for (var i = 0; i < data.QuestStates.Count; i++) {
+                    _quest[i].State = data.QuestStates[i];
+                }
+                QuestData = data.QuestData;
+            }
+            catch (System.Exception ex) {
+                Debug.LogError($"Cannot load {GetType()}");
+                Debug.LogException(ex);
+                return;
+            }
+        }
+        public override void Save(SaveManager saveManager) {
+            var newSave = new SaveData() { QuestData = QuestData, QuestStates =  new()};
+
+            var list = _quest.Clone();
+
+            while (list.Any(q => q.State != QuestState.Locked)) {
+                var quest = list[0];
+                newSave.QuestStates.Add(quest.State);
+                list.RemoveAt(0);
+            }
+            
+            
+            try {
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                    || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
+                    saveManager.SaveData.TryAdd(this.GetType().Name,
+                        SaveManager.Serialize(newSave));
+                else
+                    saveManager.SaveData[this.GetType().Name]
+                        = SaveManager.Serialize(newSave);
+            }
+            catch (System.Exception ex) {
+                Debug.LogError($"Cannot save {GetType()}");
+                Debug.LogException(ex);
+            }
+        }
+
+        public class SaveData {
+            public List<QuestState> QuestStates;
+            public Dictionary<string, object> QuestData;
+        }
     }
 
     public class Entry<T> {

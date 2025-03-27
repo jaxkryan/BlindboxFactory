@@ -1,11 +1,12 @@
 using BuildingSystem.Models;
+using Script.Controller;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace BuildingSystem
 {
-    public class BuildingPlacer : MonoBehaviour
+    public class BuildingPlacer : PersistentSingleton<BuildingPlacer>
     {
         [field:SerializeField]
         public BuildableItem ActiveBuildable {  get; private set; }
@@ -26,65 +27,107 @@ namespace BuildingSystem
 
         public bool IsbuildMode = false;
 
+        private bool isTouching = false;
+        private float touchStartTime;
+        private const float maxTouchDuration = 0.2f;
+
         private void Update()
         {
             if (IsbuildMode)
             {
+                bool isEnoughtGold;
                 Vector3 position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 position.z = 0;
 
-                //if (!IsMouseWithinBuildableRange())
-                //{
-                //    _previewLayer.ClearPreview();
-                //  return;
-                //};
                 if (IsPointerOverUI()) return;
-
                 if (_constructionLayer == null)
                 {
                     _previewLayer.ClearPreview();
                     return;
                 }
 
+
                 if (_storeMode)
                 {
                     if (Input.GetMouseButtonDown(0))
                     {
-                        try
+                        isTouching = true;
+                        touchStartTime = Time.time; 
+                    }
+
+                    if (Input.GetMouseButtonUp(0) && isTouching)
+                    {
+                        float touchDuration = Time.time - touchStartTime;
+                        if (touchDuration <= maxTouchDuration) // Ensure it's a quick tap
                         {
-                            _constructionLayer.Stored(position);
+                            try
+                            {
+                                _constructionLayer.Stored(position, false);
+                            }
+                            catch
+                            {
+                                // Debug.Log("position clear");
+                            }
                         }
-                        catch
-                        {
-                            //Debug.Log("position clear");
-                        }
+                        isTouching = false; // Reset touch state
                     }
                 }
 
                 if (ActiveBuildable == null)
                 {
                     return;
-                };
+                }
 
-                var isSpaceEmpty = _constructionLayer.IsEmpty(position,
-                    ActiveBuildable.UseCustomCollisionSpace ? ActiveBuildable.CollisionSpace : default);
+                var isSpaceEmpty = _constructionLayer.IsEmpty(
+                    position,
+                    ActiveBuildable.UseCustomCollisionSpace ? ActiveBuildable.CollisionSpace : default
+                );
+
+                var itemCost = 0;
+                if (ActiveBuildable.Cost == null)
+                {
+                    itemCost = 0;
+                }
+                else
+                {
+                    itemCost = ActiveBuildable.Cost;
+                }
+                GameController.Instance.ResourceController.TryGetAmount(Script.Resources.Resource.Gold, out long currentMoney);
+                if (currentMoney < itemCost)
+                {
+                    isEnoughtGold = false;
+                }
+                else
+                {
+                    isEnoughtGold = true;
+                }
 
                 _previewLayer.ShowPreview(
                     ActiveBuildable,
                     position,
-                    isSpaceEmpty
-                    );
-                if (Input.GetMouseButtonUp(0) &&
-                    ActiveBuildable != null &&
-                    _constructionLayer != null &&
-                    isSpaceEmpty
-                    )
+                    isSpaceEmpty,
+                    isEnoughtGold
+                );
+
+                if (Input.GetMouseButtonDown(0))
                 {
-                    _constructionLayer.Build(position, ActiveBuildable);
+                    isTouching = true;
+                    touchStartTime = Time.time;
+                }
+
+                if (Input.GetMouseButtonUp(0) && isTouching)
+                {
+                    float touchDuration = Time.time - touchStartTime;
+                    if (touchDuration <= maxTouchDuration && ActiveBuildable != null && _constructionLayer != null && isSpaceEmpty)
+                    {
+                        Debug.LogWarning(ActiveBuildable.gameObject.name);
+                        _constructionLayer.Build(position, ActiveBuildable);
+                    }
+                    isTouching = false;
                 }
             }
-
         }
+
 
 
         //private bool IsMouseWithinBuildableRange()

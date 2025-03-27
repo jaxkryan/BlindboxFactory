@@ -1,7 +1,9 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Script.Controller;
+using Script.Gacha.Base;
 using Script.HumanResource.Administrator;
 using TMPro;
 using UnityEngine;
@@ -16,15 +18,25 @@ public class AdminDepartmentManagerUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _policies;
     [SerializeField] public MascotType Position;
     [SerializeField] private AdministratorManagerUI _manager;
-    [SerializeField] private TextMeshProUGUI _ability;
+    //[SerializeField] private TextMeshProUGUI _ability;
 
     private MascotController _adminController;
     private Mascot? _mascot;
 
+    // Grade colors (same as GachaRevealPanelUI)
+    private readonly Dictionary<Grade, Color> _gradeColors = new()
+    {
+        { Grade.Common, Color.green },
+        { Grade.Rare, Color.blue },
+        { Grade.Special, new Color(0.5f, 0f, 1f) },
+        { Grade.Epic, new Color(1f, 0.5f, 0f) },
+        { Grade.Legendary, Color.yellow }
+    };
+
     private void Awake()
     {
         _manager = GetComponentInParent<AdministratorManagerUI>();
-        _adminController = GameController.Instance.MascotController; // Get the controller
+        _adminController = GameController.Instance.MascotController;
     }
 
     private void OnEnable()
@@ -41,7 +53,7 @@ public class AdminDepartmentManagerUI : MonoBehaviour
     {
         if (department == Position)
         {
-            Mascot = mascot; // Update local mascot when the controller notifies us
+            Mascot = mascot;
         }
     }
 
@@ -63,16 +75,23 @@ public class AdminDepartmentManagerUI : MonoBehaviour
 
     private void SetUpAdmin()
     {
-        _ability.color = Mascot != null ? Color.grey : Color.green;
+        //_ability.color = Mascot != null ? Color.grey : Color.green;
         _position.text = Enum.GetName(typeof(MascotType), Position);
         _portrait.sprite = Mascot?.Portrait ?? _defaultPortrait;
         _name.text = Mascot?.Name.ToString() ?? string.Empty;
-        var policies = "";
+
+        // Format policies as a bullet list with grade color
         if (Mascot != null)
         {
-            Mascot.Policies.ForEach(p => policies += p.Description + "\n");
+            var policies = Mascot.Policies.Aggregate("", (current, p) => current + $"• {p.Description}\n").TrimEnd('\n');
+            _policies.text = policies;
+            _policies.color = _gradeColors[Mascot.Grade];
         }
-        _policies.text = policies;
+        else
+        {
+            _policies.text = "";
+            _policies.color = Color.white; // Default color when no mascot
+        }
     }
 
     public void OnClickInfo()
@@ -89,12 +108,10 @@ public class AdminDepartmentManagerUI : MonoBehaviour
         {
             _manager.gameObject.SetActive(true);
             Destroy(selectionUI.gameObject);
-            // Update the controller immediately
             SetControllerMascot(administrator);
         };
     }
 
-    // New method to sync with the controller
     private void SetControllerMascot(Mascot? mascot)
     {
         switch (Position)
@@ -120,13 +137,12 @@ public class AdminDepartmentManagerUI : MonoBehaviour
             default:
                 throw new ArgumentOutOfRangeException(nameof(Position), Position, null);
         }
-        // Local UI will update via OnMascotChangedHandler
     }
 
     private void OnValidate()
     {
         SetUpAdmin();
-        SetDimensionsToEmpty(_ability);
+        //SetDimensionsToEmpty(_ability);
         SetDimensionsToEmpty(_policies);
     }
 
@@ -153,7 +169,7 @@ public class AdminDepartmentManagerUI : MonoBehaviour
     private void OnGUI()
     {
         SetUpAdmin();
-        SetDimensionsToEmpty(_ability);
+        //SetDimensionsToEmpty(_ability);
         SetDimensionsToEmpty(_policies);
     }
 }

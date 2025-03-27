@@ -65,5 +65,29 @@ namespace Script.Machine {
             }
             return true;
         }
+
+        public SaveData Save() =>
+            new SaveData() {
+                Type = this.GetType(),
+                Slot = Slot,
+                HasTimer = _timer is not null,
+                TimerCurrentTime = _timer?.Time ?? 0f,
+                TimerTime = _timer?.Time ?? 0f / _timer?.Progress ?? 1f,
+            };
+
+        public virtual void Load(SaveData data) {
+            Slot = data.Slot;
+            if (data.HasTimer) {
+                _timer = new CountdownTimer(data.TimerTime);
+                _timer.Time = data.TimerCurrentTime;
+            }
+        }
+        public class SaveData {
+            public Type Type;
+            public int Slot;
+            public bool HasTimer;
+            public float TimerTime;
+            public float TimerCurrentTime;
+        }
     }
 }

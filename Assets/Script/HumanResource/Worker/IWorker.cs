@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Script.Controller;
+using Script.HumanResource.Worker.Workers;
 using Script.Machine;
 using UnityEngine;
 
@@ -27,7 +28,7 @@ namespace Script.HumanResource.Worker {
         void StopWorking();
         event Action onWorking;
         event Action onStopWorking;
-        HashSet<Bonus> Bonuses { get; }
+        List<Bonus> Bonuses { get; }
         void AddBonus(Bonus bonus);
         void RemoveBonus(Bonus bonus);
         string Name { get; }
@@ -36,14 +37,17 @@ namespace Script.HumanResource.Worker {
         WorkerDirector Director { get; }
 
 
-        public static WorkerType ToWorkerType<TWorker>(TWorker worker) where TWorker : IWorker => ToWorkerType<TWorker>();
+        public static WorkerType ToWorkerType<TWorker>(TWorker worker) where TWorker : Worker => ToWorkerType<TWorker>();
 
-        public static WorkerType ToWorkerType<TWorker>() where TWorker : IWorker { 
-            switch (typeof(TWorker)) {
+        public static WorkerType ToWorkerType<TWorker>() where TWorker : Worker { 
+            switch (typeof(TWorker))
+            {
                 case Type @base when @base == typeof(Worker):
                     return WorkerType.Worker;
+                case Type @base when @base == typeof(FactoryWorker):
+                    return WorkerType.FactoryWorker;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(typeof(TWorker).Name);
             }
         }
     }

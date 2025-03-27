@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MyBox;
 using Script.Controller;
 using UnityEngine;
 
 namespace Script.Quest {
-    [Serializable]
-    public class Quest {
+    [CreateAssetMenu(menuName = "Quest/Quest", fileName = "New Quest")]
+    public class Quest : ScriptableObject{
         [SerializeField] public string Name;
         [TextArea]
         [SerializeField] public string Description;
@@ -58,7 +59,7 @@ namespace Script.Quest {
             while (oriState != State);
             
         }
-        
+
         public event Action<Quest, QuestState> onQuestStateChanged = delegate { };
         
         [SerializeField] public List<QuestCondition> Preconditions;

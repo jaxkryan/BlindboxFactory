@@ -18,39 +18,48 @@ MonoBehaviour:
   _serializeRequirements: []
   _commonSettings:
     _rate: 0
-    _itemPool: []
-    GradeLevel: 0
-    MinimumTotalLevel: 0
-    MaximumTotalLevel: 0
-    MinimumPolicies: 0
-    MaximumPolicies: 0
+    _itemPool:
+    - {fileID: 11400000, guid: 8afd81de0d3abb7439203b83c7c98a1f, type: 2}
+    - {fileID: 11400000, guid: ed98ebd4e742b9f428e07f53e9036210, type: 2}
+    GradeLevel: 1
+    MinimumTotalLevel: 1
+    MaximumTotalLevel: 1
+    MinimumPolicies: 1
+    MaximumPolicies: 1
     policyRequirements: []
   _rareSettings:
     _rate: 0
-    _itemPool: []
-    GradeLevel: 0
-    MinimumTotalLevel: 0
-    MaximumTotalLevel: 0
-    MinimumPolicies: 0
-    MaximumPolicies: 0
-    policyRequirements: []
+    _itemPool:
+    - {fileID: 11400000, guid: 8afd81de0d3abb7439203b83c7c98a1f, type: 2}
+    - {fileID: 11400000, guid: ed98ebd4e742b9f428e07f53e9036210, type: 2}
+    GradeLevel: 2
+    MinimumTotalLevel: 1
+    MaximumTotalLevel: 2
+    MinimumPolicies: 1
+    MaximumPolicies: 2
+    policyRequirements:
+    - rid: -2
   _specialSettings:
     _rate: 0
-    _itemPool: []
-    GradeLevel: 0
-    MinimumTotalLevel: 0
-    MaximumTotalLevel: 0
-    MinimumPolicies: 0
-    MaximumPolicies: 0
+    _itemPool:
+    - {fileID: 11400000, guid: 8afd81de0d3abb7439203b83c7c98a1f, type: 2}
+    - {fileID: 11400000, guid: ed98ebd4e742b9f428e07f53e9036210, type: 2}
+    GradeLevel: 3
+    MinimumTotalLevel: 2
+    MaximumTotalLevel: 3
+    MinimumPolicies: 2
+    MaximumPolicies: 3
     policyRequirements: []
   _epicSettings:
     _rate: 0
-    _itemPool: []
-    GradeLevel: 0
-    MinimumTotalLevel: 0
-    MaximumTotalLevel: 0
-    MinimumPolicies: 0
-    MaximumPolicies: 0
+    _itemPool:
+    - {fileID: 11400000, guid: 8afd81de0d3abb7439203b83c7c98a1f, type: 2}
+    - {fileID: 11400000, guid: ed98ebd4e742b9f428e07f53e9036210, type: 2}
+    GradeLevel: 1
+    MinimumTotalLevel: 3
+    MaximumTotalLevel: 4
+    MinimumPolicies: 3
+    MaximumPolicies: 4
     policyRequirements: []
   _legendarySettings:
     _rate: 0
@@ -63,4 +72,6 @@ MonoBehaviour:
     policyRequirements: []
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }

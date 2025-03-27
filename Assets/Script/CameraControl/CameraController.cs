@@ -49,7 +49,6 @@ public class CameraController : MonoBehaviour
             {
                 // Correctly set z to camera's distance from the scene
                 touchStart = Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, Camera.main.transform.position.z));
-                Debug.Log("touchStart: " + touchStart);
             }
             else if (touch.phase == TouchPhase.Moved)
             {
@@ -62,7 +61,6 @@ public class CameraController : MonoBehaviour
 
                 // Move the camera
                 Camera.main.transform.position += direction * dragSpeed;
-                Debug.Log("direction: " + direction);
             }
         }
     }

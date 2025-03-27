@@ -31,7 +31,7 @@ namespace Script.Patterns.AI.GOAP.Strategies {
 
         public void Start() {
             if (TryWishlistMachine() || _retryAttempts <= 0) {
-                Debug.Log($"Wishlisted: {_worker.WorkingSlot?.name ?? "Empty"}");
+                Debug.Log($"Wishlisted: {_worker.Director?.TargetSlot?.name ?? "Empty"}");
                 return;
             }
             _timer.OnTimerStop += Retry;
@@ -54,8 +54,15 @@ namespace Script.Patterns.AI.GOAP.Strategies {
                     var path = new NavMeshPath();
                     if (!slot.CanAddWorker(_worker)) continue;
                     if (slot.WishListWorker != null) continue;
-                    if (!_agent.CalculatePath(slot.transform.position, path)) continue;
                     
+                    NavMeshHit hit;
+
+                    if (!NavMesh.SamplePosition(machine.transform.position, out hit, Single.MaxValue, 1)) continue;
+                    if (!_agent.CalculatePath(hit.position, path)) {
+                        Debug.LogWarning($"Cannot calculate path to machine. From {_agent.transform.position} to {hit.position}");
+                        continue;
+                    }
+                        Debug.LogWarning($"Found path to machine. From {_agent.transform.position} to {hit.position}" );
                     
                     slots.Add(slot, (CalculateWeight(slot, _agent, path), path, machine));
                 }
@@ -103,7 +110,6 @@ namespace Script.Patterns.AI.GOAP.Strategies {
 
         public void Update(float deltaTime) {
             _timer.Tick(deltaTime);
-            Debug.Log(_timer.Time);
         }
 
         public void Stop() {

@@ -1,11 +1,14 @@
+using System;
 using BuildingSystem.Models;
 using Exception;
 using System.Collections.Generic;
+using Script.Machine;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Users;
 using UnityEngine.Tilemaps;
+using Script.Controller;
 
 namespace BuildingSystem
 {
@@ -16,22 +19,58 @@ namespace BuildingSystem
         private Dictionary<Vector3Int, Buildable> _buildables = new();
         [SerializeField]
         private CollisionLayer _collisionLayer;
-        public void Build(Vector3 worldCoords, BuildableItem item)
+        public event Action<GameObject> onItemBuilt = delegate { };
+        public GameObject Build(Vector3 worldCoords, BuildableItem item)
         {
+            if (!BuildingPlacer.Instance.IsBuildingFromInventory())
+            {
+
+                var itemCost = 0;
+                if (item.Cost == null)
+                {
+                    itemCost = 0;
+                }
+                else
+                {
+                    itemCost = item.Cost;
+                }
+                GameController.Instance.ResourceController.TryGetAmount(Script.Resources.Resource.Gold, out long currentMoney);
+                // Ensure we have enough currency before proceeding
+                if (currentMoney < itemCost)
+                {
+                    Debug.Log("Not enough money to build this item!");
+                    return null;
+                }
+                GameController.Instance.ResourceController.TrySetAmount(Script.Resources.Resource.Gold, (long)(currentMoney - itemCost));
+            }
+
             worldCoords.z = 0;
             GameObject itemObject = null;
             var coords = _tilemap.WorldToCell(worldCoords);
+
+            Vector3 tilemapPosition = _tilemap.GetCellCenterLocal(coords);
+            Debug.Log($"Tilemap Center Position: {tilemapPosition}");
+
             if (item.gameObject != null)
             {
                 itemObject = Instantiate(
                     item.gameObject,
                     _tilemap.GetCellCenterLocal(coords),
-                    //_tilemap.CellToWorld(coords) + _tilemap.cellSize / 2 + item.TileOffSet,
                     Quaternion.identity
-                    );
+                );
                 int sortingOrder = Mathf.FloorToInt(-worldCoords.y * 100) + Mathf.FloorToInt(worldCoords.x * 10);
                 itemObject.GetComponent<SpriteRenderer>().sortingOrder = sortingOrder;
+
+                // Add data to building
+                var machine = itemObject.GetComponent<MachineBase>();
+                if (machine is not null)
+                {
+                    machine.Position = coords.ToVector2Int();
+                    machine.PrefabName = item.Name;
+                    GameController.Instance.MachineController.AddMachine(machine);
+                }
             }
+
             var buildable = new Buildable(item, coords, _tilemap, itemObject);
             if (item.UseCustomCollisionSpace)
             {
@@ -43,12 +82,12 @@ namespace BuildingSystem
                 _buildables.Add(coords, buildable);
             }
 
-            var buildingPlacer = FindFirstObjectByType<BuildingPlacer>();
+            var buildingPlacer = BuildingPlacer.instance;
             if (buildingPlacer != null && buildingPlacer.IsBuildingFromInventory())
             {
                 if (_storedBuildables.ContainsKey(item) && _storedBuildables[item] > 1)
                 {
-                    _storedBuildables[item]--;  
+                    _storedBuildables[item]--;
                 }
                 else
                 {
@@ -56,11 +95,18 @@ namespace BuildingSystem
                     buildingPlacer.SetBuildableFromInventory(null);
                     buildingPlacer.ClearPreview();
                 }
-                //if(building is MachineBase machine &&  !gamecontroller.machinecontroller.recovermachine.any (m => m.gettype == machine.gettype)
-                // => spawn machine.slot.count worker
+
                 FindFirstObjectByType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
             }
+            // Invoke built event
+            if (itemObject)
+            {
+                onItemBuilt?.Invoke(itemObject);
+            }
+
+            return itemObject;
         }
+
 
         //public void Stored(Vector3 worldCoords)
         //{
@@ -76,7 +122,7 @@ namespace BuildingSystem
         //    buildable.Stored();
         //}
 
-        public void Stored(Vector3 worldCoords)
+        public void Stored(Vector3 worldCoords, bool isSell)
         {
             var coords = _tilemap.WorldToCell(worldCoords);
 
@@ -84,13 +130,21 @@ namespace BuildingSystem
 
             var buildable = _buildables[coords];
 
-            if (_storedBuildables.ContainsKey(buildable.BuildableType))
+            if (!isSell)
             {
-                _storedBuildables[buildable.BuildableType]++;
+                if (_storedBuildables.ContainsKey(buildable.BuildableType))
+                {
+                    _storedBuildables[buildable.BuildableType]++;
+                }
+                else
+                {
+                    _storedBuildables[buildable.BuildableType] = 1;
+                }
             }
-            else
+            else 
             {
-                _storedBuildables[buildable.BuildableType] = 1;
+                GameController.Instance.ResourceController.TryGetAmount(Script.Resources.Resource.Gold, out long amount);
+                GameController.Instance.ResourceController.TrySetAmount(Script.Resources.Resource.Gold, amount + buildable.BuildableType.Cost/2);
             }
 
             if (buildable.BuildableType.UseCustomCollisionSpace)
@@ -101,8 +155,13 @@ namespace BuildingSystem
 
             _buildables.Remove(coords);
             buildable.Destroy();
+
+
+
             FindFirstObjectByType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
         }
+
+
 
         public Dictionary<Vector3Int, Buildable> GetBuildables()
         {
@@ -155,5 +214,6 @@ namespace BuildingSystem
         {
             return rect.Iterate(coords, tileCoord => _buildables.ContainsKey(tileCoord));
         }
+
     }
 }

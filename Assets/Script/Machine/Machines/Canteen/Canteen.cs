@@ -1,16 +1,22 @@
 using System.Linq;
+using Script.Machine.MachineDataGetter;
 using UnityEngine;
 
 namespace Script.Machine.Machines.Canteen {
     [RequireComponent(typeof(CanteenFoodStorage))]
     public class Canteen : MachineBase {
         private CanteenFoodStorage _storage;
+        private CanteenKitchen _kitchen;
         protected override void Awake() {
             base.Awake();
             _storage = GetComponent<CanteenFoodStorage>();
             _storage.onMealAmountChanged += (amount) => {
                 IsClosed = _storage.AvailableMeals <= 0;
             };
+            if (_storage is null) Debug.LogError("Cannot find Food storage"); 
+            
+            _kitchen = GetComponentInChildren<CanteenKitchen>();
+            if (_kitchen is null) Debug.LogError("Cannot find Kitchen"); 
         }
 
         private int _lockedMeals = 0;
@@ -38,6 +44,35 @@ namespace Script.Machine.Machines.Canteen {
         private void UnlockMeals() {
             _storage.TryChangeMealAmount(_lockedMeals);
             _lockedMeals = 0;
+        }
+
+        public override void Load(MachineBaseData data) {
+            base.Load(data);
+            if (data is not CanteenData saveData) return;
+            _storage.Load(saveData.Storage);
+            _kitchen.Load(saveData.Kitchen);
+        }
+
+        public override MachineBaseData Save() {
+            if (base.Save() is not CanteenData data) return base.Save();
+            
+            data.Storage = _storage.Save();
+            data.Kitchen = (CanteenData.KitchenData) _kitchen.Save();
+            return data;
+        }
+
+        public class CanteenData : MachineBase.MachineBaseData {
+            public FoodStorageData Storage;
+            public KitchenData Kitchen;
+
+            public class FoodStorageData {
+                public int MaxCapacity;
+                public int AvailableMeals;
+            }
+
+            public class KitchenData : MachineBase.MachineBaseData {
+                
+            }
         }
     }
 }

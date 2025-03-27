@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using MyBox;
+using Newtonsoft.Json;
 using Script.Controller.Commission;
+using Script.Controller.SaveLoad;
 using Script.Machine;
 using Script.Machine.Products;
 using UnityEngine;
@@ -12,12 +14,8 @@ using UnityEngine.Serialization;
 namespace Script.Controller {
     [Serializable]
     public class CommissionController : ControllerBase {
-        public override void Load() { throw new System.NotImplementedException(); }
-        public override void Save() { throw new System.NotImplementedException(); }
-        
         [Header("\tCommission Settings")]
         [SerializeField] private bool _forAllProducts;
-
         [ConditionalField(nameof(_forAllProducts), inverse: true)] 
         [SerializeField] private List<BoxTypeName> _commissionedProducts;
         [FormerlySerializedAs("_numberOfCommissions")] [SerializeField] private int _numberOfCommissionsPerItem;
@@ -27,8 +25,8 @@ namespace Script.Controller {
         [SerializeField][Min(0)] private int _baseCommission;
         [SerializeField][Min(0)] private int _expireHours;
 
-        public ReadOnlyCollection<Commission.Commission> Commissions { get => _commissions.ToList().AsReadOnly(); }
-        private HashSet<Commission.Commission> _commissions = new();
+        public ReadOnlyCollection<Commission.Commission> Commissions { get => _commissions.AsReadOnly(); }
+        private List<Commission.Commission> _commissions = new();
 
         public event Action OnCommissionChanged = delegate { };
         public event Action<Commission.Commission> onCommissionCompleted = delegate { };
@@ -93,14 +91,12 @@ namespace Script.Controller {
             
             if (_maximumTotalCommissions == Commissions.Count) return false;
             
-            var ret =  _commissions.Add(commission);
-            if (ret) OnCommissionChanged?.Invoke();
-            return ret;
+            _commissions.Add(commission);
+            OnCommissionChanged?.Invoke();
+            return true;
         }
 
         public bool TryRemoveCommission(Commission.Commission commission) {
-            
-            
             var ret =  _commissions.Remove(commission);
             if (ret) OnCommissionChanged?.Invoke();
             return ret;
@@ -151,10 +147,77 @@ namespace Script.Controller {
                 TryRemoveCommission(c);
             });
 
+            _commissions.Where(c => c.ExpireDate <= DateTime.Now).ForEach(TryRemoveCommission);
+
 
             if (Commissions.Count == 0) {
-                //Notify player that there's no commission
+                #warning Notify player that there's no commission
             }
         } 
+        public override void Load(SaveManager saveManager) { 
+            
+            try {
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                      || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
+            
+                _forAllProducts = data.ForAllProducts;
+                _commissionedProducts = data.CommissionedProducts;
+                _numberOfCommissionsPerItem = data.NumberOfCommissionsPerItem;
+                _amountModifierForNextProduct = data.AmountModifierForNextProduct;
+                _bonusRange = new (data.BonusRange.Min, data.BonusRange.Max);
+                _maximumTotalCommissions = data.MaximumTotalCommissions;
+                _baseCommission = data.BaseCommission;
+                _expireHours = data.ExpireHours;
+                _commissions = data.Commissions;
+            }
+            catch (System.Exception ex) {
+                Debug.LogError($"Cannot load {GetType()}");
+                Debug.LogException(ex);
+                return;
+            }
+            
+            UpdateCommissions();
+        }
+
+        public override void Save(SaveManager saveManager) {
+            var newSave = new SaveData() {
+                ForAllProducts = _forAllProducts,
+                CommissionedProducts = _commissionedProducts,
+                NumberOfCommissionsPerItem =  _numberOfCommissionsPerItem,
+                AmountModifierForNextProduct = _amountModifierForNextProduct,
+                BonusRange = new(){Min = _bonusRange.x, Max = _bonusRange.y},
+                MaximumTotalCommissions = _maximumTotalCommissions,
+                BaseCommission = _baseCommission,
+                ExpireHours = _expireHours,
+                Commissions = _commissions,
+            };
+            
+            
+            try {
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                    || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
+                    saveManager.SaveData.TryAdd(this.GetType().Name,
+                        SaveManager.Serialize(newSave));
+                else
+                    saveManager.SaveData[this.GetType().Name]
+                        = SaveManager.Serialize(newSave);
+            }
+            catch (System.Exception ex) {
+                Debug.LogError($"Cannot save {GetType()}");
+                Debug.LogException(ex);
+            }
+        }
+
+        public class SaveData {
+            public bool ForAllProducts;
+            public List<BoxTypeName> CommissionedProducts;
+            public int NumberOfCommissionsPerItem;
+            public float AmountModifierForNextProduct;
+            public (float Min, float Max) BonusRange;
+            public int MaximumTotalCommissions;
+            public int BaseCommission;
+            public int ExpireHours;
+            public List<Commission.Commission> Commissions;
+        }
     }
 }

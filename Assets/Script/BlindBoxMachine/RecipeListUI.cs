@@ -20,6 +20,20 @@ public class RecipeListUI : PersistentSingleton<RecipeListUI>
             Debug.LogWarning("[RecipeListUI] No BlindBoxMachine assigned yet.");
         }
     }
+
+    protected void OnEnable()
+    {
+        Machine = BlindBoxInformationDisplay.Instance.GetCurrentDisplayedObject();
+
+        if (Machine != null)
+        {
+            GenerateButtons();
+        }
+        else
+        {
+            Debug.LogWarning("[RecipeListUI] No BlindBoxMachine assigned yet.");
+        }
+    }
     private void Start()
     {
         GenerateButtons();
