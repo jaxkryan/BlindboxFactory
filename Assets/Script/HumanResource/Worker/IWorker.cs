@@ -37,15 +37,15 @@ namespace Script.HumanResource.Worker {
         WorkerDirector Director { get; }
 
 
-        public static WorkerType ToWorkerType<TWorker>(TWorker worker) where TWorker : IWorker => ToWorkerType<TWorker>();
+        public static WorkerType ToWorkerType<TWorker>(TWorker worker) where TWorker : Worker => ToWorkerType<TWorker>();
 
-        public static WorkerType ToWorkerType<TWorker>() where TWorker : IWorker { 
+        public static WorkerType ToWorkerType<TWorker>() where TWorker : Worker { 
             switch (typeof(TWorker))
             {
                 case Type @base when @base == typeof(Worker):
                     return WorkerType.Worker;
                 case Type @base when @base == typeof(FactoryWorker):
-                    return WorkerType.Worker;
+                    return WorkerType.FactoryWorker;
                 default:
                     throw new ArgumentOutOfRangeException(typeof(TWorker).Name);
             }
