@@ -61,7 +61,6 @@ public class CameraController : MonoBehaviour
 
                 // Move the camera
                 Camera.main.transform.position += direction * dragSpeed;
-                Debug.Log("direction: " + direction);
             }
         }
     }

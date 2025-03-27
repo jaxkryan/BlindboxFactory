@@ -25,7 +25,9 @@ namespace Script.Machine.MachineDataGetter {
         public static MachineData Create(InformationPanel panel, MachineBase machine) {
             return machine switch {
                 BlindBoxMachine blindBoxMachine => new BlindBoxMachineData(panel, machine),
+                RestRoom restRoom => new RestroomData(panel, machine),
                 ResourceExtractor resourceExtractor => new ResourceExtractorData(panel, machine),
+                StoreHouse storeHouse => new StoreHouseData(panel, machine),
                 Canteen canteen => new CanteenData(panel, machine),
                 CanteenKitchen canteenKitchen => new CanteenKitchenData(panel, machine),
                 Generator generator => new GeneratorData(panel, machine),
@@ -70,4 +72,14 @@ namespace Script.Machine.MachineDataGetter {
         public TestMachineData(InformationPanel panel, MachineBase machine) : base(panel, machine) { }
         protected override string GetDescriptionText() { return ""; }
     }
-}
+    
+    public class RestroomData : MachineData {
+        public RestroomData(InformationPanel panel, MachineBase machine) : base(panel, machine) { }
+        protected override string GetDescriptionText() { return ""; }
+    }
+    
+    public class StoreHouseData : MachineData {
+        public StoreHouseData(InformationPanel panel, MachineBase machine) : base(panel, machine) { }
+        protected override string GetDescriptionText() { return ""; }
+    }
+    }

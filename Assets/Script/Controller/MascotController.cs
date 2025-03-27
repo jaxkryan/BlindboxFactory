@@ -235,7 +235,7 @@ namespace Script.HumanResource.Administrator {
         public override void Load(SaveManager saveManager) {
             try {
                 if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                      || JsonConvert.DeserializeObject<SaveData>(saveData) is not SaveData data) return;
+                      || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
                 ClearData();
 
                 foreach (var mascotData in data.MascotsList) {
@@ -311,12 +311,9 @@ namespace Script.HumanResource.Administrator {
 
             try {
                 if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                    || JsonConvert.DeserializeObject<SaveData>(saveData) is SaveData data)
-                    saveManager.SaveData.TryAdd(this.GetType().Name,
-                        JsonConvert.SerializeObject(newSave));
-                else
-                    saveManager.SaveData[this.GetType().Name]
-                        = JsonConvert.SerializeObject(newSave);
+                    || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
+                    saveManager.SaveData.AddOrUpdate(this.GetType().Name,
+                        SaveManager.Serialize(newSave), (s, s1) => SaveManager.Serialize(newSave));
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");

@@ -23,14 +23,13 @@ namespace Script.Controller.SaveLoad {
             get => new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All };
         }
         
-        public static string Serialize(ConcurrentDictionary<string, string> data) {
+        public static string Serialize<TSource>(TSource data) {
             var x = JsonConvert.SerializeObject(data, Settings);
-            Debug.LogWarning(x);
             return x;
         }
 
-        public static ConcurrentDictionary<string, string> Deserialize(string data) {
-            return JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(data, Settings);
+        public static TSource Deserialize<TSource>(string data) {
+            return JsonConvert.DeserializeObject<TSource>(data, Settings);
         }
 
 #warning implement encryption
@@ -43,7 +42,7 @@ namespace Script.Controller.SaveLoad {
                 var str = Serialize(SaveData);
                 Debug.Log($"Serialized data: {str}");
 
-                await using (StreamWriter sw = new StreamWriter(System.IO.File.Open(FilePath, FileMode.OpenOrCreate))) {
+                await using (StreamWriter sw = new StreamWriter(FilePath, false)) {
                     await sw.WriteAsync(str);
                     await sw.FlushAsync();
                     Debug.Log("Data saved successfully.");
@@ -58,7 +57,7 @@ namespace Script.Controller.SaveLoad {
         public async Task LoadFromLocal() {
             using StreamReader sr = new StreamReader(FilePath);
             var str = await sr.ReadToEndAsync();
-            var saveData = Deserialize(Decrypt(str));
+            var saveData = Deserialize<ConcurrentDictionary<string, string>>(Decrypt(str));
 
             foreach (var data in saveData.Keys) {
                 if (!SaveData.TryGetValue(data, out var value)) SaveData.TryAdd(data, saveData[data]);
