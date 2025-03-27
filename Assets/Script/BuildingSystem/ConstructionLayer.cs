@@ -20,8 +20,6 @@ namespace BuildingSystem
         [SerializeField]
         private CollisionLayer _collisionLayer;
         public event Action<GameObject> onItemBuilt = delegate { };
-
-        private BuildableItem _movedBuildable = null;
         public GameObject Build(Vector3 worldCoords, BuildableItem item)
         {
             if (!BuildingPlacer.Instance.IsBuildingFromInventory())
@@ -124,7 +122,7 @@ namespace BuildingSystem
         //    buildable.Stored();
         //}
 
-        public void Stored(Vector3 worldCoords)
+        public void Stored(Vector3 worldCoords, bool isSell)
         {
             var coords = _tilemap.WorldToCell(worldCoords);
 
@@ -132,13 +130,21 @@ namespace BuildingSystem
 
             var buildable = _buildables[coords];
 
-            if (_storedBuildables.ContainsKey(buildable.BuildableType))
+            if (!isSell)
             {
-                _storedBuildables[buildable.BuildableType]++;
+                if (_storedBuildables.ContainsKey(buildable.BuildableType))
+                {
+                    _storedBuildables[buildable.BuildableType]++;
+                }
+                else
+                {
+                    _storedBuildables[buildable.BuildableType] = 1;
+                }
             }
-            else
+            else 
             {
-                _storedBuildables[buildable.BuildableType] = 1;
+                GameController.Instance.ResourceController.TryGetAmount(Script.Resources.Resource.Gold, out long amount);
+                GameController.Instance.ResourceController.TrySetAmount(Script.Resources.Resource.Gold, amount + buildable.BuildableType.Cost/2);
             }
 
             if (buildable.BuildableType.UseCustomCollisionSpace)
@@ -204,86 +210,6 @@ namespace BuildingSystem
         private bool IsRectOccupied(Vector3Int coords, RectInt rect)
         {
             return rect.Iterate(coords, tileCoord => _buildables.ContainsKey(tileCoord));
-        }
-
-        public long RemoveBuildable(GameObject targetObject)
-        {
-            foreach (var kvp in _buildables)
-            {
-                var coords = kvp.Key;
-                var buildable = kvp.Value;
-
-                if (buildable.GameObject == targetObject)
-                {
-                    int cost = buildable.BuildableType.Cost;
-                    long refundAmount = cost / 2;
-                    if (buildable.BuildableType.UseCustomCollisionSpace)
-                    {
-                        _collisionLayer.SetCollisions(buildable, false);
-                        UnRegisterBuildableCollisionSpace(buildable);
-                    }
-
-                    _buildables.Remove(coords);
-                    buildable.Destroy();
-
-                    Debug.Log($"Removed buildable at {coords}, refunded: {refundAmount}");
-                    return refundAmount;
-                }
-            }
-
-            Debug.Log("Buildable not found!");
-            return 0;
-        }
-
-        public void MoveBuildable(GameObject targetObject)
-        {
-            if (targetObject == null) return;
-
-            BuildableItem buildable = FindBuildableByGameObject(targetObject);
-
-            if (buildable == null) return;
-
-            RemoveBuildable(targetObject);
-
-            _movedBuildable = buildable;
-
-            Debug.Log($"{buildable.name} moved.");
-        }
-
-        public bool TryPlaceMovedBuildable(Vector3 position)
-        {
-            if (_movedBuildable == null) return false;
-
-            bool isSpaceEmpty = IsEmpty(position,
-                _movedBuildable.UseCustomCollisionSpace ? _movedBuildable.CollisionSpace : default);
-
-            if (isSpaceEmpty)
-            {
-                Build(position, _movedBuildable);
-                Debug.Log($"{_movedBuildable.name} moved to new position.");
-                _movedBuildable = null;
-                return true;
-            }
-
-            return false;   
-        }
-
-        public BuildableItem FindBuildableByGameObject(GameObject targetObject)
-        {
-            foreach (var kvp in _buildables)
-            {
-                if (kvp.Value.BuildableType.gameObject == targetObject)
-                {
-                    return kvp.Value.BuildableType;
-                }
-            }
-
-            return null;
-        }
-
-        public bool HasMovedBuildable()
-        {
-            return _movedBuildable != null;
         }
 
     }
