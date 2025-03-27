@@ -49,7 +49,7 @@ namespace BuildingSystem {
                     _tilemap.GetCellCenterLocal(coords),
                     Quaternion.identity
                 );
-                int sortingOrder = Mathf.FloorToInt(-worldCoords.y * 100) + Mathf.FloorToInt(worldCoords.x * 10);
+                int sortingOrder = SortingOrder.Invoke(itemObject.transform.position);
                 itemObject.GetComponent<SpriteRenderer>().sortingOrder = sortingOrder;
 
                 // Add data to building
@@ -85,6 +85,9 @@ namespace BuildingSystem {
 
             return itemObject;
         }
+        
+        public static Func<Vector3, int> SortingOrder = (worldCoords) 
+            => Mathf.FloorToInt(-worldCoords.y * 100) + Mathf.FloorToInt(worldCoords.x * 10); 
 
 
         //public void Stored(Vector3 worldCoords)

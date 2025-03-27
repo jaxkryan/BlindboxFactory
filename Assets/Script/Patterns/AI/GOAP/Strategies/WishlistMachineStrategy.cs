@@ -59,10 +59,9 @@ namespace Script.Patterns.AI.GOAP.Strategies {
 
                     if (!NavMesh.SamplePosition(machine.transform.position, out hit, Single.MaxValue, 1)) continue;
                     if (!_agent.CalculatePath(hit.position, path)) {
-                        Debug.LogWarning($"Cannot calculate path to machine. From {_agent.transform.position} to {hit.position}");
+                        Debug.Log($"Cannot calculate path to machine. From {_agent.transform.position} to {hit.position}");
                         continue;
                     }
-                        Debug.LogWarning($"Found path to machine. From {_agent.transform.position} to {hit.position}" );
                     
                     slots.Add(slot, (CalculateWeight(slot, _agent, path), path, machine));
                 }

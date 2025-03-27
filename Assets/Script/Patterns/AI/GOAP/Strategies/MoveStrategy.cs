@@ -41,7 +41,7 @@ public class MoveToSlotStrategy : IActionStrategy {
                 else _agent.SetDestination(_worker.transform.position);
             }
         }
-        Debug.LogWarning($"Slot position is: {_worker.Director.TargetSlot?.transform.position ?? Vector3.zero}.Pathing from: {_agent.transform.position} to {_agent.destination}");
+        Debug.Log($"Slot position is: {_worker.Director.TargetSlot?.transform.position ?? Vector3.zero}.Pathing from: {_agent.transform.position} to {_agent.destination}");
     }
     public void Stop() => _agent.ResetPath();
 }

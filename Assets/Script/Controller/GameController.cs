@@ -7,10 +7,12 @@ using MyBox;
 using NavMeshPlus.Components;
 using NavMeshPlus.Extensions;
 using Newtonsoft.Json;
+using Script.Controller.Permissions;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Administrator;
 using Script.HumanResource.Worker;
 using UnityEngine;
+using UnityEngine.Android;
 using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
 
@@ -58,6 +60,8 @@ namespace Script.Controller {
             base.Awake();
             _controllers.ForEach(c => c.OnAwake());
             SaveManager = new();
+            PermissionHandler.RequestPermissionIfNeeded(Permission.ExternalStorageWrite);
+            PermissionHandler.RequestPermissionIfNeeded(Permission.ExternalStorageRead);
         }
 
         public void BuildNavMesh() {
@@ -116,11 +120,9 @@ namespace Script.Controller {
         private void OnValidate() => _controllers.ForEach(c => c.OnValidate());
 
         private async Task Load(SaveManager saveManager) {
-            Debug.LogWarning("Loading");
             await SaveManager.LoadFromCloud();
             await SaveManager.LoadFromLocal();
 
-            Debug.LogWarning("Loading from file complete");
 
             try {
                 #region Game Controller's own save
@@ -142,19 +144,21 @@ namespace Script.Controller {
 
                 #endregion
 
-                Debug.LogWarning("Loading controllers");
                 _controllers.ForEach(c => {
-                    Debug.LogWarning($"Loading {c.GetType().Name}");
+                    Debug.Log($"Loading {c.GetType().Name}");
                     c.Load(saveManager);
                 });
             }
-            catch (System.Exception ex) { Debug.LogWarning(ex); }
+            catch (System.Exception ex) { Debug.Log(ex); }
         }
 
         private async Task Save(SaveManager saveManager) {
-            Debug.LogWarning("Saving");
+            Debug.Log("Saving");
             try {
-                _controllers.ForEach(c => c.Save(saveManager));
+                _controllers.ForEach(c => {
+                    Debug.Log($"Saving {c.GetType().Name}");
+                    c.Save(saveManager);
+                });
 
                 #region Game Controller's own save
 
@@ -172,7 +176,6 @@ namespace Script.Controller {
             }
             catch (System.Exception e) { Debug.LogWarning(e); }
 
-            Debug.LogWarning("Saving to file");
             await SaveManager.SaveToLocal();
             await SaveManager.SaveToCloud();
         }

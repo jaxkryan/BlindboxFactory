@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
+using BuildingSystem;
 using JetBrains.Annotations;
 using MyBox;
 using Script.Controller;
@@ -141,6 +142,12 @@ namespace Script.HumanResource.Worker {
             
             Animator.SetFloat(HorizontalMovement, Agent.velocity.x);
             Animator.SetFloat(VerticalMovement, Agent.velocity.y);
+            
+            SetOrderInLayer();
+        }
+
+        protected virtual void SetOrderInLayer() {
+            GetComponent<SpriteRenderer>().sortingOrder = ConstructionLayer.SortingOrder(new Vector3(transform.position.x, transform.position.y - 1f));
         }
 
         public virtual SaveData Save() => new SaveData() {
