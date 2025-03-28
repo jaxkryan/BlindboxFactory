@@ -3,30 +3,32 @@ using Script.Machine;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement; // Thêm namespace để dùng SceneManager
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 public class MinigameManager : MonoBehaviour
 {
     private MachineController machineController;
-    [SerializeField] private string match3SceneName = "Match3Scene"; // Tên scene cho Match-3
-    [SerializeField] private string whackAMoleSceneName = "WhackAMoleScene"; // Tên scene cho Whack-a-Mole
-    [SerializeField] private string wireConnectionSceneName = "WireConnectionScene"; // Tên scene cho Wire-Connection
+    [SerializeField] private string match3SceneName = "Match3Scene";
+    [SerializeField] private string whackAMoleSceneName = "WhackAMoleScene";
+    [SerializeField] private string wireConnectionSceneName = "WireConnectionScene";
+    [SerializeField] private string mainSceneName = "MainScene"; // Thêm tên scene chính
     [SerializeField] private string exclamationButtonName = "needfix";
-    [SerializeField] private float minigameInterval = 3f * 3600f;
-    [SerializeField] private float maxInactiveTime = 20f * 60f;
+    [SerializeField] private float minigameInterval = 3f * 3600f; // 3 giờ
+    [SerializeField] private float maxInactiveTime = 20f * 60f; // 20 phút
     [SerializeField] private bool testMode = true;
 
     private const int MAX_MINIGAMES_PER_DAY = 5;
     private int remainingMinigamesToday = MAX_MINIGAMES_PER_DAY;
     private DateTime lastMinigameTime;
     private DateTime lastResetTime;
+    private DateTime? minigameStartTime; // Lưu thời gian bắt đầu minigame
     private Dictionary<MachineBase, MinigameData> activeMinigames = new();
 
     private class MinigameData
     {
-        public string SceneName; // Thay vì GameObject, lưu tên scene
+        public string SceneName;
         public Button ExclamationButton;
         public float TimeRemaining;
     }
@@ -36,6 +38,9 @@ public class MinigameManager : MonoBehaviour
         lastMinigameTime = DateTime.UtcNow;
         lastResetTime = DateTime.UtcNow.Date;
         machineController = GameController.Instance.MachineController;
+
+        // Đăng ký sự kiện khi scene được load
+        SceneManager.sceneLoaded += OnSceneLoaded;
 
         if (testMode)
         {
@@ -48,6 +53,12 @@ public class MinigameManager : MonoBehaviour
             }
             remainingMinigamesToday -= minigamesToSpawn;
         }
+    }
+
+    void OnDestroy()
+    {
+        // Hủy đăng ký sự kiện để tránh memory leak
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     void Update()
@@ -109,7 +120,6 @@ public class MinigameManager : MonoBehaviour
             return;
         }
 
-        // Đảm bảo button có thể tương tác
         exclamationButton.gameObject.SetActive(true);
         exclamationButton.interactable = true;
         Graphic graphic = exclamationButton.GetComponent<Graphic>();
@@ -174,8 +184,9 @@ public class MinigameManager : MonoBehaviour
         {
             activeMinigames[machine].ExclamationButton.gameObject.SetActive(false);
             activeMinigames.Remove(machine);
+            minigameStartTime = DateTime.UtcNow; // Lưu thời gian bắt đầu minigame
             Debug.Log($"Minigame started at machine: {machine.name}, loading scene: {sceneName}");
-            SceneManager.LoadScene(sceneName); // Chuyển sang scene minigame
+            SceneManager.LoadScene(sceneName);
         }
     }
 
@@ -204,5 +215,29 @@ public class MinigameManager : MonoBehaviour
     {
         data.ExclamationButton.gameObject.SetActive(false);
         Debug.Log($"Minigame cancelled at machine: {machine.name} due to timeout.");
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Khi quay lại scene chính, cập nhật thời gian và spawn minigame nếu cần
+        if (scene.name == mainSceneName && minigameStartTime.HasValue)
+        {
+            DateTime currentTime = DateTime.UtcNow;
+            float timeInMinigame = (float)(currentTime - minigameStartTime.Value).TotalSeconds;
+            lastMinigameTime = lastMinigameTime.AddSeconds(timeInMinigame); // Cộng thời gian chơi minigame
+            minigameStartTime = null;
+
+            Debug.Log($"Returned to main scene. Time spent in minigame: {timeInMinigame}s. Updated lastMinigameTime: {lastMinigameTime}");
+
+            // Kiểm tra và spawn minigame ngay nếu đủ thời gian
+            if (!testMode)
+            {
+                float elapsedTime = (float)(currentTime - lastMinigameTime).TotalSeconds;
+                if (elapsedTime >= minigameInterval && remainingMinigamesToday > 0)
+                {
+                    SpawnMinigames();
+                }
+            }
+        }
     }
 }
