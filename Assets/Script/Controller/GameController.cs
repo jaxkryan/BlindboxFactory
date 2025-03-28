@@ -149,10 +149,6 @@ namespace Script.Controller {
                 }); 
                 
             }
-            catch (System.Exception ex) {
-                Debug.LogWarning(ex);
-            }
-
             catch (System.Exception ex) { Debug.Log(ex); }
         }
 

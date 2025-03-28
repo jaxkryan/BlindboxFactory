@@ -100,23 +100,22 @@ namespace Script.Controller.SaveLoad
             try {
                 if (Application.platform == RuntimePlatform.Android) {
                     if (!Permission.HasUserAuthorizedPermission(Permission.ExternalStorageWrite)
-                         || !Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead)) return;
+                        || !Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead)) return;
                 }
+                
                 Debug.Log($"Saving data to: {FilePath}");
                 var str = Serialize(SaveData);
                 Debug.Log($"Serialized data: {str}");
 
-
-                await using (StreamWriter sw = new StreamWriter(FilePath, false))
-                {
+                await using (StreamWriter sw = new StreamWriter(FilePath, false)) {
                     await sw.WriteAsync(str);
                     await sw.FlushAsync();
                     Debug.Log("Data saved successfully.");
                 }
             }
-            catch (System.Exception e)
-            {
+            catch (System.Exception e) {
                 Debug.LogError($"Error saving data: {e}");
+                Debug.LogError(e);
             }
         }
 
@@ -129,15 +128,9 @@ namespace Script.Controller.SaveLoad
             var str = await sr.ReadToEndAsync();
             var saveData = Deserialize<ConcurrentDictionary<string, string>>(Decrypt(str));
 
-                foreach (var data in saveData.Keys)
-                {
-                    if (!SaveData.TryGetValue(data, out var value)) SaveData.TryAdd(data, saveData[data]);
-                    else if (value != saveData[data]) SaveData[data] = saveData[data];
-                }
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"Error loading data from local: {e}");
+            foreach (var data in saveData.Keys) {
+                if (!SaveData.TryGetValue(data, out var value)) SaveData.TryAdd(data, saveData[data]);
+                else if (value != saveData[data]) SaveData[data] = saveData[data];
             }
         }
 
