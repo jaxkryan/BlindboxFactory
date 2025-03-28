@@ -46,8 +46,8 @@ public class GachaRevealPanelUI : MonoBehaviour
         button.onClick.AddListener(SkipAnimation);
 
         // Ensure the background is black
-        _backgroundCanvasGroup.alpha = 1f;
-        _backgroundCanvasGroup.GetComponent<Image>().color = Color.black;
+        //_backgroundCanvasGroup.alpha = 1f;
+        //_backgroundCanvasGroup.GetComponent<Image>().color = Color.black;
 
         // Hide UI elements initially
         _portraitImage.gameObject.SetActive(false);
