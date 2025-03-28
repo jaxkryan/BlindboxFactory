@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class StructureUIToggles : MonoBehaviour
 {
-    [SerializeField] private GameObject ChosePanel;
+    [SerializeField] private GameObject ChosePanelAll;
+    [SerializeField] private GameObject ChosePanelBB;
     [SerializeField] private GameObject CraftPanel;
     [SerializeField] private GameObject InformationPanel;
     [SerializeField] private GameObject ExitPanel;
@@ -20,7 +21,8 @@ public class StructureUIToggles : MonoBehaviour
         {
 
             CraftPanel.SetActive(true);
-            ChosePanel.SetActive(false);
+            ChosePanelAll.SetActive(false);
+            ChosePanelBB.SetActive(false);
         }
         catch
         {
@@ -34,7 +36,8 @@ public class StructureUIToggles : MonoBehaviour
         {
 
             InformationPanel.SetActive(true);
-            ChosePanel.SetActive(false);
+            ChosePanelAll.SetActive(false);
+            ChosePanelBB.SetActive(false);
         }
         catch
         {
@@ -47,7 +50,8 @@ public class StructureUIToggles : MonoBehaviour
         try
         {
             CraftPanel.SetActive(false);
-            ChosePanel.SetActive(false);
+            ChosePanelAll.SetActive(false);
+            ChosePanelBB.SetActive(false);
             InformationPanel.SetActive(false);
             ExitPanel.SetActive(false);
         }
@@ -57,12 +61,27 @@ public class StructureUIToggles : MonoBehaviour
         }
     }
 
-    public void backToChosePanel()
+    public void backToChosePanelAll()
     {
         try
         {
             CraftPanel.SetActive(false);
-            ChosePanel.SetActive(true);
+            ChosePanelAll.SetActive(true);
+            InformationPanel.SetActive(false);
+            ExitPanel.SetActive(true);
+        }
+        catch
+        {
+
+        }
+    }
+
+    public void backToChosePanelBB()
+    {
+        try
+        {
+            CraftPanel.SetActive(false);
+            ChosePanelBB.SetActive(true);
             InformationPanel.SetActive(false);
             ExitPanel.SetActive(true);
         }
