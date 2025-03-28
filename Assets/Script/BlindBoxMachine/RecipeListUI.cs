@@ -9,7 +9,7 @@ public class RecipeListUI : PersistentSingleton<RecipeListUI>
     protected override void Awake()
     {
         base.Awake();
-        Machine = BlindBoxInformationDisplay.Instance.GetCurrentDisplayedObject();
+        Machine = (BlindBoxMachine)BlindBoxInformationDisplay.Instance.currentMachine;
 
         if (Machine != null)
         {
@@ -23,7 +23,7 @@ public class RecipeListUI : PersistentSingleton<RecipeListUI>
 
     protected void OnEnable()
     {
-        Machine = BlindBoxInformationDisplay.Instance.GetCurrentDisplayedObject();
+        Machine = (BlindBoxMachine)BlindBoxInformationDisplay.Instance.currentMachine;
 
         if (Machine != null)
         {

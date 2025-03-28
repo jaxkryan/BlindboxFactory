@@ -31,7 +31,7 @@ public class BlindBoxQueueDisplay : MonoBehaviour
 
     private void Update()
     {
-        var bbm = BlindBoxInformationDisplay.Instance.currentBlindBoxMachine;
+        var bbm = BlindBoxInformationDisplay.Instance.currentMachine;
         float timesec = bbm.EstimateCompletionTime; 
         string timetext = FormatTimeFull(timesec);
         timeText.text = timetext;
@@ -100,7 +100,7 @@ public class BlindBoxQueueDisplay : MonoBehaviour
 
     public void UpdateQueueUI()
     {
-        var blindboxMachine = BlindBoxInformationDisplay.Instance.GetCurrentDisplayedObject();
+        var blindboxMachine = (BlindBoxMachine) BlindBoxInformationDisplay.Instance.currentMachine;
         var blindbox = (BlindBox) blindboxMachine.Product;
 
 

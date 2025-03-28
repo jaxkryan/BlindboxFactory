@@ -1,6 +1,10 @@
 using BuildingSystem;
 using BuildingSystem.Models;
+using Script.Machine;
+using Script.Machine.Machines.Canteen;
+using Script.Machine.Machines.Generator;
 using System.Linq;
+using System.Resources;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
@@ -14,7 +18,7 @@ public class StructureManage : MonoBehaviour
 
     [SerializeField] private Tilemap _tilemap;
     [SerializeField] private CollisionLayer _collisionLayer;
-    [SerializeField] private GameObject blindboxmachineUI;
+    [SerializeField] private GameObject machineUI;
 
     public StructureUIToggles uIToggles;
 
@@ -79,7 +83,7 @@ public class StructureManage : MonoBehaviour
     {
         if (IsPointerOverUI()) return;
         if (_buildingPlacer.IsActiveBuildable()) return;
-        RaycastHit2D hit = Physics2D.RaycastAll(worldCoords, Vector2.zero).FirstOrDefault(h => h.collider is not null && h.collider.gameObject.CompareTag("BoxMachine"));
+        RaycastHit2D hit = Physics2D.RaycastAll(worldCoords, Vector2.zero).FirstOrDefault(h => h.collider is not null/* && h.collider.gameObject.CompareTag("BoxMachine")*/);
         _hitCoord = hit.centroid;
 
         if (hit.collider != null)
@@ -96,8 +100,8 @@ public class StructureManage : MonoBehaviour
                 Debug.Log($"[HandleBuildableSelection] Buildable found: {buildableObject.name}");
 
                 // Show UI
-                blindboxmachineUI.SetActive(true);
-                blindboxmachineUI.transform.Find("Chose Panel").gameObject.SetActive(true);
+                machineUI.SetActive(true);
+                machineUI.transform.Find("Chose Panel Box Machine").gameObject.SetActive(true);
 
                 // Move the camera to focus on the selected object
                 MoveCameraToFocus(buildableObject.transform.position);
@@ -105,10 +109,24 @@ public class StructureManage : MonoBehaviour
                 BlindBoxMachine machine = buildableObject.GetComponent<BlindBoxMachine>();
                 if (machine != null)
                 {
-                    BlindBoxInformationDisplay.Instance.SetCurrentDisplayedObject(machine);
-                    BlindBoxInformationDisplay.Instance.SetCurrentCoordinate(worldCoords);
+                    BlindBoxInformationDisplay.Instance.currentMachine = machine;
                 }
             }
+            else
+            {
+                Debug.Log($"[HandleBuildableSelection] Buildable found: {buildableObject.name}");
+
+                // Show UI
+                machineUI.SetActive(true);
+                machineUI.transform.Find("Chose Panel All").gameObject.SetActive(true);
+
+                // Move the camera to focus on the selected object
+                MoveCameraToFocus(buildableObject.transform.position);
+                Component machine = buildableObject.GetComponent(typeof(MachineBase));
+                BlindBoxInformationDisplay.Instance.currentMachine = (MachineBase) machine;
+            }
+
+            BlindBoxInformationDisplay.Instance.currentCoordinate = worldCoords;
         }
         else
         {
