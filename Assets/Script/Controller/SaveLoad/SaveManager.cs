@@ -99,6 +99,7 @@ namespace Script.Controller.SaveLoad
                 var str = Serialize(SaveData);
                 Debug.Log($"Serialized data: {str}");
 
+
                 await using (StreamWriter sw = new StreamWriter(FilePath, false))
                 {
                     await sw.WriteAsync(str);

@@ -46,9 +46,9 @@ public class RecipeButton : MonoBehaviour
 
     private int caculateMaxAmount()
     {
-        var maxAmount = 0;
+        BlindBoxMachine thismachine = (BlindBoxMachine)BlindBoxInformationDisplay.Instance.currentMachine;
         GameController.Instance.ResourceController.TryGetAllResourceAmounts(out var resourceAmount);
-        var machineLimited = BlindBoxInformationDisplay.Instance.currentBlindBoxMachine.maxAmount;
+        var machineLimited = thismachine.maxAmount;
         var resouceLimited = CalculateMinResouce(resourceAmount, currentBlindBox.ResourceUse);
         return Math.Min(machineLimited,resouceLimited);
     }
