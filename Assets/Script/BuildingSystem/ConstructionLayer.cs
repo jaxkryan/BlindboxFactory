@@ -28,7 +28,7 @@ namespace BuildingSystem {
                     out long currentMoney);
                 // Ensure we have enough currency before proceeding
                 if (currentMoney < itemCost) {
-                    Debug.Log("Not enough money to build this item!");
+                    Debug.Log("Not enough money to build this item!" + currentMoney + "   /   " + itemCost);
                     return null;
                 }
 
