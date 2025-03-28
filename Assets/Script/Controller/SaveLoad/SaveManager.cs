@@ -121,6 +121,7 @@ namespace Script.Controller.SaveLoad
         }
 
         public async Task LoadFromLocal() {
+            try { 
             if (Application.platform == RuntimePlatform.Android) {
                 if (!Permission.HasUserAuthorizedPermission(Permission.ExternalStorageWrite)
                     || !Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead)) return;

@@ -153,7 +153,7 @@ namespace Script.Controller {
                 Debug.LogWarning(ex);
             }
 
-            catch (System.Exception ex) { Debug.Log(ex); }
+            //catch (System.Exception ex) { Debug.Log(ex); }
         }
 
         private async Task Save(SaveManager saveManager) {
