@@ -8,7 +8,6 @@ namespace Script.Machine.Products {
         public override float MaxProgress => 0f;
         public override void OnProductCreated() { }
         public override List<ResourceUse> ResourceUse => new List<ResourceUse>();
-        public override IProduct.SaveData Save() => new();
         public override void Load(IProduct.SaveData data) {  }
     }
 }

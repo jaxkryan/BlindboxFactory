@@ -22,7 +22,7 @@ namespace BuildingSystem
             buildable.IterateCollisionSpace(tileCoords => list.Add(tileCoords));
             list = list.Select(v => v.ToVector2Int().ToVector3Int()).ToList();
             foreach (var v3 in list) {
-                if (value) _tilemap.SetTile(v3, null);
+                if (!value) _tilemap.SetTile(v3, null);
                 else {
                     _tilemap.SetTile(v3, IsInnerTile(v3) ? _foundationTileBase : _collisionTileBase);
                 }

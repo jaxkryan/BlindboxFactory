@@ -155,13 +155,17 @@ namespace Script.Controller {
                 Debug.LogWarning($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
 
                 UnityMainThreadDispatcher.Instance().Enqueue(() => {
+
+                    Debug.Log($"Machine count: {data.Machines.Count}");
+                    Debug.Log($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
+
                     foreach (var m in data.Machines) {
-                        Debug.LogWarning($"Building prefab: {m.PrefabName}");
+                        Debug.Log($"Building prefab: {m.PrefabName}");
                         var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
                         if (prefab == default) continue;
 
                         var worldPos = _constructionLayer.CellToWorld(m.Position.ToVector3Int());
-                        Debug.LogWarning($"Building machine: {prefab.Name} at {worldPos}");
+                        Debug.Log($"Building machine: {prefab.Name} at {worldPos}");
                         var constructedGameObject = _constructionLayerScript.Build(worldPos, prefab);
 
                         if (constructedGameObject is null

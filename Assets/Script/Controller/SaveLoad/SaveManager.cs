@@ -5,13 +5,16 @@ using Firebase;
 using Firebase.Database;
 using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.Android;
 
 namespace Script.Controller.SaveLoad
 {
     public class SaveManager
     {
         public ConcurrentDictionary<string, string> SaveData { get; private set; } = new();
+
         private DatabaseReference dbRef;
+
         public string Path { get; init; }
         public string FileName { get; init; }
         public string FilePath => System.IO.Path.Combine(Path, FileName);
@@ -52,9 +55,11 @@ namespace Script.Controller.SaveLoad
             get => new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All };
         }
 
-        public static string Serialize<TSource>(TSource data)
-        {
-            return JsonConvert.SerializeObject(data, Settings);
+
+        public static string Serialize<TSource>(TSource data) {
+            var x = JsonConvert.SerializeObject(data, Settings);
+            return x;
+
         }
 
         public static TSource Deserialize<TSource>(string data)
@@ -90,11 +95,13 @@ namespace Script.Controller.SaveLoad
             await saveTask;
 
         }
-
-        public async Task SaveToLocal()
-        {
-            try
-            {
+      
+        public async Task SaveToLocal() {
+            try {
+                if (Application.platform == RuntimePlatform.Android) {
+                    if (!Permission.HasUserAuthorizedPermission(Permission.ExternalStorageWrite)
+                         || !Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead)) return;
+                }
                 Debug.Log($"Saving data to: {FilePath}");
                 var str = Serialize(SaveData);
                 Debug.Log($"Serialized data: {str}");
@@ -113,13 +120,14 @@ namespace Script.Controller.SaveLoad
             }
         }
 
-        public async Task LoadFromLocal()
-        {
-            try
-            {
-                using StreamReader sr = new StreamReader(FilePath);
-                var str = await sr.ReadToEndAsync();
-                var saveData = Deserialize<ConcurrentDictionary<string, string>>(Decrypt(str));
+        public async Task LoadFromLocal() {
+            if (Application.platform == RuntimePlatform.Android) {
+                if (!Permission.HasUserAuthorizedPermission(Permission.ExternalStorageWrite)
+                    || !Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead)) return;
+            }
+            using StreamReader sr = new StreamReader(FilePath);
+            var str = await sr.ReadToEndAsync();
+            var saveData = Deserialize<ConcurrentDictionary<string, string>>(Decrypt(str));
 
                 foreach (var data in saveData.Keys)
                 {

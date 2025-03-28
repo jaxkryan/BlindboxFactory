@@ -16,12 +16,10 @@ public class BlindBox : SingleProductBase
 
     public override void OnProductCreated()
     {
-        Debug.Log("created");
         var boxcontroller = GameController.Instance.BoxController;
         if (boxcontroller.TryGetAmount(BoxTypeName, out long amount))
         {
-            Debug.Log(amount);
-            Debug.Log(boxcontroller.TrySetAmount(BoxTypeName, amount + 1));
+            boxcontroller.TrySetAmount(BoxTypeName, amount + 1);
         }
         else
         {
