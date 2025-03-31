@@ -160,25 +160,16 @@ namespace Script.Controller {
             numberIndex.Add(1000_000, "M");
             numberIndex.Add(1000_000_000, "B");
             numberIndex.Add(1000_000_000_000, "T");
-                Debug.LogWarning($"For number: {number}");
-            
-            
             
             long cutoff = Int64.MaxValue; //Cutoff switch to using ABC system (Unimplemented)
             if (number >= cutoff) {
                 //Implement the ABC system
-                Debug.LogWarning("Incorrect path 1");
                 return number.ToString();
             }
-            else if (number >= numberIndex.Keys.Min()){
+            else {
                 long index = 1;
-                Debug.LogWarning("Correct path");
                 string abbreviation = "";
-                while (number / index >= 1000) {
-                    index *= 1000;
-                    Debug.LogWarning($"Index: {index}. {number / index > 1}");
-                    
-                }
+                while (number / index >= 1000) index *= 1000;
                 var i = index;
                 while (i > 1) {
                     var max = numberIndex.Keys.Max();
@@ -197,15 +188,8 @@ namespace Script.Controller {
                         abbreviation = numberIndex[key] + abbreviation;
                     }
                 }
-
-                Debug.LogWarning("Index: " + i);
-                Debug.LogWarning("Abbreviation: " + abbreviation);
                 
                 return (number / float.Parse(index.ToString())).ToString("###.##") + abbreviation;
-            }
-            else{
-                Debug.LogWarning("Incorrect path 2");
-                return number.ToString();
             }
             
             // if (number >= 1_000_000_000_000)

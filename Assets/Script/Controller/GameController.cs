@@ -17,6 +17,7 @@ using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
 
 namespace Script.Controller {
+    [RequireComponent(typeof(UnityMainThreadDispatcher))]
     public class GameController : PersistentSingleton<GameController> {
         public MachineController MachineController = new();
         public BoxController BoxController = new();
