@@ -83,7 +83,7 @@ public class AdminDepartmentManagerUI : MonoBehaviour
         // Format policies as a bullet list with grade color
         if (Mascot != null)
         {
-            var policies = Mascot.Policies.Aggregate("", (current, p) => current + $"• {p.Description}\n").TrimEnd('\n');
+            var policies = Mascot.Policies.Aggregate("", (current, p) => current + $"â€¢ {p.Description}\n").TrimEnd('\n');
             _policies.text = policies;
             _policies.color = _gradeColors[Mascot.Grade];
         }

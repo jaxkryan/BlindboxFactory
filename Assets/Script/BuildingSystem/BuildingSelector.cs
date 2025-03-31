@@ -137,7 +137,6 @@ public class BuildingSelector : MonoBehaviour
         foreach (var buildable in Categories[categoryIndex].buildables)
         {
             GameController.Instance.MachineController.UnlockMachines.TryGetValue(buildable.Name, out bool lockstatus);
-            Debug.Log(lockstatus);
             if(!lockstatus) continue;
             Debug.Log("Creating button for: " + buildable.name);
 

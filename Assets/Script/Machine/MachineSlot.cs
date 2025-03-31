@@ -15,7 +15,7 @@ namespace Script.Machine {
         [CanBeNull] public Worker WishListWorker  {get; private set;}
         private CountdownTimer _wishlistTimer;
 
-        [SerializeField] private float _wishlistTravelTimer;
+        [SerializeField] private float _wishlistTravelTimer = 3f;
         [SerializeField] public bool _forAll;
         [ConditionalField("_forAll", true)]
         [SerializeField] private CollectionWrapperList<WorkerType> _forWorker;
@@ -26,17 +26,17 @@ namespace Script.Machine {
             if (worker is not null) {
                 if (CurrentWorker == worker) return true;
                 if (CurrentWorker is not null) {
-                    Debug.LogError($"{this.name} slot is occupied!");
+                    Debug.LogWarning($"{this.name} slot is occupied!");
                     return false;
                 }
                 if (!CanAddWorker(worker)) {
                     var type = worker is Worker monoWorker ? $"({monoWorker.name})" : "";
-                    Debug.LogError($"{worker.Name}{type} cannot be added to this slot!");
+                    Debug.LogWarning($"{worker.Name}{type} cannot be added to this slot!");
                     return false;
                 }
 
                 if (WishListWorker != worker && WishListWorker is not null) {
-                    Debug.LogError($"{this.name} slot is wish listed by {((Worker)WishListWorker).name}!");
+                    Debug.LogWarning($"{this.name} slot is wish listed by {((Worker)WishListWorker).name}!");
                     return false;
                 }
             }
@@ -57,6 +57,9 @@ namespace Script.Machine {
         }
         
         public bool SetWishlist([CanBeNull] Worker worker = null) {
+            if (WishListWorker is not null) {
+                WishListWorker.Director.TargetSlot = null;
+            }
             if (worker != null) {
                 if (WishListWorker != null) {
                     Debug.LogError($"{this.name} slot is wish listed!");
@@ -69,8 +72,8 @@ namespace Script.Machine {
                     return false;
                 }
             }
+            
 
-            Debug.LogWarning("Add worker to wishlist");
             WishListWorker = worker;
             if (WishListWorker != null) {
                 _wishlistTimer.Start();
