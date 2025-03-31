@@ -18,8 +18,14 @@ public class StructureUIToggles : MonoBehaviour
         Instance = this;
     }
 
+    private void OnEnable()
+    {
+        currentMachine = BlindBoxInformationDisplay.Instance.currentMachine;
+    }
+
     public void turnOnCraftPanel()
     {
+        OnEnable();
         try
         {
 
@@ -35,6 +41,7 @@ public class StructureUIToggles : MonoBehaviour
 
     public void turnOnInformationPanel()
     {
+        OnEnable();
         try
         {
 
@@ -50,6 +57,7 @@ public class StructureUIToggles : MonoBehaviour
 
     public void exitsAllPanel() 
     {
+        OnEnable();
         try
         {
             CraftPanel.SetActive(false);
@@ -66,7 +74,8 @@ public class StructureUIToggles : MonoBehaviour
 
     public void backToChosePanelGeneral()
     {
-        if(currentMachine is BlindBoxMachine)
+        OnEnable();
+        if (currentMachine is BlindBoxMachine)
         {
             backToChosePanelBB();
         }
@@ -79,6 +88,7 @@ public class StructureUIToggles : MonoBehaviour
 
     public void backToChosePanelAll()
     {
+        OnEnable();
         try
         {
             CraftPanel.SetActive(false);
@@ -94,6 +104,7 @@ public class StructureUIToggles : MonoBehaviour
 
     public void backToChosePanelBB()
     {
+        OnEnable();
         try
         {
             CraftPanel.SetActive(false);
