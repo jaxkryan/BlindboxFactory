@@ -5,15 +5,16 @@ using Newtonsoft.Json;
 using Script.Controller.SaveLoad;
 using Script.Quest;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Script.Controller {
     [Serializable]
     public class QuestController : ControllerBase {
 
-        [SerializeField] private List<Quest.Quest> _quest;
+        [FormerlySerializedAs("_quest")] [SerializeField] private List<Quest.Quest> _quests;
         public List<Quest.Quest> Quests {
             get {
-                return _quest ?? NewSetAndLog();
+                return _quests ?? NewSetAndLog();
 
                 List<Quest.Quest> NewSetAndLog() {
                     Debug.LogError("Quest list is empty!");
@@ -46,10 +47,10 @@ namespace Script.Controller {
         public void RemoveData(string key) => QuestData.Remove(key);
         public void SetData<T>(string key, T value) => QuestData[key] = new Entry<T>(key, value);
 
-        public void ReevaluateActiveQuests(Func<Quest.Quest, bool> func) =>
+        private void ReevaluateActiveQuests(Func<Quest.Quest, bool> func) =>
             ActiveQuests(func).ForEach(q => q.Objectives.ForEach(o => o.Evaluate(q)));
 
-        public IEnumerable<Quest.Quest> ActiveQuests(Func<Quest.Quest, bool> func) => Quests.Where(q => q.State is QuestState.InProgress).Where(func);
+        private IEnumerable<Quest.Quest> ActiveQuests(Func<Quest.Quest, bool> func) => Quests.Where(q => q.State is QuestState.InProgress).Where(func);
         private void RegisterQuestsToEvents() {
             var machines = GameController.Instance.MachineController.Machines;
             machines.ForEach(m => {
@@ -80,11 +81,12 @@ namespace Script.Controller {
                 if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                       || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
 
-                _quest.ForEach(q => q.State = QuestState.Locked);
+                _quests.ForEach(q => q.State = QuestState.Locked);
                 for (var i = 0; i < data.QuestStates.Count; i++) {
-                    _quest[i].State = data.QuestStates[i];
+                    _quests[i].State = data.QuestStates[i];
                 }
                 QuestData = data.QuestData;
+                Quests.ForEach(q => q.Evaluate());
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot load {GetType()}");
@@ -93,9 +95,10 @@ namespace Script.Controller {
             }
         }
         public override void Save(SaveManager saveManager) {
+            Quests.ForEach(q => q.Evaluate());
             var newSave = new SaveData() { QuestData = QuestData, QuestStates =  new()};
 
-            var list = _quest.Clone();
+            var list = _quests.Clone();
 
             while (list.Any(q => q.State != QuestState.Locked)) {
                 var quest = list[0];
@@ -122,6 +125,12 @@ namespace Script.Controller {
         public class SaveData {
             public List<QuestState> QuestStates;
             public Dictionary<string, object> QuestData;
+        }
+
+        public override void OnDestroy() {
+            base.OnDestroy();
+            
+            _quests.ForEach(q => q.State = QuestState.Locked);
         }
     }
 

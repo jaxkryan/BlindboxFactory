@@ -53,7 +53,9 @@ namespace Script.Controller {
                 _lastUpdate = data.LastUpdate;
                 for (var i = 0; i < data.DailyMissionsState.Count; i++) {
                     _dailyMissions[i].State = data.DailyMissionsState[i];
-                }
+                }           
+
+                DailyMissions.ForEach(q => q.Evaluate());
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot load {GetType()}");
@@ -63,6 +65,8 @@ namespace Script.Controller {
         }
 
         public override void Save(SaveManager saveManager) {
+            DailyMissions.ForEach(q => q.Evaluate());
+
             var newSave = new SaveData() {
                 LastUpdate = _lastUpdate,
                 DailyMissionsState = _dailyMissions?.Select(m => m.State).ToList() ?? new (),
