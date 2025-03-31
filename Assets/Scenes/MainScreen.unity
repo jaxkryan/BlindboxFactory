@@ -1816,9 +1816,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   minZoom: 2
-  maxZoom: 8
-  zoomSpeed: 0.5
-  dragSpeed: 0.1
+  maxZoom: 24
+  zoomSpeed: 0.2
+  dragSpeed: 0.2
+  _backgroundTilemap: {fileID: 951551438}
 --- !u!4 &224395189
 Transform:
   m_ObjectHideFlags: 0
@@ -51473,6 +51474,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   AutoUnparentOnLoad: 1
+  _backgroundTilemap: {fileID: 951551438}
+  _requiredTile: {fileID: 11400000, guid: 09fc4ff7de6892943863443b02f3bb4f, type: 2}
   <ActiveBuildable>k__BackingField: {fileID: 0}
   _maxBuildingDistance: 3
   _constructionLayer: {fileID: 1253588326}
