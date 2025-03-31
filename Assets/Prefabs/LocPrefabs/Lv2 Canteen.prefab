@@ -44,7 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _currentWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -197,7 +196,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _currentWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -293,7 +291,7 @@ GameObject:
   - component: {fileID: 5439029325510068166}
   m_Layer: 0
   m_Name: Lv2 Canteen
-  m_TagString: Canteen
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -601,6 +599,7 @@ MonoBehaviour:
       data:
         _maxProgress: 100
         _resourceUse: []
+        _machine: {fileID: 5439029325510068166}
         _core: 1
         _amount: 10
 --- !u!1 &5039184034387694424
@@ -813,7 +812,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _currentWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -986,7 +984,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _currentWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -1035,7 +1032,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _currentWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -1248,6 +1244,7 @@ MonoBehaviour:
         _maxProgress: 100
         _resourceUse: []
         _amount: 10
+        _storage: {fileID: 618267843674244637}
 --- !u!1 &8534500081448538090
 GameObject:
   m_ObjectHideFlags: 0
@@ -1371,7 +1368,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _currentWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:

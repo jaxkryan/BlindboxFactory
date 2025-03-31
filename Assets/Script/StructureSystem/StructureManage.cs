@@ -83,13 +83,7 @@ public class StructureManage : MonoBehaviour
     {
         if (IsPointerOverUI()) return;
         if (_buildingPlacer.IsActiveBuildable()) return;
-        RaycastHit2D hit = Physics2D.RaycastAll(worldCoords, Vector2.zero).FirstOrDefault(h => h.collider is not null 
-        && (h.collider.gameObject.CompareTag("BoxMachine")
-            || h.collider.gameObject.CompareTag("Canteen")
-            || h.collider.gameObject.CompareTag("Excavator")
-            || h.collider.gameObject.CompareTag("StoreHouse")
-            || h.collider.gameObject.CompareTag("RestRoom")
-            || h.collider.gameObject.CompareTag("ElectricMachine")));
+        RaycastHit2D hit = Physics2D.RaycastAll(worldCoords, Vector2.zero).FirstOrDefault(h => h.collider is not null/* && h.collider.gameObject.CompareTag("BoxMachine")*/);
         _hitCoord = hit.centroid;
 
         if (hit.collider != null)

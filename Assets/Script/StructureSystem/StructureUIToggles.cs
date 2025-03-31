@@ -1,4 +1,3 @@
-using Script.Machine;
 using UnityEngine;
 
 public class StructureUIToggles : MonoBehaviour
@@ -8,8 +7,6 @@ public class StructureUIToggles : MonoBehaviour
     [SerializeField] private GameObject CraftPanel;
     [SerializeField] private GameObject InformationPanel;
     [SerializeField] private GameObject ExitPanel;
-
-    private MachineBase currentMachine = BlindBoxInformationDisplay.Instance.currentMachine;
 
     public StructureUIToggles Instance;
 
@@ -63,19 +60,6 @@ public class StructureUIToggles : MonoBehaviour
 
         }
     }
-
-    public void backToChosePanelGeneral()
-    {
-        if(currentMachine is BlindBoxMachine)
-        {
-            backToChosePanelBB();
-        }
-        else
-        {
-            backToChosePanelAll();
-        }
-    }
-
 
     public void backToChosePanelAll()
     {
