@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Script.Controller;
+using Script.Utils;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -20,11 +22,16 @@ namespace Script.Quest {
                     NewLandData.Direction.right => Vector2Int.right,
                     _ => throw new ArgumentOutOfRangeException()
                 };
-                var anchor = GetOuterMostPosition(Vector2Int.zero, direction, tilemap) + direction;
+                if (GetOuterMostPosition(tilemap.GetCellPositions().OrderBy(c => c.x + c.y).First(), direction, tilemap)
+                    == new Vector2Int(Int32.MinValue, Int32.MinValue)) continue;
+                
+                var anchor = GetOuterMostPosition(tilemap.GetCellPositions().OrderBy(c => c.x + c.y).First(), direction, tilemap);
                 
                 //With the outer tile as anchor, calculate the span of the new land
                 HashSet<Vector2Int> span  = new();
                 bool isVertical = data.ExtendDirection == NewLandData.Direction.up || data.ExtendDirection == NewLandData.Direction.down;
+                tilemap.CompressBounds();
+                
                 int width = isVertical ? tilemap.size.x : tilemap.size.y;
                 for (int x = 0; x < data.Extend; x++) {
                     for (int y = 0; y < width; y++) {

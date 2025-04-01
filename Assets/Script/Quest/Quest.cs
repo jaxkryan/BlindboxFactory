@@ -12,8 +12,7 @@ namespace Script.Quest {
         [TextArea]
         [SerializeField] public string Description;
         
-        [HideInInspector]public QuestState State;
-
+        [NonSerialized]public QuestState State = QuestState.Locked;
 
         public bool TryGetQuestData<T>(string keyName, out T data) {
             var controller = GameController.Instance.QuestController;
@@ -43,11 +42,14 @@ namespace Script.Quest {
                     case QuestState.Locked:
                         if (Preconditions.All(c => c.Evaluate(this)))
                             State = QuestState.InProgress;
+                        if (State == QuestState.InProgress) Debug.Log($"State of quest {Name} change to {State}");
                         break;
                     case QuestState.InProgress:
-                        if (Objectives.All(o => o.Evaluate(this)))
+                        if (Objectives.All(o => o.Evaluate(this))) {
                             State = QuestState.Complete;
-                        OnComplete();
+                            OnComplete();
+                        }
+                        if (State == QuestState.Complete) Debug.Log($"State of quest {Name} change to {State}");
                         break;
                     case QuestState.Complete:
                         break;
