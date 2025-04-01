@@ -9,6 +9,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Users;
 using UnityEngine.Tilemaps;
 using Script.Controller;
+using Script.HumanResource.Worker;
+using System.Linq;
 
 namespace BuildingSystem {
     public class ConstructionLayer : TilemapLayer {
@@ -145,8 +147,25 @@ namespace BuildingSystem {
             var coords = _tilemap.WorldToCell(worldCoords);
             _buildables.Remove(coords);
             buildable.Destroy();
+            RemoveBuildingWorker(machine);
 
             FindFirstObjectByType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
+        }
+
+        private void RemoveBuildingWorker(MachineBase machine)
+        {
+            Debug.LogWarning("Removing Worker");
+            List<Worker> worker = FindWorkersByMachine(machine);
+            if (worker != null)
+            {
+                if(worker.Count > 0)
+                {
+                    foreach(Worker w in worker)
+                    {
+                        GameController.Instance.WorkerSpawner.RemoveWorker(w);
+                    }
+                }
+            }
         }
 
         public Dictionary<Vector3Int, Buildable> GetBuildables() { return _buildables; }
@@ -179,5 +198,17 @@ namespace BuildingSystem {
         private bool IsRectOccupied(Vector3Int coords, RectInt rect) {
             return rect.Iterate(coords, tileCoord => _buildables.ContainsKey(tileCoord));
         }
+
+        public List<Worker> FindWorkersByMachine(MachineBase machine)
+        {
+            Debug.LogWarning("FindingWorker");
+            List<Worker> worker =GameController.Instance.WorkerController.WorkerList
+                .SelectMany(k => k.Value) 
+                .Where(w =>(MachineBase) w.Machine == machine)
+                .ToList();
+            Debug.LogWarning($"{worker.Count} workers");
+            return worker;
+        }
+
     }
 }

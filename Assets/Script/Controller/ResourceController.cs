@@ -152,6 +152,58 @@ namespace Script.Controller {
             }
         }
         
+
+        public static string FormatNumber(long number) {
+            Dictionary<long, string> numberIndex = new();
+            numberIndex.Add(1, "");
+            numberIndex.Add(1000, "k");
+            numberIndex.Add(1000_000, "M");
+            numberIndex.Add(1000_000_000, "B");
+            numberIndex.Add(1000_000_000_000, "T");
+            
+            long cutoff = Int64.MaxValue; //Cutoff switch to using ABC system (Unimplemented)
+            if (number >= cutoff) {
+                //Implement the ABC system
+                return number.ToString();
+            }
+            else {
+                long index = 1;
+                string abbreviation = "";
+                while (number / index >= 1000) index *= 1000;
+                var i = index;
+                while (i > 1) {
+                    var max = numberIndex.Keys.Max();
+                    if (i > max) {
+                        i /= max;
+                        abbreviation = numberIndex[max] += abbreviation;
+                    }
+                    else {
+                        var key = numberIndex.First().Key;
+                        var x = key;
+                        do {
+                            x *= 10;
+                            i /= 10;
+                            if (numberIndex.ContainsKey(x)) key = x;
+                        } while (i > 1);
+                        abbreviation = numberIndex[key] + abbreviation;
+                    }
+                }
+                
+                return (number / float.Parse(index.ToString())).ToString("###.##") + abbreviation;
+            }
+            
+            // if (number >= 1_000_000_000_000)
+            //     return (number / 1_000_000_000_000f).ToString("0.##") + "T";
+            // else if (number >= 1_000_000_000)
+            //     return (number / 1_000_000_000f).ToString("0.##") + "B";
+            // else if (number >= 1_000_000)
+            //     return (number / 1_000_000f).ToString("0.##") + "M";
+            // else if (number >= 1_000)
+            //     return (number / 1_000f).ToString("0.##") + "k";
+            // else
+            //     return number.ToString(); // normal number
+        }
+        
         public class SaveData{
             public Dictionary<ResourceConversionPair, float> ResourceConversion;
             public Dictionary<Resource, ResourceData> ResourceData;
