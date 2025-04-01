@@ -31,7 +31,7 @@ namespace Script.HumanResource.Worker {
         [SerializeField] private SerializedDictionary<CoreType, float> _maximumCores;
         [SerializeField] private SerializedDictionary<CoreType, float> _startingCores;
         public Dictionary<CoreType, float> CurrentCores { get => _currentCores; }
-        private Dictionary<CoreType, float> _currentCores;
+        [SerializeField]private SerializedDictionary<CoreType, float> _currentCores;
         public event Action<CoreType, float> onCoreChanged = delegate { };
 
         [Header("Work")] 
@@ -80,8 +80,6 @@ namespace Script.HumanResource.Worker {
             
             WorkingSlot = slot;
             Machine = slot.Machine;
-            Agent.enabled = false;
-            transform.position = WorkingSlot.transform.position;
             onWorking?.Invoke();
         }
         public virtual void StopWorking() {
@@ -97,9 +95,6 @@ namespace Script.HumanResource.Worker {
 
             WorkingSlot = null;
             Machine = null;
-            Agent.enabled = true;
-            if (NavMesh.SamplePosition(transform.position, out var hit, Single.MaxValue, 1))
-                transform.position = hit.position;
             onStopWorking?.Invoke();
         }
         public void AddBonus(Bonus bonus) {
@@ -174,7 +169,7 @@ namespace Script.HumanResource.Worker {
             transform.position = data.Position;
             _maximumCores = new SerializedDictionary<CoreType, float>(data.MaximumCores);
             _startingCores = new SerializedDictionary<CoreType, float>(data.StartingCores);
-            _currentCores = data.CurrentCores;
+            _currentCores = new (data.CurrentCores);
             _bonuses = data.Bonuses;
 
             if (data.MachinePrefabName != string.Empty) {

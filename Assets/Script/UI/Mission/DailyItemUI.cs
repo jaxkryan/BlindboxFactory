@@ -10,10 +10,10 @@ namespace Script.UI.Mission {
         [SerializeField] TextMeshProUGUI _description;
         [SerializeField] TextMeshProUGUI _progress;
         [SerializeField] Image _tick;
-        public Quest.Quest Quest { get; set; }
+        public Quest.Quest DailyMission { get; set; }
         
         public void UpdateQuestData() {
-            if (Quest == null) {
+            if (DailyMission == null) {
                 _name.text = "";
                 _description.text = "";
                 _progress.text = "";
@@ -22,13 +22,21 @@ namespace Script.UI.Mission {
                 return;
             }
             
-            Quest.Evaluate();
-            bool isCompleted = Quest.State == QuestState.Complete; 
+            DailyMission.Evaluate();
+            bool isCompleted = DailyMission.State == QuestState.Complete; 
             
-            _name.text = Quest.Name;
-            _description.text = Quest.Description;
-            _progress.text = isCompleted ? "" : string.Join("\n", Quest.Preconditions.Select(p => p.Progress(Quest)));
+            _name.text = DailyMission.Name;
+            _description.text = DailyMission.Description;
+            _progress.text = isCompleted ? "" : string.Join("\n", DailyMission.Objectives.Select(p => p.Progress(DailyMission)));
             _tick.enabled = isCompleted;
+            DailyMission.onQuestStateChanged += OnQuestStateChanged;
+        }
+
+        private void OnQuestStateChanged(Quest.Quest quest, QuestState state) {
+            if (state == QuestState.Complete) {
+                Debug.Log($"Daily mission {DailyMission.Name} completed! Removing item.");
+                Destroy(gameObject);
+            }
         }
     }
 }
