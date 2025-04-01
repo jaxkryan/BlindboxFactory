@@ -66,6 +66,13 @@ public abstract class GoapAgent : MonoBehaviour {
             CalculatePlan();
 
             if (ActionPlan != null && ActionPlan.Actions.Count > 0) {
+                if (!_navMeshAgent.isOnNavMesh) {
+                    _navMeshAgent.enabled = true;
+                    if (NavMesh.SamplePosition(_navMeshAgent.transform.position, out var hit, Single.MaxValue, 1)) {
+                        Debug.LogWarning($"Warping agent to {hit.position}");
+                        _navMeshAgent.Warp(hit.position);
+                    }
+                }
                 _navMeshAgent.ResetPath();
 
                 CurrentGoal = ActionPlan.AgentGoal;

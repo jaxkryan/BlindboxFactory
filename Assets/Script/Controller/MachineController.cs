@@ -111,7 +111,7 @@ namespace Script.Controller {
             [CanBeNull] IEnumerable<MachineBase> machines = null) =>
             FindWorkableMachines(machines)
                 .Where(m => m.Slots.Any(s =>
-                    s.CanAddWorker(worker) && worker.Agent.CalculatePath(GetNavMeshHit(worker), new())));
+                    s.CanAddWorker(worker) && worker.Agent.isOnNavMesh == true && worker.Agent.CalculatePath(GetNavMeshHit(worker), new())));
 
         private Vector3 GetNavMeshHit(Worker worker) {
             NavMeshHit hit;

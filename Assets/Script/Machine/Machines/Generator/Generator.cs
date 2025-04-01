@@ -7,12 +7,6 @@ namespace Script.Machine.Machines.Generator {
         public int Power { get => _power; set => _power = value; }
         [SerializeField]private int _power = 0;
 
-
-        private void Start()
-        {
-            base.Start();
-        }
-
         public override void Load(MachineBaseData data) {
             base.Load(data);
             if (data is not GeneratorData saveData) return;

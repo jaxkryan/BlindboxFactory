@@ -92,7 +92,7 @@ namespace Script.HumanResource.Worker {
                 Debug.LogError($"Machine slot ({WorkingSlot.Machine}) is being worked by {Name}");
                 return;
             }
-
+            
             WorkingSlot = null;
             Machine = null;
             onStopWorking?.Invoke();
