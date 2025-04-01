@@ -41,9 +41,14 @@ namespace Script.HumanResource.Worker {
             
             var instance = UnityEngine.Object.Instantiate(prefab.gameObject, position, Quaternion.identity);
             worker = instance.GetComponent<Worker>();
+            GameController.Instance.WorkerController.AddWorker(worker);
             return instance;
         }
-        
-        public void RemoveWorker(Worker worker) => UnityEngine.Object.Destroy(worker.gameObject);
+
+        public void RemoveWorker(Worker worker) {
+            GameController.Instance.WorkerController.RemoveWorker(worker);
+            UnityEngine.Object.Destroy(worker.gameObject);
+        }
+            
     }
 }
