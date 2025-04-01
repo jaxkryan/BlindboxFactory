@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,11 +7,20 @@ public class BlindBoxMachineUIProgessDisplay : PersistentSingleton<BlindBoxMachi
 
     [SerializeField] float value = 0f;
     [SerializeField] Slider uiProgess;
+    [SerializeField] Slider uiAmount;
+    [SerializeField] TMP_Text textAmount;
     [SerializeField] BlindBoxMachine blindBoxMachine;
 
-    private void Update()
+    private void Start()
     {
-        value = blindBoxMachine.CurrentProgress / blindBoxMachine.MaxProgress;
-        uiProgess.value = value;
+        blindBoxMachine.onProgress += UpdateUIProgress;
+    }
+
+    private void UpdateUIProgress(float progress)
+    {
+        uiProgess.value = blindBoxMachine.CurrentProgress / blindBoxMachine.MaxProgress;
+        uiAmount.value = blindBoxMachine.amount;
+        textAmount.text = blindBoxMachine.amount + " / " + blindBoxMachine.maxAmount;
+        //textAmount.text = (blindBoxMachine.CurrentProgress / blindBoxMachine.MaxProgress).ToString();
     }
 }
