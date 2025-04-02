@@ -51,17 +51,26 @@ public class BlindBoxMachine : MachineBase
 
     public override ProductBase CreateProduct()
     {
+        Debug.Log($"Before CreateProduct - Amount: {amount}, Product: {Product}");
+
         var ret = base.CreateProduct();
+
+        Debug.Log($"After CreateProduct - Ret: {ret}");
+
         if (amount-- <= 0 && !(Product is BlindBox bbProduct && bbProduct.BoxTypeName == BoxTypeName.Null))
         {
             Debug.LogWarning("Product order completed");
             amount = 0;
+
             ProductBase createdProduct = Product ?? new BlindBox { BoxTypeName = BoxTypeName.Null };
             Product = new BlindBox { BoxTypeName = BoxTypeName.Null };
+            Debug.Log($"Reset Product to: {Product}");
         }
 
+        Debug.Log($"Returning Product: {ret}");
         return ret;
     }
+
 
     public override void Load(MachineBaseData data) {
         base.Load(data);
