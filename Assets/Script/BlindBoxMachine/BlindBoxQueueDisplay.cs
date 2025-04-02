@@ -31,23 +31,19 @@ public class BlindBoxQueueDisplay : MonoBehaviour
 
     private void Update()
     {
-        var bbm = BlindBoxInformationDisplay.Instance.currentMachine;
-        float progession = bbm.CurrentProgress/bbm.MaxProgress;
-        progessionSlider.value = progession;
+        var blindboxMachine = (BlindBoxMachine)BlindBoxInformationDisplay.Instance.currentMachine;
+        var blindbox = (BlindBox)blindboxMachine.Product;
+        if (blindboxMachine.amount != 0 && blindbox.BoxTypeName != BoxTypeName.Null)
+        {
+            var bbm = BlindBoxInformationDisplay.Instance.currentMachine;
+            float progession = bbm.CurrentProgress / bbm.MaxProgress;
+            progessionSlider.value = progession;
+        }
         UpdateQueueUI();
     }
     private void OnEnable()
     {
         UpdateQueueUI();
-    }
-
-    public string FormatTimeFull(float timeInSeconds)
-    {
-        int hours = Mathf.FloorToInt(timeInSeconds / 3600);
-        int minutes = Mathf.FloorToInt((timeInSeconds % 3600) / 60);
-        int seconds = Mathf.FloorToInt(timeInSeconds % 60);
-
-        return string.Format("{0:D2}:{1:D2}:{2:D2}", hours, minutes, seconds);
     }
 
 
@@ -103,11 +99,7 @@ public class BlindBoxQueueDisplay : MonoBehaviour
         var blindbox = (BlindBox) blindboxMachine.Product;
 
 
-        Debug.Log($"Box: {blindbox.BoxTypeName} " +
-                $"\n {blindboxMachine.amount}");
-
-
-        if (blindboxMachine.amount == 0)
+        if (blindboxMachine.amount == 0 || blindbox.BoxTypeName == BoxTypeName.Null)
         {
             currentText.gameObject.SetActive(false);
             currentImage.gameObject.SetActive(false);
