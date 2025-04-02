@@ -1,18 +1,73 @@
 ﻿using System;
+using System.Collections.Generic;
 using Script.Controller;
 using Script.Resources;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Script.Purchasing
 {
-    public class IAPPack : MonoBehaviour
+    public interface IBuyableItem
     {
-        [SerializeField] private string name; // Tên gói
-        [SerializeField] private string type; // Loại gói (Gold hoặc Gem)
-        [SerializeField] private int rewardGem; // Số lượng Gem thưởng
-        [SerializeField] private int rewardCoin; // Số lượng Gold thưởng
-        [SerializeField] private int rewardHelper; // k biết 
-        [SerializeField] private float price; // Giá gói 
+        int Id { get; }
+        string Name { get; }
+        string Description { get; }
+        int Price { get; }
+    }
+    [Serializable]
+    public class ConsumableItem : IBuyableItem
+    {
+        public int Id { get; private set; }
+
+        public string Name { get; private set; }
+
+        public string Description { get; private set; }
+
+        public int Price { get; private set; }
+
+        public List<Resource> ResourceGain { get; private set; }
+
+        public int AmountGain { get; private set; }
+
+    } 
+    [Serializable]
+    public class NonConsumableItem : IBuyableItem
+    {
+        public int Id { get; private set; }
+
+        public string Name { get; private set; }
+
+        public string Description { get; private set; }
+
+        public int Price { get; private set; }
+    } 
+    [Serializable]
+    public class SubcriptionItem : IBuyableItem
+    {
+        public int Id { get; private set; }
+
+        public string Name { get; private set; }
+
+        public string Description { get; private set; }
+
+        public int Price { get; private set; }
+
+        public int TimeDuration { get; private set; } // inday
+    }
+    public class IAPShop : MonoBehaviour
+    {
+        [SerializeField] List<ConsumableItem> consumableItems;
+        [SerializeField] List<NonConsumableItem> nonConsumableItems;
+        [SerializeField] List<SubcriptionItem> subcriptionItems;
+    }
+    public class IAPPack
+    {
+        [SerializeField] private string name;
+        [SerializeField] private string type;
+        [SerializeField] private int rewardGem; 
+        [SerializeField] private int rewardCoin;
+        [SerializeField] private int rewardHelper;
+        [SerializeField] private float price;
 
         public bool IsValid()
         {
