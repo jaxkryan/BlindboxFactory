@@ -46,6 +46,10 @@ namespace Script.HumanResource.Worker {
         [SerializeField] private RuntimeAnimatorController _runtimeAnimator;
         private static readonly int VerticalMovement = Animator.StringToHash("VerticalMovement");
         private static readonly int HorizontalMovement = Animator.StringToHash("HorizontalMovement");
+        private static readonly int IsWorking = Animator.StringToHash("IsWorking");
+        private static readonly int IsResting = Animator.StringToHash("IsDining");
+        private static readonly int IsDining = Animator.StringToHash("IsDining");
+
         public Animator Animator {
             get => GetComponent<Animator>();
         }
@@ -78,6 +82,26 @@ namespace Script.HumanResource.Worker {
                 return;
             }
             
+            Animator.SetBool(IsWorking, true);
+            var controller = GameController.Instance.MachineController;
+            //Get prefab name of the working machine
+            var prefabName = slot.Machine.PrefabName;
+            //Get the prefab
+            var prefab = controller.Buildables.Find(prefab => prefab.Name == prefabName)?.gameObject;
+            if (prefab != null && prefab.TryGetComponent<MachineBase>(out var recoveryMachine)) {
+                //Check if prefab is a resting machine prefab
+                var recovery = controller.RecoveryMachines.Any(m => m.Key.GetType() == recoveryMachine.GetType()) 
+                    ? controller.RecoveryMachines.FirstOrDefault(m => m.Key.GetType() == recoveryMachine.GetType()).Value : new ();
+                if (recovery is not null && recovery.Any(r => r.Worker == IWorker.ToWorkerType(this))) {
+                    var r = recovery.Where(r => r.Worker == IWorker.ToWorkerType(this)).ToList();
+                    //Check which core the prefab recover 
+                    if (r.Any(re => re.Core == CoreType.Happiness)) Animator.SetBool(IsResting, true);
+                    if (r.Any(re => re.Core == CoreType.Hunger)) Animator.SetBool(IsDining, true);
+                }
+
+            }
+            
+            
             WorkingSlot = slot;
             Machine = slot.Machine;
             onWorking?.Invoke();
@@ -92,6 +116,10 @@ namespace Script.HumanResource.Worker {
                 Debug.LogError($"Machine slot ({WorkingSlot.Machine}) is being worked by {Name}");
                 return;
             }
+            
+            Animator.SetBool(IsWorking, false);
+            Animator.SetBool(IsDining, false);
+            Animator.SetBool(IsResting, false);
             
             WorkingSlot = null;
             Machine = null;
