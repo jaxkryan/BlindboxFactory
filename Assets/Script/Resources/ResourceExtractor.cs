@@ -41,14 +41,15 @@ namespace Script.Machine
 
             //// Increase progress each frame if workable
             // tam thoi fix cung
-            if (IsWorkable)
-            {
-                ProgressionPerSec = 20f;
-                if (level > 1) ProgressionPerSec *= 1.5f;
-                IncreaseProgress(ProgressionPerSec * Time.deltaTime);
-            }
-            //Debug.Log("is workable: " + IsWorkable + !IsClosed + HasResourceForWork + HasEnergyForWork + CanCreateProduct);
-            //Debug.Log("Progress per sec now" + ProgressionPerSec);  
+            //if (IsWorkable)
+            //{
+            //    ProgressionPerSec = 20f;
+            //    if (level > 1) ProgressionPerSec *= 1.5f;
+            //    IncreaseProgress(ProgressionPerSec * Time.deltaTime);
+            //}
+            Debug.Log("is workable: " + IsWorkable + !IsClosed + HasResourceForWork + HasEnergyForWork + CanCreateProduct);
+            Debug.Log("Running per sec now" + WorkDetails.First().IsRunning);  
+            Debug.Log("Current Progress now" + CurrentProgress);  
         }
 
         public override ProductBase CreateProduct()
@@ -96,16 +97,7 @@ namespace Script.Machine
             spriteRenderer.DOFade(0f, 0.8f).SetDelay(0.3f).OnComplete(() => Destroy(materialObject));
         }
 
-        // Override to disable worker functionality
-        public override void AddWorker(Worker worker, MachineSlot slot)
-        {
-            Debug.LogWarning("ResourceExtractor does not support workers.");
-        }
-
-        public override void RemoveWorker(Worker worker)
-        {
-            Debug.LogWarning("ResourceExtractor does not support workers.");
-        }
+      
 
        
     }

@@ -164,6 +164,6 @@ public class AdminGachaPanelUI : MonoBehaviour
         });
 
         // Hide the gacha panel during the reveal
-        Close();
+        //Close();
     }
 }
