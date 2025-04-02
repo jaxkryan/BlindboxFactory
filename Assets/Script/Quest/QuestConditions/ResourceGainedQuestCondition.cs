@@ -33,10 +33,11 @@ namespace Script.Quest {
 
         public override bool Evaluate(Quest quest) {
             var controller = GameController.Instance.ResourceController;
-            
+            Debug.LogWarning($"Evaluating quest {quest.Name}");
             bool passed = true;
 
             foreach (var resource in Resources.Keys) {
+                Debug.LogWarning($"Quest: {quest.Name}. Resource: {resource}");
                 var resourceKey = keyName(resource);
                 var remKey = keyName(resource)+"Remaining";
                 if (!controller.TryGetAmount(resource, out long current)) {
@@ -68,6 +69,8 @@ namespace Script.Quest {
                 if (remValue > 0) passed = false;
             }
 
+            Debug.LogWarning($"Quest: {quest.Name}. Pass: {passed}");
+            
             return passed;
         }
     }
