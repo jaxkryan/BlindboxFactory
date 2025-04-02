@@ -158,6 +158,7 @@ public class RecipeButton : MonoBehaviour
         {
             machine.Product = currentBlindBox;
             machine.amount = selectedAmount;
+            machine.CurrentProgress = 0;
         }
         else if (machine.Product == currentBlindBox)
         {

@@ -128,9 +128,8 @@ namespace Script.Controller {
         }
 
         public override void OnDestroy() {
+            _quests.Where(q => q is not null).ForEach(q => q.State = QuestState.Locked);
             base.OnDestroy();
-            
-            _quests.ForEach(q => q.State = QuestState.Locked);
         }
     }
 

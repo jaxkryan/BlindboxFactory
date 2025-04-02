@@ -11,6 +11,7 @@ using UnityEngine.Tilemaps;
 using Script.Controller;
 using Script.HumanResource.Worker;
 using System.Linq;
+using Script.Machine.Machines.Canteen;
 
 namespace BuildingSystem {
     public class ConstructionLayer : TilemapLayer {
@@ -201,14 +202,57 @@ namespace BuildingSystem {
 
         public List<Worker> FindWorkersByMachine(MachineBase machine)
         {
-            Debug.LogWarning("FindingWorker");
-            List<Worker> worker =GameController.Instance.WorkerController.WorkerList
-                .SelectMany(k => k.Value) 
-                .Where(w =>(MachineBase) w.Machine == machine)
-                .ToList();
-            Debug.LogWarning($"{worker.Count} workers");
-            return worker;
-        }
+            int number = machine.SpawnWorkers;
+            Debug.LogWarning("Finding Worker");
 
+            // Find Wokers in the machine
+            List<Worker> workers = machine.Workers.ToList();
+
+            if (workers.Count < number)
+            {
+                number -= workers.Count;
+
+                // Find Resting Workers
+                List<Worker> restingWorkers = GameController.Instance.WorkerController.WorkerList
+                    .SelectMany(k => k.Value)
+                    .Where(w => w.Machine == null)
+                    .Take(number)
+                    .ToList();
+
+                workers.AddRange(restingWorkers);
+                number -= restingWorkers.Count;
+
+                // Find Workers in Canteen or Restroom
+                if (number > 0)
+                {
+                    List<Worker> coreUpdateWorkers = GameController.Instance.WorkerController.WorkerList
+                        .SelectMany(k => k.Value)
+                        .Where(w => w.Machine is Canteen || w.Machine is RestRoom)
+                        .Take(number)
+                        .ToList();
+
+                    workers.AddRange(coreUpdateWorkers);
+                    number -= coreUpdateWorkers.Count;
+                }
+
+                // Find Workers Assigned to Other Machines
+                if (number > 0)
+                {
+                    List<Worker> otherWorkers = GameController.Instance.WorkerController.WorkerList
+                        .SelectMany(k => k.Value)
+                        .Where(w => w.Machine is not Canteen
+                            && w.Machine is not RestRoom
+                            && w.Machine != null
+                            && (MachineBase)w.Machine != machine)
+                        .Take(number)
+                        .ToList();
+
+                    workers.AddRange(otherWorkers);
+                }
+            }
+
+            Debug.LogWarning($"{workers.Count} workers found for machine {machine.name}");
+            return workers;
+        }
     }
 }

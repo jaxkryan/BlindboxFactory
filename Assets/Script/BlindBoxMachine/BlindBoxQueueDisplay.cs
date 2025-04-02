@@ -7,7 +7,7 @@ public class BlindBoxQueueDisplay : MonoBehaviour
     public static BlindBoxQueueDisplay Instance { get; private set; }
     [SerializeField] TMP_Text currentText;
     [SerializeField] Image currentImage;
-    [SerializeField] TMP_Text timeText;
+    [SerializeField] Slider progessionSlider;
 
     BoxTypeManager boxTypeManager;
     int testInterval;
@@ -32,9 +32,8 @@ public class BlindBoxQueueDisplay : MonoBehaviour
     private void Update()
     {
         var bbm = BlindBoxInformationDisplay.Instance.currentMachine;
-        float timesec = bbm.EstimateCompletionTime; 
-        string timetext = FormatTimeFull(timesec);
-        timeText.text = timetext;
+        float progession = bbm.CurrentProgress/bbm.MaxProgress;
+        progessionSlider.value = progession;
         UpdateQueueUI();
     }
     private void OnEnable()
