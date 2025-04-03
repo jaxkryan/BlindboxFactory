@@ -4,14 +4,15 @@ using UnityEngine;
 [System.Serializable]
 public struct BoxData
 {
-    public BoxTypeName boxType;  // Enum for the type
-    public int value;            // Value of the box
-    public Sprite sprite;        // Sprite of the box
+    public BoxTypeName boxType;  
+    public int value;            
+    public Sprite sprite;
+    public string description;
 }
 
 public class BoxTypeManager : MonoBehaviour
 {
-    public static BoxTypeManager Instance { get; private set; }
+    public static BoxTypeManager Instance;
 
     public List<BoxData> boxDataList = new List<BoxData>();
     private Dictionary<BoxTypeName, BoxData> boxTypeDictionary;
