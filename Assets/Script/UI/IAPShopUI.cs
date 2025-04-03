@@ -126,7 +126,7 @@ public class IAPShopUI : MonoBehaviour
                 Mascot epicMascot = administratorGacha.PullMascotByGrade(Grade.Epic);
                 if (epicMascot != null)
                 {
-                    GameController.Instance.MascotController.AddMascot(epicMascot);
+                    
                     ShowReveal(new List<Mascot> { epicMascot }); // Hiển thị animation
                     Debug.Log($"Pulled Epic Mascot: {epicMascot.Name}");
                 }
