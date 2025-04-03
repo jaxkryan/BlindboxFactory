@@ -8,7 +8,7 @@ public class MoveStrategy : IActionStrategy {
     readonly Func<Vector3> _destination;
 
     public bool CanPerform => !Complete;
-    public bool Complete => _agent.remainingDistance <= 2f && !_agent.pathPending;
+    public bool Complete => _agent.remainingDistance <= 0.2f && !_agent.pathPending;
 
     public MoveStrategy(NavMeshAgent agent, Func<Vector3> destination) {
         this._agent = agent;
@@ -24,7 +24,7 @@ public class MoveToSlotStrategy : IActionStrategy {
     readonly Worker _worker;
 
     public bool CanPerform => !Complete;
-    public bool Complete => _agent.remainingDistance <= 0.01f && !_agent.pathPending;
+    public bool Complete => _agent.remainingDistance <= 0.2f && !_agent.pathPending;
 
     public MoveToSlotStrategy(Worker worker) {
         this._agent = worker.Agent;

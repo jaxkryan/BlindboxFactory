@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Script.Controller;
 using Script.Controller.SaveLoad;
 using Script.Gacha.Base;
+using Script.Resources;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
@@ -167,39 +168,72 @@ namespace Script.HumanResource.Administrator {
             _mascotsList.Add(mascot);
         }
 
-        public void RemoveMascot(Mascot mascot) {
+        public void RemoveMascot(Mascot mascot)
+        {
             if (!_mascotsList.Remove(mascot)) return;
+
             // If the mascot was assigned, unassign it
-            if (GeneratorMascot == mascot) {
+            if (GeneratorMascot == mascot)
+            {
                 GeneratorMascot = null;
                 mascot.OnDismiss(); // Call dismiss if it was assigned
             }
 
-            if (CanteenMascot == mascot) {
+            if (CanteenMascot == mascot)
+            {
                 CanteenMascot = null;
                 mascot.OnDismiss(); // Call dismiss if it was assigned
             }
 
-            if (RestroomMascot == mascot) {
+            if (RestroomMascot == mascot)
+            {
                 RestroomMascot = null;
                 mascot.OnDismiss(); // Call dismiss if it was assigned
             }
 
-            if (MiningMascot == mascot) {
+            if (MiningMascot == mascot)
+            {
                 MiningMascot = null;
                 mascot.OnDismiss(); // Call dismiss if it was assigned
             }
 
-            if (FactoryMascot == mascot) {
+            if (FactoryMascot == mascot)
+            {
                 FactoryMascot = null;
                 mascot.OnDismiss(); // Call dismiss if it was assigned
             }
 
-            if (StorageMascot == mascot) {
+            if (StorageMascot == mascot)
+            {
                 StorageMascot = null;
                 mascot.OnDismiss(); // Call dismiss if it was assigned
             }
 
+            // Add 500 Gold to the player's resources when remove a mascot
+            var resourceController = GameController.Instance?.ResourceController;
+            if (resourceController != null)
+            {
+                if (resourceController.TryGetAmount(Resource.Gold, out long currentGold))
+                {
+                    long newGold = currentGold + 500;
+                    if (resourceController.TrySetAmount(Resource.Gold, newGold))
+                    {
+                        //Debug.Log($"Added 500 Gold for removing mascot: {mascot.Name}. New Gold amount: {newGold}");
+                    }
+                    else
+                    {
+                        //Debug.LogWarning($"Failed to set new Gold amount ({newGold}) after removing mascot: {mascot.Name}");
+                    }
+                }
+                else
+                {
+                    //Debug.LogWarning($"Failed to get current Gold amount for adding 500 Gold after removing mascot: {mascot.Name}");
+                }
+            }
+            else
+            {
+                Debug.LogError("ResourceController is null in MascotController.RemoveMascot. Cannot add 500 Gold.");
+            }
 
             Debug.Log($"Removed mascot: {mascot.Name} from collection.");
         }

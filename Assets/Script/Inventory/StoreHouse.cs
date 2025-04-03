@@ -11,8 +11,10 @@ public class StoreHouse : MachineBase
     BoxController _boxController => GameController.Instance.BoxController;
     ResourceController _resoruceController => GameController.Instance.ResourceController;
 
-    private void Start() 
+    protected override void Start() 
     {
+        base.Start();
+        
         _resoruceController.TryGetAllResourceAmounts(out var materials);
 
         foreach (var res in materials)

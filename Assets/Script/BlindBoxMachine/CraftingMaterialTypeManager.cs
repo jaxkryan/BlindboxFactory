@@ -8,6 +8,7 @@ public struct CMData
     public Resource cmType;
     public int value;
     public Sprite sprite;
+    public string description;
 }
 
 public class CraftingMaterialTypeManager : MonoBehaviour

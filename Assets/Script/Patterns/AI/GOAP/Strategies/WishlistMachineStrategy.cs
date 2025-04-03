@@ -48,11 +48,11 @@ namespace Script.Patterns.AI.GOAP.Strategies {
 
         private bool TryWishlistMachine() {
             var slots = new Dictionary<MachineSlot, (int Weight, NavMeshPath Path, MachineBase Machine)>();
-            
             foreach (var machine in _machines(_worker.Director)) {
                 foreach (var slot in machine.Slots) {
                     var path = new NavMeshPath();
                     if (!slot.CanAddWorker(_worker)) continue;
+                    if (slot.CurrentWorker != null) continue;
                     if (slot.WishListWorker != null) continue;
                     
                     NavMeshHit hit;
@@ -76,6 +76,7 @@ namespace Script.Patterns.AI.GOAP.Strategies {
             //     .ToHashSet();
             var weighted = slots.OrderBy(s => s.Value.Weight);
             
+
             //Evaluate options
             foreach (var w in weighted) {
                 //Move down the weighted list until a machine is wish listed

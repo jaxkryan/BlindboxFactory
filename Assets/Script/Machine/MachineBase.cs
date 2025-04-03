@@ -110,7 +110,7 @@ namespace Script.Machine {
         [SerializeField] WorkerType _spawnWorkerType;
 
         public IEnumerable<Worker> Workers {
-            get => _slots.Select(s => s.CurrentWorker).Where(w => w != null);
+            get => _slots.Select(s => s.CurrentWorker).Where(w => w is not null);
         }
 
         public virtual void AddWorker(Worker worker, MachineSlot slot) {
@@ -218,12 +218,14 @@ namespace Script.Machine {
 
         private void UpdateWorkDetails(ProductBase value) => UpdateWorkDetails();
         private void UpdateWorkDetails(bool value) => UpdateWorkDetails();
+        private void UpdateWorkDetails(float value) => UpdateWorkDetails();
 
         private void SubscribeWorkDetails() {
             this.onWorkerChanged += UpdateWorkDetails;
             this.onProductChanged += UpdateWorkDetails;
             this.onCreateProduct += UpdateWorkDetails;
             this.onMachineCloseStatusChanged += UpdateWorkDetails;
+            onProgress += UpdateWorkDetails;
         }
 
         private void UnsubscribeWorkDetails() {
@@ -231,6 +233,7 @@ namespace Script.Machine {
             this.onProductChanged -= UpdateWorkDetails;
             this.onCreateProduct -= UpdateWorkDetails;
             this.onMachineCloseStatusChanged -= UpdateWorkDetails;
+            onProgress -= UpdateWorkDetails;
         }
 
         protected virtual void Awake() {
@@ -301,6 +304,7 @@ namespace Script.Machine {
         protected virtual void Update() {
             _progressPerSecTimer?.Tick(Time.deltaTime);
             WorkDetails.ForEach(d => d.Update(Time.deltaTime));
+            UpdateWorkDetails();
         }
 
         public virtual MachineBaseData Save() =>
