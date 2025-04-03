@@ -15,6 +15,14 @@ public class GoldAndGemDisplay : MonoBehaviour
         GameController.Instance.ResourceController.onResourceAmountChanged += OnResourceAmountChanged;
     }
 
+    private void Update()
+    {
+        UpdateResourceUI(Resource.Gem);
+        UpdateResourceUI(Resource.Gold);
+
+        GameController.Instance.ResourceController.onResourceAmountChanged += OnResourceAmountChanged;
+    }
+
     private void OnResourceAmountChanged(Resource resource, long oldAmount, long newAmount)
     {
         UpdateResourceUI(resource);

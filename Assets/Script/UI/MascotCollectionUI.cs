@@ -77,9 +77,10 @@ public class MascotCollectionUI : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-
+       
         // Get all mascots from MascotController
         var mascots = _mascotController.MascotsList.ToList();
+
         if (mascots.Count == 0)
         {
             Debug.Log("No mascots available to display.");

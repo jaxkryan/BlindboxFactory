@@ -148,6 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currentWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -230,6 +231,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currentWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -424,7 +426,6 @@ MonoBehaviour:
         _maxProgress: 100
         _resourceUse: []
         _amount: 0
-        _storage: {fileID: 5822756685692044945}
     - rid: 7910668975323218070
       type: {class: IncreaseProgressWorkDetail, ns: Script.Machine.WorkDetails, asm: Assembly-CSharp}
       data:
@@ -447,7 +448,7 @@ GameObject:
   - component: {fileID: 2315071181552932222}
   m_Layer: 0
   m_Name: Lv1 Canteen
-  m_TagString: Untagged
+  m_TagString: Canteen
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -734,7 +735,6 @@ MonoBehaviour:
         _maxProgress: 100
         _resourceUse:
         - rid: 7910668975323218137
-        _machine: {fileID: 2315071181552932222}
         _core: 1
         _amount: 10
     - rid: 7910668975323218116
@@ -748,6 +748,7 @@ MonoBehaviour:
       data:
         _resource: 0
         _amount: 0
+        Machine: {fileID: 0}
 --- !u!1 &5039184034387694424
 GameObject:
   m_ObjectHideFlags: 0
@@ -879,6 +880,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currentWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:

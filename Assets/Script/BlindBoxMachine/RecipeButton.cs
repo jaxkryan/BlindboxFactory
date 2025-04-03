@@ -154,10 +154,11 @@ public class RecipeButton : MonoBehaviour
         int maxAmount = machine.maxAmount;
         int selectedAmount = Mathf.Min((int)numberSlider.value, maxAmount);
 
-        if (machine.amount == 0)
+        if (machine.amount <= 0)
         {
             machine.Product = currentBlindBox;
             machine.amount = selectedAmount;
+            machine.CurrentProgress = 0;
         }
         else if (machine.Product == currentBlindBox)
         {

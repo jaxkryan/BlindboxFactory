@@ -9,6 +9,9 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Users;
 using UnityEngine.Tilemaps;
 using Script.Controller;
+using Script.HumanResource.Worker;
+using System.Linq;
+using Script.Machine.Machines.Canteen;
 
 namespace BuildingSystem {
     public class ConstructionLayer : TilemapLayer {
@@ -28,7 +31,7 @@ namespace BuildingSystem {
                     out long currentMoney);
                 // Ensure we have enough currency before proceeding
                 if (currentMoney < itemCost) {
-                    Debug.Log("Not enough money to build this item!");
+                    Debug.Log("Not enough money to build this item!" + currentMoney + "   /   " + itemCost);
                     return null;
                 }
 
@@ -145,8 +148,25 @@ namespace BuildingSystem {
             var coords = _tilemap.WorldToCell(worldCoords);
             _buildables.Remove(coords);
             buildable.Destroy();
+            RemoveBuildingWorker(machine);
 
             FindFirstObjectByType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
+        }
+
+        private void RemoveBuildingWorker(MachineBase machine)
+        {
+            Debug.LogWarning("Removing Worker");
+            List<Worker> worker = FindWorkersByMachine(machine);
+            if (worker != null)
+            {
+                if(worker.Count > 0)
+                {
+                    foreach(Worker w in worker)
+                    {
+                        GameController.Instance.WorkerSpawner.RemoveWorker(w);
+                    }
+                }
+            }
         }
 
         public Dictionary<Vector3Int, Buildable> GetBuildables() { return _buildables; }
@@ -178,6 +198,61 @@ namespace BuildingSystem {
 
         private bool IsRectOccupied(Vector3Int coords, RectInt rect) {
             return rect.Iterate(coords, tileCoord => _buildables.ContainsKey(tileCoord));
+        }
+
+        public List<Worker> FindWorkersByMachine(MachineBase machine)
+        {
+            int number = machine.SpawnWorkers;
+            Debug.LogWarning("Finding Worker");
+
+            // Find Wokers in the machine
+            List<Worker> workers = machine.Workers.ToList();
+
+            if (workers.Count < number)
+            {
+                number -= workers.Count;
+
+                // Find Resting Workers
+                List<Worker> restingWorkers = GameController.Instance.WorkerController.WorkerList
+                    .SelectMany(k => k.Value)
+                    .Where(w => w.Machine == null)
+                    .Take(number)
+                    .ToList();
+
+                workers.AddRange(restingWorkers);
+                number -= restingWorkers.Count;
+
+                // Find Workers in Canteen or Restroom
+                if (number > 0)
+                {
+                    List<Worker> coreUpdateWorkers = GameController.Instance.WorkerController.WorkerList
+                        .SelectMany(k => k.Value)
+                        .Where(w => w.Machine is Canteen || w.Machine is RestRoom)
+                        .Take(number)
+                        .ToList();
+
+                    workers.AddRange(coreUpdateWorkers);
+                    number -= coreUpdateWorkers.Count;
+                }
+
+                // Find Workers Assigned to Other Machines
+                if (number > 0)
+                {
+                    List<Worker> otherWorkers = GameController.Instance.WorkerController.WorkerList
+                        .SelectMany(k => k.Value)
+                        .Where(w => w.Machine is not Canteen
+                            && w.Machine is not RestRoom
+                            && w.Machine != null
+                            && (MachineBase)w.Machine != machine)
+                        .Take(number)
+                        .ToList();
+
+                    workers.AddRange(otherWorkers);
+                }
+            }
+
+            Debug.LogWarning($"{workers.Count} workers found for machine {machine.name}");
+            return workers;
         }
     }
 }

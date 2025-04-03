@@ -1,3 +1,4 @@
+using Script.Machine;
 using UnityEngine;
 
 public class StructureUIToggles : MonoBehaviour
@@ -8,6 +9,8 @@ public class StructureUIToggles : MonoBehaviour
     [SerializeField] private GameObject InformationPanel;
     [SerializeField] private GameObject ExitPanel;
 
+    private MachineBase currentMachine = BlindBoxInformationDisplay.Instance.currentMachine;
+
     public StructureUIToggles Instance;
 
     private void Awake()
@@ -15,8 +18,14 @@ public class StructureUIToggles : MonoBehaviour
         Instance = this;
     }
 
+    private void OnEnable()
+    {
+        currentMachine = BlindBoxInformationDisplay.Instance.currentMachine;
+    }
+
     public void turnOnCraftPanel()
     {
+        OnEnable();
         try
         {
 
@@ -32,6 +41,7 @@ public class StructureUIToggles : MonoBehaviour
 
     public void turnOnInformationPanel()
     {
+        OnEnable();
         try
         {
 
@@ -45,8 +55,9 @@ public class StructureUIToggles : MonoBehaviour
         }
     }
 
-    public void exitsAllPanel() 
+    public void exitsAllPanel()
     {
+        OnEnable();
         try
         {
             CraftPanel.SetActive(false);
@@ -61,8 +72,23 @@ public class StructureUIToggles : MonoBehaviour
         }
     }
 
+    public void backToChosePanelGeneral()
+    {
+        OnEnable();
+        if (currentMachine is BlindBoxMachine)
+        {
+            backToChosePanelBB();
+        }
+        else
+        {
+            backToChosePanelAll();
+        }
+    }
+
+
     public void backToChosePanelAll()
     {
+        OnEnable();
         try
         {
             CraftPanel.SetActive(false);
@@ -78,6 +104,7 @@ public class StructureUIToggles : MonoBehaviour
 
     public void backToChosePanelBB()
     {
+        OnEnable();
         try
         {
             CraftPanel.SetActive(false);

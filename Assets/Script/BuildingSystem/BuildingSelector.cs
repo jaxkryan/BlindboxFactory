@@ -37,7 +37,7 @@ public class BuildingSelector : MonoBehaviour
     {
         bool newMode = !_buildingPlacer.GetStoreMode();
         _buildingPlacer.SetStoreMode(newMode);
-        StoreModeButton.GetComponentInChildren<TMP_Text>().text = $"Store Mode: {(newMode ? "ON" : "OFF")}";
+        //StoreModeButton.GetComponentInChildren<TMP_Text>().text = $"Store Mode: {(newMode ? "ON" : "OFF")}";
         _buildingPlacer.SetActiveBuildable(null);
         _buildingPlacer.ClearPreview();
     }
@@ -66,8 +66,8 @@ public class BuildingSelector : MonoBehaviour
 
         if (StoreModeButton != null)
         {
-            StoreModeButton.GetComponentInChildren<TMP_Text>().text =
-                $"Store Mode: {(_buildingPlacer.GetStoreMode() ? "ON" : "OFF")}";
+            //StoreModeButton.GetComponentInChildren<TMP_Text>().text =
+            //    $"Store Mode: {(_buildingPlacer.GetStoreMode() ? "ON" : "OFF")}";
 
             StoreModeButton.onClick.AddListener(ToggleStoreMode);
         }
@@ -143,9 +143,9 @@ public class BuildingSelector : MonoBehaviour
             Button newButton = Instantiate(_buttonPrefab, _contentParent);
             newButton.name = "Button_" + buildable.name;
 
-            TMP_Text goldText = newButton.transform.Find("Gold")?.GetComponentInChildren<TMP_Text>();
-            TMP_Text buttonText = newButton.transform.Find("Name")?.GetComponentInChildren<TMP_Text>();
-            Image goldImg = newButton.transform.Find("GoldImg")?.GetComponentInChildren<Image>();
+            TMP_Text goldText = newButton.transform.Find("Image/Gold")?.GetComponentInChildren<TMP_Text>();
+            TMP_Text buttonText = newButton.transform.Find("Image (1)/Name")?.GetComponentInChildren<TMP_Text>();
+            Image goldImg = newButton.transform.Find("Image/Gold/GoldImg")?.GetComponentInChildren<Image>();
             if (buttonText != null)
             {
                 buttonText.text = buildable.Name;

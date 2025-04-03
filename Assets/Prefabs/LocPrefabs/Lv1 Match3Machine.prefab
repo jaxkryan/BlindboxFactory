@@ -97,13 +97,12 @@ GameObject:
   m_Component:
   - component: {fileID: 4557479135514602646}
   - component: {fileID: 554959473360154511}
-  - component: {fileID: 2809312200942737498}
   - component: {fileID: 7174680500548955340}
   - component: {fileID: 5327533973648923819}
   - component: {fileID: 8943527970880007234}
   m_Layer: 0
   m_Name: Lv1 Match3Machine
-  m_TagString: ElectricMachine
+  m_TagString: Excavator
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -180,25 +179,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 2
   m_SpriteSortPoint: 0
---- !u!114 &2809312200942737498
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3830224445500502897}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 797481cfad372c74aac4fc56e08deae8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  energyPerSecond: 10
-  maxCapacity: 1000
-  durability: 100
-  durabilityLossPerSecond: 1
-  energySlider: {fileID: 3776777778598969955}
-  energyText: {fileID: 5693851074074818886}
-  wrenchImage: {fileID: 6483626146485259361}
 --- !u!95 &7174680500548955340
 Animator:
   serializedVersion: 7
@@ -428,10 +408,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _powerUse: 1
   _isClosed: 0
-  _slots: []
+  _slots:
+  - {fileID: 0}
   _spawnWorkers: 0
-  _spawnWorkerType: 0
-  _workDetails: []
+  _spawnWorkerType: 1
+  _workDetails:
+  - rid: 3978049613651247212
   _product:
     rid: 8006286881648541818
   level: 1
@@ -440,10 +422,16 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
+    - rid: 3978049613651247212
+      type: {class: IncreaseProgressWorkDetail, ns: Script.Machine.WorkDetails, asm: Assembly-CSharp}
+      data:
+        Slot: 1
+        ProgressionPerInterval: 1
+        IntervalSeconds: 1
     - rid: 8006286881648541818
       type: {class: AddResourceToStorageProduct, ns: Script.Machine.Products, asm: Assembly-CSharp}
       data:
-        _maxProgress: 100
+        _maxProgress: 5
         _resourceUse: []
         _amount: 0
         Resource: 0

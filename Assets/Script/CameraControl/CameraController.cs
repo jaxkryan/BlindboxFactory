@@ -1,5 +1,7 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Tilemaps;
 
 public class CameraController : MonoBehaviour
 {
@@ -7,8 +9,10 @@ public class CameraController : MonoBehaviour
     [SerializeField] public float maxZoom = 8f;   // Maximum zoom level
     [SerializeField] public float zoomSpeed = 0.5f;
     [SerializeField] public float dragSpeed = 0.01f;
+    [SerializeField] private Tilemap _backgroundTilemap;
 
     private Vector3 touchStart;
+    private bool canDrag = false;
 
     void Update()
     {
@@ -47,22 +51,44 @@ public class CameraController : MonoBehaviour
 
             if (touch.phase == TouchPhase.Began)
             {
-                // Correctly set z to camera's distance from the scene
-                touchStart = Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, Camera.main.transform.position.z));
+                touchStart = Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, 0));
+
+                // Only allow dragging if the first touch is on a valid tile
+                canDrag = IsTileAtPosition(touchStart);
+                Debug.Log(canDrag ? "Dragging allowed" : "Dragging blocked");
             }
-            else if (touch.phase == TouchPhase.Moved)
+            else if (touch.phase == TouchPhase.Moved && canDrag)
             {
-                // Convert touch position to world space, ensuring correct depth
-                Vector3 newTouchPos = Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, Camera.main.transform.position.z));
-
-                // Calculate the movement direction
+                Vector3 newTouchPos = Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, 0));
                 Vector3 direction = touchStart - newTouchPos;
-                direction.z = 0; // Prevent movement along the Z-axis
+                direction.z = 0;
 
-                // Move the camera
                 Camera.main.transform.position += direction * dragSpeed;
             }
         }
+    }
+
+    private bool IsTileAtPosition(Vector3 worldPosition)
+    {
+        if (_backgroundTilemap == null)
+        {
+            Debug.LogError("_backgroundTilemap is NULL! Make sure it's assigned in the Inspector.");
+            return false;
+        }
+
+        Vector3Int cellPosition = _backgroundTilemap.WorldToCell(worldPosition);
+        cellPosition.z = 0; // Ensure we're checking the correct layer
+
+        TileBase tile = _backgroundTilemap.GetTile(cellPosition);
+
+        if (tile == null)
+        {
+            Debug.Log($"No tile at {cellPosition}");
+            return false;
+        }
+
+        Debug.Log($"Tile found at {cellPosition}: {tile.name}");
+        return true;
     }
 
     private bool IsPointerOverUI()
