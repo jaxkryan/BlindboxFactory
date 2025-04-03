@@ -10,13 +10,14 @@ namespace Script.Machine.WorkDetails {
             base.OnStart();
             
             _timer = new CountdownTimer(IntervalSeconds);
-            _timer.OnTimerStop += () => {
-                Machine.IncreaseProgress(ProgressionPerInterval);
-                _timer.Start();
-            };
+            _timer.OnTimerStop += OnTimerStop;
             _timer.Start();
         }
 
+        private void OnTimerStop() {
+            Machine.IncreaseProgress(ProgressionPerInterval);
+            _timer.Start();
+        }
 
         protected override void OnUpdate(float deltaTime) {
             base.OnUpdate(deltaTime);
@@ -27,6 +28,28 @@ namespace Script.Machine.WorkDetails {
             base.OnStop();
             _timer.Pause();
             _timer.Reset();
+        }
+
+        public override SaveData Save() {
+            if (base.Save() is not IncreaseProgressSaveData data) return base.Save();
+            
+            data.ProgressionPerInterval = ProgressionPerInterval;
+            data.IntervalSeconds = IntervalSeconds;
+            return data;
+        }
+
+        public override void Load(SaveData saveData) {
+            base.Load(saveData);
+            if (saveData is not IncreaseProgressSaveData data) return;
+            
+            ProgressionPerInterval = data.ProgressionPerInterval;
+            IntervalSeconds = data.IntervalSeconds;
+        }
+
+
+        public class IncreaseProgressSaveData : SaveData {
+            public float ProgressionPerInterval;
+            public float IntervalSeconds;
         }
     }
 }

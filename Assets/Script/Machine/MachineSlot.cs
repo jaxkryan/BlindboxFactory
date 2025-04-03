@@ -10,7 +10,7 @@ using UnityEngine.Serialization;
 namespace Script.Machine {
     [DisallowMultipleComponent]
     public class MachineSlot : MonoBehaviour {
-        [CanBeNull] public Worker CurrentWorker {get => _currentWorker; private set => _currentWorker = value;}
+        [CanBeNull] public Worker CurrentWorker { get => _currentWorker; }
         [SerializeField] [CanBeNull] private Worker _currentWorker;
         [CanBeNull] public Worker WishListWorker  {get; private set;}
         private CountdownTimer _wishlistTimer;
@@ -40,9 +40,10 @@ namespace Script.Machine {
                     return false;
                 }
             }
-            CurrentWorker?.StopWorking();
-            CurrentWorker = worker;
-            CurrentWorker?.StartWorking(this);
+            _currentWorker?.StopWorking();
+            _currentWorker = worker;
+            if (worker is null) _currentWorker = null;
+            _currentWorker?.StartWorking(this);
             if (worker is not null) {
                 if (WishListWorker is not null) WishListWorker = null;
             }

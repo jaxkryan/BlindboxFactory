@@ -6,10 +6,13 @@ using Script.HumanResource.Worker;
 using Script.Machine;
 using Script.Machine.Products;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class WorkStrategy : IActionStrategy {
     public bool CanPerform => !Complete;
     public bool Complete { get; private set; }
+    
+    public float MinimumCoreValue = 0f;
 
     private MachineSlot _slot ;
     readonly Worker _worker;
@@ -28,6 +31,8 @@ public class WorkStrategy : IActionStrategy {
             return;
         }
 
+        _worker.Agent.enabled = false;
+        _worker.transform.position = _slot.transform.position;
         _slot.Machine.onCreateProduct += ConsiderStopWorking;
         _worker.onStopWorking += () => _slot.Machine.onCreateProduct -= ConsiderStopWorking;
     }
@@ -35,15 +40,15 @@ public class WorkStrategy : IActionStrategy {
     private void ConsiderStopWorking(ProductBase obj) {
         var min = new Dictionary<CoreType, float>();
         Enum.GetValues(typeof(CoreType)).Cast<CoreType>()
-            .ForEach(c => min[c] = 0);
+            .ForEach(c => min[c] = MinimumCoreValue);
         if (!WorkerDirector
                 .ContinueAfterProductCreated(
                     _worker.CurrentCores
                     , _worker.Director.CoreChangePerSec
                     , _worker.MaximumCore
                     , min
-                    , 0f)) 
-            _slot.Machine.RemoveWorker(_worker);
+                    , 0f))
+            StopWorking();
         
         var controller = GameController.Instance.MachineController;
         List<MachineBase> recoveryMachine = new();
@@ -52,9 +57,22 @@ public class WorkStrategy : IActionStrategy {
         }
 
         if (_worker.CurrentCores.Any(c => c.Value <= 0f)
-            && recoveryMachine.All(r => r != _slot.Machine)) _slot.Machine.RemoveWorker(_worker);
+            && recoveryMachine.All(r => r != _slot.Machine))
+            StopWorking();
 
         if (_worker.CurrentCores.Any(c => c.Value >= _worker.MaximumCore[c.Key])
-            && recoveryMachine.Any(r => r == _slot.Machine)) _slot.Machine.RemoveWorker(_worker);
+            && recoveryMachine.Any(r => r == _slot.Machine)) 
+            StopWorking();
+    }
+
+    private void StopWorking() {
+        Complete = true;
+    }
+
+    public void Stop() { 
+        if (NavMesh.SamplePosition(_worker.transform.position, out var hit, Single.MaxValue, 1))
+            _worker.Agent.Warp(hit.position);
+        _worker.Agent.enabled = true;
+        _slot.Machine.RemoveWorker(_worker);
     }
 }

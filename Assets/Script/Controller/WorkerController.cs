@@ -158,30 +158,33 @@ namespace Script.Controller {
             }
         }
         public override void Save(SaveManager saveManager) {
-            var newSave = new SaveData() { WorkerData = new() };
-            foreach (var w in WorkerList) {
-                if (newSave.WorkerData.ContainsKey(w.Key)) {
-                    Debug.LogError("Duplicate worker type: " + w.Key);
-                    continue;
-                }
-                var list = w.Value.Select(worker => worker.Save()).ToList();
-                newSave.WorkerData.Add(w.Key, list);
-            }
+            UnityMainThreadDispatcher.Instance().Enqueue(() => {
+                var newSave = new SaveData() { WorkerData = new() };
+                foreach (var w in WorkerList) {
+                    if (newSave.WorkerData.ContainsKey(w.Key)) {
+                        Debug.LogError("Duplicate worker type: " + w.Key);
+                        continue;
+                    }
 
-            
-            try {
-                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                    || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
-                    saveManager.SaveData.TryAdd(this.GetType().Name,
-                        SaveManager.Serialize(newSave));
-                else
-                    saveManager.SaveData[this.GetType().Name]
-                        = SaveManager.Serialize(newSave);
-            }
-            catch (System.Exception ex) {
-                Debug.LogError($"Cannot save {GetType()}");
-                Debug.LogException(ex);
-            }
+                    var list = w.Value.Select(worker => worker.Save()).ToList();
+                    newSave.WorkerData.Add(w.Key, list);
+                }
+
+
+                try {
+                    if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                        || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
+                        saveManager.SaveData.TryAdd(this.GetType().Name,
+                            SaveManager.Serialize(newSave));
+                    else
+                        saveManager.SaveData[this.GetType().Name]
+                            = SaveManager.Serialize(newSave);
+                }
+                catch (System.Exception ex) {
+                    Debug.LogError($"Cannot save {GetType()}");
+                    Debug.LogException(ex);
+                }
+            });
         }
 
         private class SaveData {

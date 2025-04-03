@@ -53,8 +53,7 @@ namespace Script.Machine {
         public virtual bool CanExecute() {
             if (Machine is null) return false;
             if (!Machine.IsWorkable) return false;
-            if (Machine.Slots.Count(s => s.CurrentWorker is not null) < Slot) return false;
-            
+            if (Machine.Workers.Count() < Slot) return false;
             return true;
         }
 
@@ -66,7 +65,7 @@ namespace Script.Machine {
             return true;
         }
 
-        public SaveData Save() =>
+        public virtual SaveData Save() =>
             new SaveData() {
                 Type = this.GetType(),
                 Slot = Slot,
