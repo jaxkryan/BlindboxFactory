@@ -101,8 +101,7 @@ public class AdminDepartmentManagerUI : MonoBehaviour
         _position.text = Enum.GetName(typeof(MascotType), Position);
         _portrait.sprite = Mascot?.Portrait ?? _defaultPortrait;
         _name.text = Mascot?.Name.ToString() ?? string.Empty;
-        _name.color = _gradeColors[Mascot.Grade];
-
+       
 
         // Format policies as a bullet list with grade color
         if (Mascot != null)
@@ -110,6 +109,8 @@ public class AdminDepartmentManagerUI : MonoBehaviour
             var policies = Mascot.Policies.Aggregate("", (current, p) => current + $"• {p.Description}\n").TrimEnd('\n');
             _policies.text = policies;
             _policies.color = _gradeColors[Mascot.Grade];
+            _name.color = _gradeColors[Mascot.Grade];
+
         }
         else
         {

@@ -17,10 +17,20 @@ public class IAPShopUI : MonoBehaviour
     [SerializeField] private Transform nonConsumableContent;
     [SerializeField] private Transform subscriptionContent;
     [SerializeField] private AdministratorGacha administratorGacha;
-    [SerializeField] private GachaRevealPanelUI revealPanelPrefab; // Thêm prefab để hiển thị animation
+    [SerializeField] private GachaRevealPanelUI revealPanel; // Reference to the existing GachaRevealPanelUI GameObject
 
     void Start()
     {
+        // Ensure the GachaRevealPanelUI is initially inactive
+        if (revealPanel != null)
+        {
+            revealPanel.gameObject.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning("Start: revealPanel is not assigned in IAPShopUI!");
+        }
+
         PopulateShopUI();
     }
 
@@ -126,8 +136,7 @@ public class IAPShopUI : MonoBehaviour
                 Mascot epicMascot = administratorGacha.PullMascotByGrade(Grade.Epic);
                 if (epicMascot != null)
                 {
-                    
-                    ShowReveal(new List<Mascot> { epicMascot }); // Hiển thị animation
+                    ShowReveal(new List<Mascot> { epicMascot });
                     Debug.Log($"Pulled Epic Mascot: {epicMascot.Name}");
                 }
                 else
@@ -156,15 +165,16 @@ public class IAPShopUI : MonoBehaviour
 
     private void ShowReveal(List<Mascot> mascots)
     {
-        if (revealPanelPrefab == null)
+        if (revealPanel == null)
         {
-            Debug.LogWarning("Reveal panel prefab is not assigned in IAPShopUI!");
+            Debug.LogWarning("Reveal panel is not assigned in IAPShopUI!");
             return;
         }
 
-        var revealPanel = Instantiate(revealPanelPrefab, transform.parent);
+        revealPanel.gameObject.SetActive(true);
         revealPanel.RevealMascots(mascots, () =>
         {
+            revealPanel.gameObject.SetActive(false);
         });
     }
 }

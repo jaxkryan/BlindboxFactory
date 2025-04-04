@@ -16,7 +16,7 @@ public class AdminGachaPanelUI : MonoBehaviour
     [SerializeField] private Button _tenPullBtn;
     [SerializeField] private AdministratorGacha _adminGacha;
     [SerializeField] private GameObject _gachaPanel;
-    [SerializeField] private GachaRevealPanelUI _revealPanel; // Reference to the existing GachaRevealPanelUI GameObject
+    [SerializeField] private GachaRevealPanelUI _revealPanel;
 
     [SerializeField] private Resource _pullResource = Resource.Gold;
     [SerializeField] private long _singlePullCost = 1000;
