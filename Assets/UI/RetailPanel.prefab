@@ -243,7 +243,7 @@ MonoBehaviour:
   m_Direction: 0
   m_MinValue: 0
   m_MaxValue: 1
-  m_WholeNumbers: 0
+  m_WholeNumbers: 1
   m_Value: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -777,6 +777,7 @@ GameObject:
   - component: {fileID: 5460893036076771526}
   - component: {fileID: 1374107541665808857}
   - component: {fileID: 7819254084892988391}
+  - component: {fileID: 680793242516487098}
   m_Layer: 5
   m_Name: RetailPanel
   m_TagString: Untagged
@@ -854,6 +855,26 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &680793242516487098
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3325869349068499759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e5ae1b586f30ae4a83d7170c264e516, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  panel: {fileID: 3325869349068499759}
+  SellingStuffImg: {fileID: 3208414050962052920}
+  SellingStuffName: {fileID: 6534952551901738442}
+  Description: {fileID: 4005790734477944348}
+  SellingStuffNumber: {fileID: 4071853537000531546}
+  RecevingNumber: {fileID: 2039165062344379139}
+  SellingStuffSlider: {fileID: 6243407860399396866}
+  ConfirmButton: {fileID: 2505433206841112495}
 --- !u!1 &4569222356363975391
 GameObject:
   m_ObjectHideFlags: 0

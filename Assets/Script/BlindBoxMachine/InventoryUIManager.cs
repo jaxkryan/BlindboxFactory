@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Script.Controller;
+using Script.Resources;
 
 public class InventoryUIManager : MonoBehaviour
 {
@@ -9,16 +10,20 @@ public class InventoryUIManager : MonoBehaviour
     public Transform gridBoxesParent;      // Grid for Blind Boxes
     public GameObject inventoryItemPrefab; // Assign InventoryItemUI prefab
     public TMP_Text maxBBText;
+    [SerializeField] private RetailUI retailUI;
+    [SerializeField] private GameObject retailexits;
+
 
     private void Start()
     {
         DisplayInventory();
+        GameController.Instance.ResourceController.onResourceAmountChanged += HandleResourceAmountChanged;
     }
 
-    private void Update()
-    {
-        DisplayInventory();
-    }
+    //private void Update()
+    //{
+    //    DisplayInventory();
+    //}
 
     public void DisplayInventory()
     {
@@ -44,7 +49,7 @@ public class InventoryUIManager : MonoBehaviour
                 continue;
             }
             GameController.Instance.ResourceController.TryGetData(material.Key, out var resourceData, out var currentAmount);
-            CreateInventoryItemForResource(gridResourcesParent, material.Key.ToString(),
+            CreateInventoryItemForResource(gridResourcesParent, material.Key,
                 CraftingMaterialTypeManager.Instance.GetCraftingMaterialData(material.Key).sprite,
                 material.Value,
                 resourceData.MaxAmount
@@ -60,7 +65,7 @@ public class InventoryUIManager : MonoBehaviour
             {
                 continue;
             }
-            CreateInventoryItem(gridBoxesParent, box.Key.ToString(),
+            CreateInventoryItem(gridBoxesParent, box.Key,
                 BoxTypeManager.Instance.GetBoxData(box.Key).sprite, box.Value);
         }
     }
@@ -73,20 +78,33 @@ public class InventoryUIManager : MonoBehaviour
         }
     }
 
-    private void CreateInventoryItem(Transform parentGrid, string itemName, Sprite itemSprite, long amount)
+    private void CreateInventoryItem(Transform parentGrid, BoxTypeName itemName, Sprite itemSprite, long amount)
     {
         GameObject item = Instantiate(inventoryItemPrefab, parentGrid);
-        item.transform.Find("ItemName").GetComponent<TMP_Text>().text = itemName;
+        item.transform.Find("ItemName").GetComponent<TMP_Text>().text = itemName.ToString();
         item.transform.Find("ItemImage").GetComponent<Image>().sprite = itemSprite;
         item.transform.Find("ItemAmount").GetComponent<TMP_Text>().text = FormatNumber(amount);
+        Button itemButton = item.GetComponent<Button>();
+        itemButton.onClick.AddListener(() => retailUI.Setup(itemName, null));
+        itemButton.onClick.AddListener(() => retailUI.turnOn());
+        itemButton.onClick.AddListener(() => retailexits.SetActive(true));
     }
 
-    private void CreateInventoryItemForResource(Transform parentGrid, string itemName, Sprite itemSprite, long amount, long maxAmount)
+    private void CreateInventoryItemForResource(Transform parentGrid, Resource itemName, Sprite itemSprite, long amount, long maxAmount)
     {
         GameObject item = Instantiate(inventoryItemPrefab, parentGrid);
-        item.transform.Find("ItemName").GetComponent<TMP_Text>().text = itemName;
+        item.transform.Find("ItemName").GetComponent<TMP_Text>().text = itemName.ToString();
         item.transform.Find("ItemImage").GetComponent<Image>().sprite = itemSprite;
         item.transform.Find("ItemAmount").GetComponent<TMP_Text>().text = FormatNumber(amount) + " / " + FormatNumber(maxAmount);
+        Button itemButton = item.GetComponent<Button>();
+        itemButton.onClick.AddListener(() => retailUI.Setup(null, itemName));
+        itemButton.onClick.AddListener(() => retailUI.turnOn());
+        itemButton.onClick.AddListener(() => retailexits.SetActive(true));
+    }
+
+    private void HandleResourceAmountChanged(Resource resource, long oldAmount, long newAmount)
+    {
+        DisplayInventory();
     }
 
     private string FormatNumber(long number)
