@@ -61,8 +61,6 @@ public class StoredBuildablesUI : MonoBehaviour
 
         if(StoreModeButton != null)
         {
-            StoreModeButton.GetComponentInChildren<TMP_Text>().text =
-                $"Store Mode: {(_buildingPlacer.GetStoreMode() ? "ON" : "OFF")}";
 
             StoreModeButton.onClick.AddListener(ToggleStoreMode);
         }
