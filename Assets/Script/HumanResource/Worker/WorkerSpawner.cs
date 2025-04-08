@@ -59,7 +59,7 @@ namespace Script.HumanResource.Worker {
         public IOrderedEnumerable<Worker> FindSpawnedWorkers(MachineBase machine) {
             var workerType = machine.SpawnWorkerType;
             var amount = machine.SpawnWorkers;
-            var allWorkers = GameController.Instance.WorkerController.WorkerList.GetValueOrDefault(workerType);
+            var allWorkers = GameController.Instance.WorkerController.WorkerList.GetValueOrDefault(workerType) ?? new List<Worker>();
             var machineController = GameController.Instance.MachineController;
 
             var list = new List<Worker>();
