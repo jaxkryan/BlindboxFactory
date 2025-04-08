@@ -53453,8 +53453,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1534057209}
-  - component: {fileID: 1534057208}
   - component: {fileID: 1534057210}
+  - component: {fileID: 1534057208}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -53548,6 +53548,15 @@ MonoBehaviour:
       _serializedList:
       - Key: 1
         Value: {fileID: 8431995696745897092, guid: 241319dc4ac1d2741b7b2193648ab8f6, type: 3}
+    _workerNeedsList:
+      _serializedList:
+      - Key: 1
+        Value:
+          _serializedList:
+          - Key: 0
+            Value: 10
+          - Key: 1
+            Value: 10
   MascotController:
     Portraits: []
   ResourceController:
@@ -53586,17 +53595,17 @@ MonoBehaviour:
       - Key: 1
         Value: 45000
       - Key: 2
-        Value: 0
+        Value: 1000
       - Key: 3
-        Value: 0
+        Value: 1000
       - Key: 4
-        Value: 0
+        Value: 1000
       - Key: 5
-        Value: 0
+        Value: 1000
       - Key: 6
-        Value: 0
+        Value: 1000
       - Key: 7
-        Value: 0
+        Value: 1000
   QuestController:
     _quests:
     - {fileID: 11400000, guid: dba8210d1fba7654494ff877771ebbe4, type: 2}
@@ -53658,6 +53667,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e40979e51c05411abfe73798edf3b6c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AutoUnparentOnLoad: 1
 --- !u!1 &1548750706
 GameObject:
   m_ObjectHideFlags: 0

@@ -162,17 +162,24 @@ namespace Script.Controller {
         }
 
         public override void Save(SaveManager saveManager) {
-            UnityMainThreadDispatcher.Instance().Enqueue(() => {
+            UnityMainThreadDispatcher.Instance.Enqueue(() => {
                 try {
                     var newSave = new SaveData() { WorkerData = new() };
-                    foreach (var w in WorkerList) {
-                        if (newSave.WorkerData.ContainsKey(w.Key)) {
-                            Debug.LogError("Duplicate worker type: " + w.Key);
-                            continue;
-                        }
+                    foreach (var w in WorkerList) {try
+                        {
 
-                        var list = w.Value.Select(worker => worker.Save()).ToList();
-                        newSave.WorkerData.Add(w.Key, list);
+                            if (newSave.WorkerData.ContainsKey(w.Key)) {
+                                Debug.LogError("Duplicate worker type: " + w.Key);
+                                continue;
+                            }
+
+                            var list = w.Value.Select(worker => worker.Save()).ToList();
+                            newSave.WorkerData.Add(w.Key, list);
+                        }
+                        catch (System.Exception e)
+                        {
+                            Debug.LogWarning(new System.Exception("Cannot save worker",e));
+                        }
                     }
 
                     if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)

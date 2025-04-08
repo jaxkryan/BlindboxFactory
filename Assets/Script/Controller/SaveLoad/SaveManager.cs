@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Firebase;
@@ -81,6 +82,8 @@ namespace Script.Controller.SaveLoad {
                         || !Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead)) return;
                 }
 
+                using (var file = System.IO.File.Open(FilePath, FileMode.OpenOrCreate)) { }
+
                 Debug.Log($"Saving data to: {FilePath}");
                 var str = Serialize(SaveData);
                 Debug.Log($"Serialized data: {str}");
@@ -92,24 +95,31 @@ namespace Script.Controller.SaveLoad {
                 }
             }
             catch (System.Exception e) {
-                Debug.LogError($"Error saving data: {e}");
-                Debug.LogError(e);
+                Debug.LogException(new System.Exception($"Error saving data from local file", e));
             }
         }
 
         public async Task LoadFromLocal() {
-            if (Application.platform == RuntimePlatform.Android) {
-                if (!Permission.HasUserAuthorizedPermission(Permission.ExternalStorageWrite)
-                    || !Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead)) return;
+            try {
+                if (Application.platform == RuntimePlatform.Android) {
+                    if (!Permission.HasUserAuthorizedPermission(Permission.ExternalStorageWrite)
+                        || !Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead)) return;
+                }
+
+                using (var file = System.IO.File.Open(FilePath, FileMode.OpenOrCreate)) { }
+
+                using StreamReader sr = new StreamReader(FilePath);
+                var str = await sr.ReadToEndAsync();
+                var saveData = Deserialize<ConcurrentDictionary<string, string>>(Decrypt(str));
+
+                foreach (var data in saveData?.Keys ?? new List<string>()) {
+                    if (saveData is null) break;
+                    if (!SaveData.TryGetValue(data, out var value)) SaveData.TryAdd(data, saveData[data]);
+                    else if (value != saveData[data]) SaveData[data] = saveData[data];
+                }
             }
-
-            using StreamReader sr = new StreamReader(FilePath);
-            var str = await sr.ReadToEndAsync();
-            var saveData = Deserialize<ConcurrentDictionary<string, string>>(Decrypt(str));
-
-            foreach (var data in saveData.Keys) {
-                if (!SaveData.TryGetValue(data, out var value)) SaveData.TryAdd(data, saveData[data]);
-                else if (value != saveData[data]) SaveData[data] = saveData[data];
+            catch (System.Exception e) {
+                Debug.LogException(new System.Exception($"Error loading data from local file", e));
             }
         }
 

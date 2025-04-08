@@ -1,5 +1,6 @@
 using System.Linq;
 using Script.Machine.MachineDataGetter;
+using Script.Utils;
 using UnityEngine;
 
 namespace Script.Machine.Machines.Canteen {
@@ -54,7 +55,8 @@ namespace Script.Machine.Machines.Canteen {
         }
 
         public override MachineBaseData Save() {
-            if (base.Save() is not CanteenData data) return base.Save();
+            var data = base.Save().CastToSubclass<CanteenData, MachineBaseData>();
+            if (data is null) return base.Save();
             
             data.Storage = _storage.Save();
             data.Kitchen = (CanteenData.KitchenData) _kitchen.Save();

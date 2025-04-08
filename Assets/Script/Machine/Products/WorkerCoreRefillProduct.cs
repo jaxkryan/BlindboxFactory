@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Script.HumanResource.Worker;
 using Script.Machine.ResourceManager;
+using Script.Utils;
 using UnityEngine;
 
 namespace Script.Machine.Products {
@@ -14,7 +15,8 @@ namespace Script.Machine.Products {
         }
 
         public override IProduct.SaveData Save() {
-            if (base.Save() is not WorkerCoreRefillData data) return base.Save();
+            var data = base.Save().CastToSubclass<WorkerCoreRefillData, IProduct.SaveData>();
+            if (data is null) return base.Save();
             
             data.Core = _core;
             data.Amount = _amount;

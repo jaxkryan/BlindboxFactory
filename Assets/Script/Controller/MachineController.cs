@@ -172,27 +172,32 @@ namespace Script.Controller {
                 Debug.LogWarning($"Machine count: {data.Machines.Count}");
                 Debug.LogWarning($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
 
-                UnityMainThreadDispatcher.Instance().Enqueue(() => {
+                UnityMainThreadDispatcher.Instance.Enqueue(() => {
                     try { 
                         Debug.Log($"Machine count: {data.Machines.Count}");
                         Debug.Log($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
 
                         foreach (var m in data.Machines) {
-                            Debug.Log($"Building prefab: {m.PrefabName}");
-                            var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
-                            if (prefab == default) continue;
+                            try {
+                                Debug.Log($"Building prefab: {m.PrefabName}");
+                                var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
+                                if (prefab == default) continue;
 
-                            var worldPos = _constructionLayer.CellToWorld(m.Position.ToVector3Int());
-                            Debug.Log($"Building machine: {prefab.Name} at {worldPos}");
-                            var constructedGameObject = _constructionLayerScript.Build(worldPos, prefab);
+                                var worldPos = _constructionLayer.CellToWorld(m.Position.ToVector3Int());
+                                Debug.Log($"Building machine: {prefab.Name} at {worldPos}");
+                                var constructedGameObject = _constructionLayerScript.Build(worldPos, prefab);
 
-                            if (constructedGameObject is null
-                                || !constructedGameObject.TryGetComponent<MachineBase>(out var machine)) continue;
-                            machine.Load(m);
+                                if (constructedGameObject is null
+                                    || !constructedGameObject.TryGetComponent<MachineBase>(out var machine)) continue;
+                                machine.Load(m);
+                            }
+                            catch (System.Exception e) {
+                                Debug.LogWarning(new System.Exception($"Cannot load machine {m.PrefabName}", e));
+                            }
                         }
                     }
                     catch (System.Exception ex) {
-                        Debug.LogError($"Cannot save {nameof(MachineController)}");
+                        Debug.LogError($"Cannot load {nameof(MachineController)}");
                         Debug.LogException(ex);
                     }
                 });
@@ -210,8 +215,13 @@ namespace Script.Controller {
                 UnlockMachines = _unlockMachines
             };
             Machines.ForEach(m => {
-                var machine = m.Save();
-                newSave.Machines.Add(machine);
+                try {
+                    var machine = m.Save();
+                    newSave.Machines.Add(machine);
+                }
+                catch (System.Exception e) {
+                    Debug.LogWarning(new System.Exception($"Cannot save machine {m.name}", e));
+                }
             });
             // Debug.LogWarning(SaveManager.Serialize(newSave));
 

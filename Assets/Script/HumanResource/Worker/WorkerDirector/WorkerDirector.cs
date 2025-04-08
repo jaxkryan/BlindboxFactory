@@ -8,14 +8,16 @@ using Script.Machine;
 using Script.Machine.WorkDetails;
 using Script.Patterns.AI.GOAP.Strategies;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Script.HumanResource.Worker {
     [RequireComponent(typeof(Worker))]
     public class WorkerDirector : GoapAgent {
-        [Header("Sensor")] [SerializeField] private Sensor _workMachineSensor;
+        [FormerlySerializedAs("_workMachineSensor")] [Header("Sensor")] [SerializeField] public Sensor WorkMachineSensor;
 
 
-        [Header("Locations")] [SerializeField] public Transform MachineLocation;
+        [Header("Locations")] [SerializeField] [CanBeNull]
+        public Transform MachineLocation;
 
         public Dictionary<CoreType, float> CoreChangePerSec {
             get {
@@ -84,19 +86,20 @@ namespace Script.HumanResource.Worker {
         public MachineSlot TargetSlot {
             get => _slot;
             set {
-                MachineLocation = value.transform;
-                _workMachineSensor.Target = value.Machine.gameObject;
+                MachineLocation = value?.transform;
+                if (value is not null)
+                    WorkMachineSensor.Target = value.Machine.gameObject;
                 _slot = value;
             }
         }
 
-        private MachineSlot _slot;
+        [CanBeNull] private MachineSlot _slot;
 
 
         protected override void Awake() {
             base.Awake();
             _worker = GetComponent<Worker>();
-            if (_slot) _workMachineSensor.Target = _slot.gameObject;
+            if (_slot) WorkMachineSensor.Target = _slot.gameObject;
         }
 
         protected override void SetupBeliefs() {
@@ -186,7 +189,7 @@ namespace Script.HumanResource.Worker {
                 }
             }
 
-            bf.AddSensorBelief($"{_worker.Name}AtMachine", _workMachineSensor);
+            bf.AddSensorBelief($"{_worker.Name}AtMachine", WorkMachineSensor);
             bf.AddBelief($"{_worker.Name}Working", () => _worker.Machine is not null);
         }
 
