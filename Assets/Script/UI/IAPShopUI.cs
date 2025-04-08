@@ -6,8 +6,12 @@ using UnityEngine.UI;
 using Script.HumanResource.Administrator;
 using Script.Controller;
 using Script.Gacha.Base;
+using UnityEngine.Purchasing;
+using UnityEditor.PackageManager;
+using System;
+using System.Linq;
 
-public class IAPShopUI : MonoBehaviour
+public class IAPShopUI : MonoBehaviour, IStoreListener
 {
     [SerializeField] private IAPShop iapShop;
     [SerializeField] private GameObject consumableItemUIPrefab;
@@ -17,8 +21,9 @@ public class IAPShopUI : MonoBehaviour
     [SerializeField] private Transform nonConsumableContent;
     [SerializeField] private Transform subscriptionContent;
     [SerializeField] private AdministratorGacha administratorGacha;
-    [SerializeField] private GachaRevealPanelUI revealPanel; // Reference to the existing GachaRevealPanelUI GameObject
+    [SerializeField] private GachaRevealPanelUI revealPanel;
 
+    IStoreController m_StoreController;
     void Start()
     {
         // Ensure the GachaRevealPanelUI is initially inactive
@@ -32,6 +37,8 @@ public class IAPShopUI : MonoBehaviour
         }
 
         PopulateShopUI();
+
+        SetUpBuilder();
     }
 
     void PopulateShopUI()
@@ -74,7 +81,7 @@ public class IAPShopUI : MonoBehaviour
         uiItem.transform.Find("NameText").GetComponent<TextMeshProUGUI>().text = item.name;
         uiItem.transform.Find("DescriptionText").GetComponent<TextMeshProUGUI>().text = item.description;
         uiItem.transform.Find("PriceText").GetComponent<TextMeshProUGUI>().text = $"${item.price}";
-        uiItem.transform.Find("Buy_Btn").GetComponent<Button>().onClick.AddListener(() => BuyConsumableItem(item));
+        uiItem.transform.Find("Buy_Btn").GetComponent<Button>().onClick.AddListener(() => ConsumableBtnPress(item));
     }
 
     void SetupNonConsumableItemUI(GameObject uiItem, NonConsumableItem item)
@@ -83,7 +90,7 @@ public class IAPShopUI : MonoBehaviour
         uiItem.transform.Find("NameText").GetComponent<TextMeshProUGUI>().text = item.name;
         uiItem.transform.Find("DescriptionText").GetComponent<TextMeshProUGUI>().text = item.description;
         uiItem.transform.Find("PriceText").GetComponent<TextMeshProUGUI>().text = $"${item.price}";
-        uiItem.transform.Find("Buy_Btn").GetComponent<Button>().onClick.AddListener(() => BuyNonConsumableItem(item));
+        uiItem.transform.Find("Buy_Btn").GetComponent<Button>().onClick.AddListener(() => NonConsumableBtnPress(item));
     }
 
     void SetupSubscriptionItemUI(GameObject uiItem, SubscriptionItem item)
@@ -93,24 +100,41 @@ public class IAPShopUI : MonoBehaviour
         uiItem.transform.Find("DescriptionText").GetComponent<TextMeshProUGUI>().text = item.description;
         uiItem.transform.Find("PriceText").GetComponent<TextMeshProUGUI>().text = $"${item.price}";
         uiItem.transform.Find("TimeDurationText").GetComponent<TextMeshProUGUI>().text = $"{item.timeDuration} days";
-        uiItem.transform.Find("Buy_Btn").GetComponent<Button>().onClick.AddListener(() => BuySubscriptionItem(item));
+        uiItem.transform.Find("Buy_Btn").GetComponent<Button>().onClick.AddListener(() => SubscriptionBtnPress(item));
+    }
+
+    public void ConsumableBtnPress(ConsumableItem item)
+    {
+
+        m_StoreController.InitiatePurchase(item.id);
+    }
+    public void NonConsumableBtnPress(NonConsumableItem item)
+    {
+
+        m_StoreController.InitiatePurchase(item.id);
+    }
+    public void SubscriptionBtnPress(SubscriptionItem item)
+    {
+
+        m_StoreController.InitiatePurchase(item.id);
     }
 
     void BuyConsumableItem(ConsumableItem item)
     {
+
         ResourceController resourceController = GameController.Instance.ResourceController;
 
         // Tăng resource dựa trên resourceGain và amountGain
-        if (item.resourceGain != null && item.resourceGain.Count > 0)
+        if (item.resourceGainData != null && item.resourceGainData.Count > 0)
         {
-            foreach (Resource resource in item.resourceGain)
+            foreach (ResourceGainData resource in item.resourceGainData)
             {
-                if (resourceController.TryGetAmount(resource, out long currentAmount))
+                if (resourceController.TryGetAmount(resource.resourceGain, out long currentAmount))
                 {
-                    long newAmount = currentAmount + item.amountGain;
-                    if (resourceController.TrySetAmount(resource, newAmount))
+                    long newAmount = currentAmount + resource.amountGain;
+                    if (resourceController.TrySetAmount(resource.resourceGain, newAmount))
                     {
-                        Debug.Log($"Increased {resource} by {item.amountGain}. New amount: {newAmount}");
+                        Debug.Log($"Increased {resource} by {resource.amountGain}. New amount: {newAmount}");
                     }
                     else
                     {
@@ -149,17 +173,21 @@ public class IAPShopUI : MonoBehaviour
                 Debug.LogError("AdministratorGacha is not assigned in IAPShopUI.");
             }
         }
-
         Debug.Log($"Bought Consumable: {item.name}");
     }
 
     void BuyNonConsumableItem(NonConsumableItem item)
     {
-        Debug.Log($"Bought Non-Consumable: {item.name} for ${item.price}");
+        m_StoreController.InitiatePurchase(item.id);
+
+        Debug.Log("Remove ads");
+
     }
 
     void BuySubscriptionItem(SubscriptionItem item)
     {
+        m_StoreController.InitiatePurchase(item.id);
+
         Debug.Log($"Bought Subscription: {item.name} for ${item.price}");
     }
 
@@ -176,5 +204,141 @@ public class IAPShopUI : MonoBehaviour
         {
             revealPanel.gameObject.SetActive(false);
         });
+    }
+
+    void SetUpBuilder()
+    {
+        var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
+
+        foreach (var i in iapShop.consumableItems)
+        {
+            builder.AddProduct(i.id, ProductType.Consumable);
+        }
+        foreach (var i in iapShop.nonConsumableItems)
+        {
+            builder.AddProduct(i.id, ProductType.NonConsumable);
+        }
+        foreach (var i in iapShop.subscriptionItems)
+        {
+            builder.AddProduct(i.id, ProductType.Subscription);
+        }
+
+        UnityPurchasing.Initialize(this, builder);
+    }
+    public void OnInitialized(IStoreController controller, IExtensionProvider extensions)
+    {
+        Debug.Log("INITSUCCESS");
+        m_StoreController = controller;
+    }
+
+    //processing purchase 
+    public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs purchaseEvent)
+    {
+        var product = purchaseEvent.purchasedProduct;
+
+        if (product.definition.id == iapShop.consumableItems.FirstOrDefault(i => i.id == product.definition.id).id)
+        {
+            print("got in");
+            BuyConsumableItem(iapShop.consumableItems.FirstOrDefault(i => i.id == product.definition.id));
+        }
+        if (product.definition.id == iapShop.nonConsumableItems.FirstOrDefault(i => i.id == product.definition.id).id)
+        {
+            BuyNonConsumableItem(iapShop.nonConsumableItems.FirstOrDefault(i => i.id == product.definition.id));
+
+        }
+        if (product.definition.id == iapShop.subscriptionItems.FirstOrDefault(i => i.id == product.definition.id).id)
+        {
+            BuySubscriptionItem(iapShop.subscriptionItems.FirstOrDefault(i => i.id == product.definition.id));
+
+        }
+
+        Debug.Log("Purchase compelte" + product.definition.id);
+        return PurchaseProcessingResult.Complete;
+    }
+    public void OnInitializeFailed(InitializationFailureReason error)
+    {
+        Debug.Log("Init purchasing failed:" + error);
+    }
+
+    public void OnInitializeFailed(InitializationFailureReason error, string message)
+    {
+        Debug.Log("Init purchasing failed:" + error + message);
+
+    }
+
+
+
+    public void OnPurchaseFailed(Product product, PurchaseFailureReason failureReason)
+    {
+        Debug.Log("Purchasing failed:" + failureReason);
+
+    }
+
+
+    public void CheckNonConsumable(string id)
+    {
+        if (m_StoreController != null)
+        {
+            var product = m_StoreController.products.WithID(id);
+            if (product != null)
+            {
+                if (product.hasReceipt)
+                {
+                    RemoveAds();
+                }
+                else
+                {
+                    Debug.Log("Receipt not found");
+                }
+            }
+            else
+            {
+                Debug.Log("No product found");
+            }
+        }
+    }
+    public void CheckSubscription(string id)
+    {
+        if (m_StoreController != null)
+        {
+            var subProduct = m_StoreController.products.WithID(id);
+            if (subProduct != null)
+            {
+                try
+                {
+                    if (subProduct.hasReceipt)
+                    {
+                        var subManager = new SubscriptionManager(subProduct, null);
+                        var info = subManager.getSubscriptionInfo();
+                        Debug.Log("EXP DATE"+ info.getExpireDate());
+
+                        if (info.isSubscribed() == Result.True)
+                        {
+                            Debug.Log("Subscribed");
+                        }
+                        else
+                        {
+                            Debug.Log(" Not Subscribed");
+
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log("Receipt not found");
+                    }
+                }  catch(System.Exception e)
+                {
+                    Debug.Log("Only work in GG, Appstore, amazone store");
+                }
+            }
+            else
+            {
+                Debug.Log("No product found");
+            }
+        }
+    }
+    private void RemoveAds()
+    {
+        Debug.Log("Remove ads");
     }
 }
