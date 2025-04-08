@@ -90,7 +90,7 @@ namespace Script.HumanResource.Administrator
                 }
             }
 
-            Debug.Log($"Generated {policies.Count} policies for {grade} mascot: [{string.Join(", ", policies.Select(p => $"{p.GetType().Name} ({p.Grade})"))}]");
+            //Debug.Log($"Generated {policies.Count} policies for {grade} mascot: [{string.Join(", ", policies.Select(p => $"{p.GetType().Name} ({p.Grade})"))}]");
             return policies;
         }
 
