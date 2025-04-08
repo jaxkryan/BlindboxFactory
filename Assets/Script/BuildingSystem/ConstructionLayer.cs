@@ -146,9 +146,9 @@ namespace BuildingSystem {
                 GameController.Instance.MachineController.RemoveMachine(machine);
 
             var coords = _tilemap.WorldToCell(worldCoords);
+            RemoveBuildingWorker(machine);
             _buildables.Remove(coords);
             buildable.Destroy();
-            RemoveBuildingWorker(machine);
 
             FindFirstObjectByType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
         }
@@ -156,7 +156,7 @@ namespace BuildingSystem {
         private void RemoveBuildingWorker(MachineBase machine)
         {
             Debug.LogWarning("Removing Worker");
-            List<Worker> worker = FindWorkersByMachine(machine);
+            List<Worker> worker = GameController.Instance.WorkerSpawner.FindSpawnedWorkers(machine).ToList();
             if (worker != null)
             {
                 if(worker.Count > 0)

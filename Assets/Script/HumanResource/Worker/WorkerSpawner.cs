@@ -63,31 +63,35 @@ namespace Script.HumanResource.Worker {
             var machineController = GameController.Instance.MachineController;
 
             var list = new List<Worker>();
-            
+
             //Find from machine
             list.AddRange(GetOrderedWorkers(machine.Workers));
             //Find idle workers
             var idleWorker = allWorkers.Where(w => w.Machine is null).ToList();
             list.AddRange(GetOrderedWorkers(idleWorker));
             //Find recovering workers
-            var recoveringWorker = allWorkers.Where(w =>
+            var recoveringWorker = allWorkers.Where(w => w.Machine is MachineBase).Where(w =>
                 GameController.Instance.MachineController.IsRecoveryMachine(w.Machine as MachineBase, out _)).ToList();
             list.AddRange(GetOrderedWorkers(recoveringWorker));
             //Find working workers
             list.AddRange(GetOrderedWorkers(allWorkers.Except(idleWorker).Except(recoveringWorker)));
 
+            //Debug.LogWarning($"Found worker count: {list.Count}");
             return list.OrderBy(w => Vector3.Distance(machine.transform.position, w.transform.position));
 
             IEnumerable<Worker> GetOrderedWorkers(IEnumerable<Worker> workersList) {
+                var tries = 0;
+                var maxTries = GameController.Instance.WorkerController.WorkerList.Select(w => w.Value.Count).Sum();
+                if (maxTries <= 100) maxTries = 100;
                 if (list.Count >= amount) return Enumerable.Empty<Worker>();
                 var ret = new List<Worker>();
-                foreach (var worker in workersList.OrderBy(w => Vector3.Distance(machine.transform.position, w.transform.position))) {
-                    while (ret.Count + list.Count < amount) {
-                        if (worker.ToWorkerType() != workerType) continue;
-                        if (ret.Contains(worker) || list.Contains(worker)) continue;
-                        
-                        ret.Add(worker);
-                    }
+                foreach (var worker in workersList.OrderBy(w =>
+                             Vector3.Distance(machine.transform.position, w.transform.position))) {
+                    if (ret.Count + list.Count >= amount) break;
+                    if (worker.ToWorkerType() != workerType) continue;
+                    if (ret.Contains(worker) || list.Contains(worker)) continue;
+
+                    ret.Add(worker);
                 }
 
                 return ret;
