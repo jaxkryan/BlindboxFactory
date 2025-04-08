@@ -130,7 +130,10 @@ namespace Script.HumanResource.Worker {
             bf.AddBelief($"{_worker.Name}IsRested", () => {
 
                     if (!GameController.Instance.WorkerController.WorkerNeedsList.ContainsKey(
-                        IWorker.ToWorkerType(_worker))) return true;
+                            IWorker.ToWorkerType(_worker))) {
+                        Debug.LogError($"Worker needs are not configured in game controller: {IWorker.ToWorkerType(_worker)}");
+                        return true;
+                    }
                     
                     return _worker.CurrentCores.All(c =>
                         GameController.Instance.WorkerController.WorkerNeedsList.ContainsKey(

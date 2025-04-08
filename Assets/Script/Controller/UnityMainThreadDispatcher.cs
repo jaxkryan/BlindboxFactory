@@ -36,7 +36,12 @@ public class UnityMainThreadDispatcher : MonoBehaviour {
 
     private void Update() {
         lock (_executionQueue) {
-            while (_executionQueue.Count > 0) { _executionQueue.Dequeue().Invoke(); }
+            while (_executionQueue.Count > 0) {
+                try { _executionQueue.Dequeue().Invoke(); }
+                catch (System.Exception e) {
+                    Debug.LogException(new System.Exception("Cannot execute queued action!", e));
+                }
+            }
         }
     }
 

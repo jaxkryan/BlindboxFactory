@@ -120,8 +120,14 @@ namespace Script.Controller {
                 _resourceData = new(data.ResourceData);
                 _resourceAmount = new(data.ResourceAmount);
                 UnityMainThreadDispatcher.Instance().Enqueue(() => {
-                    _resourceAmount.ForEach(r => onResourceAmountChanged?.Invoke(r.Key, 0, r.Value));
-                    _resourceData.ForEach(r => onResourceDataChanged?.Invoke(r.Key, r.Value));
+                    try {
+                        _resourceAmount.ForEach(r => onResourceAmountChanged?.Invoke(r.Key, 0, r.Value));
+                        _resourceData.ForEach(r => onResourceDataChanged?.Invoke(r.Key, r.Value));
+                    }
+                    catch (System.Exception e) {
+                        Debug.LogException(e);
+                        return;
+                    }
                 });
             }
             catch (System.Exception ex) {

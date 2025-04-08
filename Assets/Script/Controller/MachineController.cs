@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Worker;
 using Script.Machine;
+using Script.Machine.Products;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
@@ -120,7 +121,8 @@ namespace Script.Controller {
 
         public IEnumerable<MachineBase> FindWorkableMachines([CanBeNull] IEnumerable<MachineBase> machines = null) {
             if (machines == null) machines = Machines;
-            return machines.Where(m => m.IsWorkable && m.Slots.Count() > m.Workers.Count());
+            return machines.Where(m => m.IsWorkable && m.Slots.Count() > m.Workers.Count() 
+                                                    && m.Product is not NullProduct && m.Product is not BlindBox { BoxTypeName: BoxTypeName.Null });
         }
 
         public IEnumerable<MachineBase> FindWorkableMachines(Worker worker,
@@ -171,22 +173,27 @@ namespace Script.Controller {
                 Debug.LogWarning($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
 
                 UnityMainThreadDispatcher.Instance().Enqueue(() => {
+                    try { 
+                        Debug.Log($"Machine count: {data.Machines.Count}");
+                        Debug.Log($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
 
-                    Debug.Log($"Machine count: {data.Machines.Count}");
-                    Debug.Log($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
+                        foreach (var m in data.Machines) {
+                            Debug.Log($"Building prefab: {m.PrefabName}");
+                            var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
+                            if (prefab == default) continue;
 
-                    foreach (var m in data.Machines) {
-                        Debug.Log($"Building prefab: {m.PrefabName}");
-                        var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
-                        if (prefab == default) continue;
+                            var worldPos = _constructionLayer.CellToWorld(m.Position.ToVector3Int());
+                            Debug.Log($"Building machine: {prefab.Name} at {worldPos}");
+                            var constructedGameObject = _constructionLayerScript.Build(worldPos, prefab);
 
-                        var worldPos = _constructionLayer.CellToWorld(m.Position.ToVector3Int());
-                        Debug.Log($"Building machine: {prefab.Name} at {worldPos}");
-                        var constructedGameObject = _constructionLayerScript.Build(worldPos, prefab);
-
-                        if (constructedGameObject is null
-                            || !constructedGameObject.TryGetComponent<MachineBase>(out var machine)) continue;
-                        machine.Load(m);
+                            if (constructedGameObject is null
+                                || !constructedGameObject.TryGetComponent<MachineBase>(out var machine)) continue;
+                            machine.Load(m);
+                        }
+                    }
+                    catch (System.Exception ex) {
+                        Debug.LogError($"Cannot save {nameof(MachineController)}");
+                        Debug.LogException(ex);
                     }
                 });
             }
