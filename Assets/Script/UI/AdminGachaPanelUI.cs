@@ -16,7 +16,7 @@ public class AdminGachaPanelUI : MonoBehaviour
     [SerializeField] private Button _tenPullBtn;
     [SerializeField] private AdministratorGacha _adminGacha;
     [SerializeField] private GameObject _gachaPanel;
-    [SerializeField] private GachaRevealPanelUI _revealPanelPrefab; // Prefab for the reveal panel
+    [SerializeField] private GachaRevealPanelUI _revealPanel;
 
     [SerializeField] private Resource _pullResource = Resource.Gold;
     [SerializeField] private long _singlePullCost = 1000;
@@ -31,6 +31,12 @@ public class AdminGachaPanelUI : MonoBehaviour
         _closeBtn.onClick.AddListener(Close);
         if (_singlePullBtn != null) _singlePullBtn.onClick.AddListener(SinglePull);
         if (_tenPullBtn != null) _tenPullBtn.onClick.AddListener(TenPull);
+
+        // Ensure the GachaRevealPanelUI is initially inactive
+        if (_revealPanel != null)
+        {
+            _revealPanel.gameObject.SetActive(false);
+        }
     }
 
     private void OnValidate()
@@ -149,17 +155,18 @@ public class AdminGachaPanelUI : MonoBehaviour
 
     private void ShowReveal(List<Mascot> mascots)
     {
-        if (_revealPanelPrefab == null)
+        if (_revealPanel == null)
         {
-            Debug.LogWarning("Reveal panel prefab is not assigned!");
+            Debug.LogWarning("Reveal panel is not assigned!");
             return;
         }
 
-        // Instantiate the reveal panel and start the animation
-        var revealPanel = Instantiate(_revealPanelPrefab, transform.parent);
-        revealPanel.RevealMascots(mascots, () =>
+        // Activate the reveal panel and start the animation
+        _revealPanel.gameObject.SetActive(true);
+        _revealPanel.RevealMascots(mascots, () =>
         {
-            // Reopen the gacha panel after the reveal is complete
+            // Deactivate the reveal panel and reopen the gacha panel after the reveal is complete
+            _revealPanel.gameObject.SetActive(false);
             Open();
         });
 

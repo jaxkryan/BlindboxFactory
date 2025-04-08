@@ -9,7 +9,7 @@ namespace Script.Machine
 {
     public class ResourceExtractor : MachineBase
     {
-        [SerializeField] private int level = 1;
+        //[SerializeField] private int level = 1;
         [SerializeField] private Transform miningOutputPoint; // Position where materials appear
         [SerializeField] private GameObject materialPrefab;   // Prefab for material animation
 
@@ -41,22 +41,21 @@ namespace Script.Machine
 
             //// Increase progress each frame if workable
             // tam thoi fix cung
-            //if (IsWorkable)
-            //{
-            //    ProgressionPerSec = 20f;
-            //    if (level > 1) ProgressionPerSec *= 1.5f;
-            //    IncreaseProgress(ProgressionPerSec * Time.deltaTime);
-            //}
-            Debug.Log("is workable: " + IsWorkable + !IsClosed + HasResourceForWork + HasEnergyForWork + CanCreateProduct);
-            Debug.Log("Running per sec now" + WorkDetails.First().IsRunning);  
-            Debug.Log("Current Progress now" + CurrentProgress);  
+            if (IsWorkable)
+            {
+                ProgressionPerSec = 19f;
+                IncreaseProgress(ProgressionPerSec * Time.deltaTime);
+            }
+            //Debug.Log("is workable: " + IsWorkable + !IsClosed + HasResourceForWork + HasEnergyForWork + CanCreateProduct);
+            //Debug.Log("Running per sec now" + WorkDetails.First().IsRunning);
+            //Debug.Log("Current Progress now" + CurrentProgress);
         }
 
-        public override ProductBase CreateProduct()
-        {
-            var product = base.CreateProduct();
-            return product;
-        }
+        //public override ProductBase CreateProduct()
+        //{
+        //    var product = base.CreateProduct();
+        //    return product;
+        //}
 
         private void OnProductCreatedHandler(ProductBase product)
         {
@@ -68,10 +67,10 @@ namespace Script.Machine
             }
         }
 
-        public void LevelUp()
-        {
-            level++;
-        }
+        //public void LevelUp()
+        //{
+        //    level++;
+        //}
 
         private void AnimateMaterial(Sprite materialSprite)
         {
@@ -97,8 +96,8 @@ namespace Script.Machine
             spriteRenderer.DOFade(0f, 0.8f).SetDelay(0.3f).OnComplete(() => Destroy(materialObject));
         }
 
-      
 
-       
+
+
     }
 }

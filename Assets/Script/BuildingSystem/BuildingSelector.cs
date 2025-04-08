@@ -137,7 +137,6 @@ public class BuildingSelector : MonoBehaviour
         foreach (var buildable in Categories[categoryIndex].buildables)
         {
             GameController.Instance.MachineController.UnlockMachines.TryGetValue(buildable.Name, out bool lockstatus);
-            if(!lockstatus) continue;
             Debug.Log("Creating button for: " + buildable.name);
 
             Button newButton = Instantiate(_buttonPrefab, _contentParent);
@@ -173,7 +172,16 @@ public class BuildingSelector : MonoBehaviour
                 buttonImage.sprite = spriteRenderer.sprite;
             }
 
-            newButton.onClick.AddListener(() => SelectBuildable(buildable));
+            if (lockstatus)
+            {
+                newButton.transform.Find("LockImg")?.gameObject.SetActive(false);
+                newButton.onClick.AddListener(() => SelectBuildable(buildable));
+            }
+            else
+            {
+                newButton.onClick.AddListener(() => SelectBuildable(null));
+                newButton.onClick.AddListener(() => _buildingPlacer.ClearPreview());
+            }
         }
     }
 

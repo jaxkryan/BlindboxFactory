@@ -179,7 +179,6 @@ public class GachaRevealPanelUI : MonoBehaviour
     private void OnConfirmClicked()
     {
         _onComplete?.Invoke();
-        Destroy(gameObject);
     }
 
     private void OnSkipAllClicked()
@@ -240,7 +239,6 @@ public class GachaRevealPanelUI : MonoBehaviour
     private void OnSummaryExitClicked()
     {
         _onComplete?.Invoke();
-        Destroy(gameObject);
     }
 }
 
