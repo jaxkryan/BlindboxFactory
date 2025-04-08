@@ -131,7 +131,19 @@ namespace BuildingSystem {
         
         private bool TryGetBuildable(Vector3 worldCoords, out Buildable buildable) {
             var coords = _tilemap.WorldToCell(worldCoords);
-            return _buildables.TryGetValue(coords, out buildable);
+            foreach (var building in _buildables)
+            {
+                var origin = building.Key;
+                var b = building.Value;
+                if (b.BuildableType.CollisionSpace.Contains((Vector2Int)(coords - origin)))
+                {
+                    buildable = b;
+                    return true;
+                }
+            }
+
+            buildable = null;
+            return false;
         }
         
         private void Remove(Vector3 worldCoords) {
