@@ -9,7 +9,7 @@ public class StructureUIToggles : MonoBehaviour
     [SerializeField] private GameObject InformationPanel;
     [SerializeField] private GameObject ExitPanel;
 
-    private MachineBase currentMachine = BlindBoxInformationDisplay.Instance.currentMachine;
+    private MachineBase currentMachine;
 
     public StructureUIToggles Instance;
 
