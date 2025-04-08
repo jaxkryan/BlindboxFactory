@@ -30,9 +30,9 @@ namespace Script.Controller {
         private List<MachineBase> _machines;
 
         public ReadOnlyDictionary<MachineBase, List<MachineCoreRecovery>> RecoveryMachines =>
-            new((Dictionary<MachineBase, List<MachineCoreRecovery>>)_recoverMachines);
+            new(_recoverMachines);
 
-        [SerializeField] SerializedDictionary<MachineBase, List<MachineCoreRecovery>> _recoverMachines;
+        [SerializeField] private SerializedDictionary<MachineBase, List<MachineCoreRecovery>> _recoverMachines = new();
 
         public List<MachineBase> FindMachinesOfType(Type type) {
             if (!type.IsSubclassOf(typeof(MachineBase))) return new();
@@ -73,6 +73,22 @@ namespace Script.Controller {
             if (isUnlocked) return;
             _unlockMachines[name] = true;
             onMachineUnlocked?.Invoke(name);
+        }
+
+        public bool IsRecoveryMachine(MachineBase machine, out List<MachineCoreRecovery> recoveries) { 
+            recoveries = default;
+            if (machine.PrefabName == null) return false;
+
+            var prefab = Buildables.FirstOrDefault(b => b.Name == machine.PrefabName)?.gameObject;
+            if (prefab is null || prefab.TryGetComponent<MachineBase>(out var machinePrefab)) return false;
+
+            var keys = RecoveryMachines.Keys?.Where(r => ReferenceEquals(r,machinePrefab))?.ToList() ?? new ();
+
+            recoveries = RecoveryMachines
+                .Where(r => keys.Contains(r.Key))
+                .Select(r => r.Value)
+                .Aggregate(new List<MachineCoreRecovery>(), (x, y) => x.Concat(y).ToList());
+            return recoveries.Any();
         }
 
         public void AddMachine(MachineBase machine) {
