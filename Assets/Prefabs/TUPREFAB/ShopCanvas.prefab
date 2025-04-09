@@ -405,9 +405,9 @@ RectTransform:
   m_Father: {fileID: 3407868528500071861}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: -17}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &8710242545855781791
 CanvasRenderer:
@@ -876,7 +876,7 @@ RectTransform:
   m_Father: {fileID: 1011136152034801938}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1329,7 +1329,7 @@ RectTransform:
   m_Father: {fileID: 667457509916384623}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1404,7 +1404,7 @@ RectTransform:
   m_Father: {fileID: 3368073026365389794}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1478,8 +1478,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 4524125941857985163}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.00000020345053}
-  m_AnchorMax: {x: 1, y: 0.6100002}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -2084,6 +2084,7 @@ GameObject:
   - component: {fileID: 2802734068969691435}
   - component: {fileID: 7024891495098614852}
   - component: {fileID: 1160723590014765943}
+  - component: {fileID: 2367814221308362902}
   m_Layer: 5
   m_Name: ShopPanel
   m_TagString: Untagged
@@ -2190,64 +2191,92 @@ MonoBehaviour:
     name: Gold pack 1
     description: Increase gold by a small amount
     price: 0
-    resourceGain: 00000000
-    amountGain: 5000
+    resourceGainData:
+    - resourceGain: 0
+      amountGain: 1000
     rewardMascot: 0
     bannerImage: {fileID: -7090092752128378902, guid: 1cb9980160022cd478a4cd605a9dd811, type: 3}
   - id: gold_2
     name: Gold pack 2
     description: Increase gold by a medium amount
     price: 0
-    resourceGain: 00000000
-    amountGain: 12000
+    resourceGainData:
+    - resourceGain: 0
+      amountGain: 5000
     rewardMascot: 0
     bannerImage: {fileID: -7090092752128378902, guid: 1cb9980160022cd478a4cd605a9dd811, type: 3}
   - id: gold_3
     name: Gold pack 3
     description: Increase gold by a large amount
     price: 0
-    resourceGain: 00000000
-    amountGain: 20000
+    resourceGainData:
+    - resourceGain: 0
+      amountGain: 30000
     rewardMascot: 0
     bannerImage: {fileID: -7090092752128378902, guid: 1cb9980160022cd478a4cd605a9dd811, type: 3}
   - id: gem_1
     name: Gem pack 1
     description: Increase gem by a small amount
     price: 0
-    resourceGain: 01000000
-    amountGain: 500
+    resourceGainData:
+    - resourceGain: 1
+      amountGain: 20
     rewardMascot: 0
     bannerImage: {fileID: -8032868023781406765, guid: 2836d071c185e5d4b99e0ae7212e783d, type: 3}
   - id: gem_2
     name: Gem pack 2
     description: Increase gem by a medium amount
     price: 0
-    resourceGain: 01000000
-    amountGain: 1200
+    resourceGainData:
+    - resourceGain: 1
+      amountGain: 100
     rewardMascot: 0
     bannerImage: {fileID: -8032868023781406765, guid: 2836d071c185e5d4b99e0ae7212e783d, type: 3}
   - id: gem_3
     name: Gem pack 3
     description: Increase gem by a large amount
     price: 0
-    resourceGain: 01000000
-    amountGain: 2000
+    resourceGainData:
+    - resourceGain: 1
+      amountGain: 300
     rewardMascot: 0
     bannerImage: {fileID: -8032868023781406765, guid: 2836d071c185e5d4b99e0ae7212e783d, type: 3}
   - id: resouce_1
     name: Resource pack 1
     description: Increase Resource by a small amount
     price: 0
-    resourceGain: 02000000
-    amountGain: 2000
+    resourceGainData:
+    - resourceGain: 2
+      amountGain: 50
+    - resourceGain: 3
+      amountGain: 100
+    - resourceGain: 4
+      amountGain: 100
+    - resourceGain: 5
+      amountGain: 100
+    - resourceGain: 6
+      amountGain: 75
+    - resourceGain: 7
+      amountGain: 75
     rewardMascot: 0
     bannerImage: {fileID: -8032868023781406765, guid: 2836d071c185e5d4b99e0ae7212e783d, type: 3}
   - id: first_topup
     name: 'First topup pack '
     description: Receive a 5*mascot
     price: 0
-    resourceGain: 
-    amountGain: 0
+    resourceGainData:
+    - resourceGain: 2
+      amountGain: 50
+    - resourceGain: 3
+      amountGain: 100
+    - resourceGain: 4
+      amountGain: 100
+    - resourceGain: 5
+      amountGain: 100
+    - resourceGain: 6
+      amountGain: 75
+    - resourceGain: 7
+      amountGain: 75
     rewardMascot: 1
     bannerImage: {fileID: -7883521387666551083, guid: 22514e945a8eb4b45881f7d910bee454, type: 3}
   nonConsumableItems:
@@ -2263,6 +2292,19 @@ MonoBehaviour:
     price: 0
     timeDuration: 30
     bannerImage: {fileID: 1185625210376227553, guid: 1b3a5ade20ed6f94ebc29879d1de2e2b, type: 3}
+--- !u!114 &2367814221308362902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2486571085767483016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c45b08708ccacdf459d9626ede8d620f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  environment: newenvironment
 --- !u!1 &2538931070751307653
 GameObject:
   m_ObjectHideFlags: 0
@@ -2374,9 +2416,9 @@ RectTransform:
   m_Father: {fileID: 5866279387904852004}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: -17}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &3745274637508535163
 CanvasRenderer:
@@ -2788,9 +2830,9 @@ RectTransform:
   m_Father: {fileID: 6692430518323101569}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: -17}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &4932857132933687531
 CanvasRenderer:
@@ -2878,7 +2920,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: -0.000011086464, y: 0.000009773681}
-  m_SizeDelta: {x: -950.24, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &5233350993308338858
 MonoBehaviour:
@@ -3514,7 +3556,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: -0.000011086464, y: -0.000015800226}
-  m_SizeDelta: {x: -950.24, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &7044032899611379199
 MonoBehaviour:
@@ -3729,7 +3771,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: -0.000011086464, y: 117.000015}
-  m_SizeDelta: {x: -950.24, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &4702227336740916829
 MonoBehaviour:
@@ -4459,8 +4501,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 6574240501358015137}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.39}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -4950,8 +4992,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 5876560444310352535}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.39}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -8304,6 +8346,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2789391771542364009}
     m_Modifications:
+    - target: {fileID: 1902450190221025762, guid: 2b6baffc129ab6b488b345589abea451, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3720210804698970846, guid: 2b6baffc129ab6b488b345589abea451, type: 3}
       propertyPath: m_Name
       value: GachaAnimationCanvas 1
