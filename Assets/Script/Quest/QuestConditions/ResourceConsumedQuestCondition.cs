@@ -28,7 +28,7 @@ namespace Script.Quest {
                 list.Add(str);
             }
             
-            return string.Join("\n", list.ToArray());
+            return string.Join("\n", list.ToArray()) + "aaaaa";
         }
 
         public override bool Evaluate(Quest quest) {

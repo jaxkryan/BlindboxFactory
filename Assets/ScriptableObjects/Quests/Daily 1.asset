@@ -12,13 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da321e9aa28f4dfb88d58ddfcb6f0b5e, type: 3}
   m_Name: Daily 1
   m_EditorClassIdentifier: 
-  Name: 
+  Name: First quest
   Description: The man want to buy abc
   Preconditions:
   - {fileID: 0}
   Objectives:
-  - {fileID: 0}
-  Rewards: []
+  - {fileID: 11400000, guid: 0edd77d061c2e374c90542ca066d70e1, type: 2}
+  Rewards:
+  - rid: 1359229676776325120
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 1359229676776325120
+      type: {class: ResourceQuestReward, ns: Script.Quest, asm: Assembly-CSharp}
+      data:
+        Resources:
+          rid: 1359229676776325121
+    - rid: 1359229676776325121
+      type: {class: 'SerializedDictionary`2[[Script.Resources.Resource, Assembly-CSharp],[System.Int32, mscorlib]]', ns: AYellowpaper.SerializedCollections, asm: AYellowpaper.SerializedCollections}
+      data:
+        _serializedList:
+        - Key: 0
+          Value: 1000
