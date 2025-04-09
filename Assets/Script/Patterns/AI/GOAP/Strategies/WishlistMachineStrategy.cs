@@ -30,6 +30,11 @@ namespace Script.Patterns.AI.GOAP.Strategies {
         }
 
         public void Start() {
+            Complete = false;
+            //Clear wishlist
+            GameController.Instance.MachineController.Machines
+                .ForEach(m => m.Slots
+                    .Where(s => s.WishListWorker == _worker).ForEach(s => s.SetWishlist()));
             if (TryWishlistMachine() || _retryAttempts <= 0) {
                 Debug.Log($"Wishlisted: {_worker.Director?.TargetSlot?.name ?? "Empty"}");
                 return;
