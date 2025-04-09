@@ -74,5 +74,15 @@ namespace Script.Machine.Machines.Canteen {
                 
             }
         }
+
+        public Canteen.CanteenData GetCanteenData()
+        {
+            var data = new Canteen.CanteenData
+            {
+                Storage = _storage.Save(),
+                Kitchen = new CanteenData.KitchenData()
+        };
+            return data;
+        }
     }
 }

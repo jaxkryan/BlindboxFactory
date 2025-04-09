@@ -23,5 +23,10 @@ namespace Script.Machine.Machines.Generator {
         public class GeneratorData : MachineBaseData {
             public int Power;
         }
+
+        public Generator.GeneratorData GetGeneratorData()
+        {
+            return new GeneratorData { Power = _power };
+        }
     }
 }
