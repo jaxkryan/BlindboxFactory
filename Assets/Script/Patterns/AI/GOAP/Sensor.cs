@@ -24,6 +24,7 @@ using UnityEngine;
                 //     return;
                 // }
                 _target = value;
+                UpdateTargetPosition(_target);
             }
         }
 
@@ -72,6 +73,7 @@ using UnityEngine;
         protected bool IsTarget(Collider2D other) => other.gameObject.Equals(Target);
 
         void UpdateTargetPosition(GameObject target = null) {
+            
             _currentTarget = target;
             if (IsTargetInRange && (_lastKnownPos != TargetPosition || _lastKnownPos != Vector3.zero)) {
                 _lastKnownPos = TargetPosition;

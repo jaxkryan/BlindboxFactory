@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AYellowpaper.SerializedCollections;
 using Script.Controller;
 using Script.Resources;
@@ -57,17 +58,11 @@ namespace Script.Quest {
                     remValue = Resources[resource];
                 }
 
-                if (current == resValue) continue;
-                if (resValue < current) {
-                    resValue = current;
-                    quest.SetData(resourceKey, resValue);
-                }
-                else {
-                    var newRemValue = remValue - (resValue - current);
-                    if (remValue > 0) quest.SetData(remKey, newRemValue);
-                    remValue = newRemValue;
-                }
-                if (remValue > 0) passed = false;
+                var newRemValue = new[]{remValue - (resValue - current), remValue}.Min();
+                if (resValue < current) quest.SetData(resourceKey, current);
+                quest.SetData(remKey, newRemValue >= 0 ? newRemValue : 0);
+                
+                if (newRemValue > 0) passed = false;
             }
 
             return passed;

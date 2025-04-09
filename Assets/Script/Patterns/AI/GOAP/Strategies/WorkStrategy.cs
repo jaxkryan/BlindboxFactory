@@ -23,6 +23,7 @@ public class WorkStrategy : IActionStrategy {
     }
 
     public void Start() {
+        Complete = false;
         _slot = _worker.Director.TargetSlot;
         if (_slot == null) {
             Complete = true;
@@ -57,15 +58,21 @@ public class WorkStrategy : IActionStrategy {
     private void ConsiderStopWorking(CoreType core, float amount) => ConsiderStopWorking();
     private void ConsiderStopWorking(bool isProductCreate = false) {
         var min = new Dictionary<CoreType, float>();
-        Enum.GetValues(typeof(CoreType)).Cast<CoreType>()
-            .ForEach(c => min[c] = MinimumCoreValue);
-        if (isProductCreate && !WorkerDirector
-                .ContinueAfterProductCreated(
-                    _worker.CurrentCores
-                    , _worker.Director.CoreChangePerSec
-                    , _worker.MaximumCore
-                    , min
-                    , 0f)){
+        // Enum.GetValues(typeof(CoreType)).Cast<CoreType>()
+        //     .ForEach(c => min[c] = MinimumCoreValue);
+        // if (isProductCreate && !WorkerDirector
+        //         .ContinueAfterProductCreated(
+        //             _worker.CurrentCores
+        //             , _worker.Director.CoreChangePerSec
+        //             , _worker.MaximumCore
+        //             , min
+        //             , 0f)){
+        //     StopWorking();
+        //     return;
+        // }
+        
+        //For bb machines
+        if (_slot.Machine is BlindBoxMachine bbMachine && bbMachine.amount <= 0) {
             StopWorking();
             return;
         }
@@ -76,12 +83,14 @@ public class WorkStrategy : IActionStrategy {
             recoveryMachine.AddRange(controller.FindRecoveryMachine(coreType, (Worker)_worker));
         }
 
+        //For normal machines
         if (_worker.CurrentCores.Any(c => c.Value <= 0f)
-            && recoveryMachine.All(r => r != _slot.Machine)){
+            && recoveryMachine.All(r => r != _slot.Machine)) {
             StopWorking();
             return;
         }
 
+        //For recovering machines
         if (_worker.CurrentCores.Any(c => c.Value >= _worker.MaximumCore[c.Key])
             && recoveryMachine.Any(r => r == _slot.Machine)) {
             StopWorking();
@@ -94,12 +103,22 @@ public class WorkStrategy : IActionStrategy {
         Complete = true;
     }
 
-    public void Stop() { 
-        var outPos = _worker.transform.position + Vector3.Normalize(_slot.Machine.transform.position - _worker.transform.position) * (Vector3.Distance(_slot.Machine.transform.position, _worker.transform.position) + 0.5f);
-        if (NavMesh.SamplePosition(outPos, out var hit, Single.MaxValue, 1))
-            _worker.Agent.Warp(hit.position);
-        _worker.Agent.enabled = true;
+    public void Stop() {
+            Debug.LogError($"{GetType().Name} stop!");
+        
+        if (_slot is null) {
+            Debug.LogError("Cannot find worked slot!");
+            return;
+        }
+
+        var outPos = _worker.transform.position +
+                     Vector3.Normalize(_slot.Machine.transform.position - _worker.transform.position) *
+                     (Vector3.Distance(_slot.Machine.transform.position, _worker.transform.position) + 0.5f);
+            if (NavMesh.SamplePosition(outPos, out var hit, Single.MaxValue, 1))
+                _worker.Agent.Warp(hit.position);
+            _slot.Machine.RemoveWorker(_worker);
+
         _worker.Director.TargetSlot = null;
-        _slot.Machine.RemoveWorker(_worker);
+        _worker.Agent.enabled = true;
     }
 }

@@ -92,7 +92,7 @@ namespace Script.HumanResource.Worker {
             }
         }
 
-        [CanBeNull] private MachineSlot _slot;
+        [SerializeField][CanBeNull] private MachineSlot _slot;
 
 
         protected override void Awake() {
@@ -118,17 +118,25 @@ namespace Script.HumanResource.Worker {
             bf.AddBelief($"{_worker.Name}HasNoWorkableMachine", () => !_workableMachines(this).Any());
             bf.AddBelief($"{_worker.Name}WishListedAMachine",
                 () => GameController.Instance.MachineController.Machines.Any(m =>
-                    m.Slots.Any(s => s.WishListWorker != null && (Worker)s.WishListWorker == _worker)));
+                    m.Slots.Any(s => (Worker)s.WishListWorker == _worker)));
             bf.AddBelief($"{_worker.Name}WishListedMachineIsWorkMachine",
                 () => GameController.Instance.MachineController.Machines
                     .Any(m
-                        => m.Slots.Any(s => s.WishListWorker != null
-                                            && (Worker)s.WishListWorker == _worker)
+                        => m.Slots.Any(s => (Worker)s.WishListWorker == _worker)
                            && _workMachines(this).Contains(m)));
             bf.AddBelief($"{_worker.Name}HasNoWishListedMachine",
                 () => !GameController.Instance.MachineController.Machines.Any(m =>
-                    m.Slots.Any(s => s.WishListWorker != null && (Worker)s.WishListWorker == _worker)));
+                    m.Slots.Any(s => (Worker)s.WishListWorker == _worker)));
             bf.AddBelief($"{_worker.Name}HasTargetMachine", () => _slot?.Machine is not null);
+            bf.AddBelief($"{_worker.Name}TargetMachineIsWorkMachine", () => {
+                // if (_slot?.Machine is not null) Debug.Log("Condition 1 passed");
+                // else Debug.Log("Condition 1 failed");
+                // if (_slot?.Machine is not null && !GameController.Instance.MachineController.IsRecoveryMachine(_slot.Machine, out _)) Debug.Log("Condition 2 passed");
+                // else Debug.Log("Condition 2 failed");
+                
+                return _slot?.Machine is not null && !GameController.Instance.MachineController.IsRecoveryMachine(_slot.Machine, out _);
+            });
+            bf.AddBelief($"{_worker.Name}TargetMachineIsRecoveryMachine", () => _slot?.Machine is not null && GameController.Instance.MachineController.IsRecoveryMachine(_slot.Machine, out _));
             bf.AddBelief($"{_worker.Name}IsRested", () => {
                     var needList = GameController.Instance.WorkerController.WorkerNeedsList;
 
@@ -186,7 +194,8 @@ namespace Script.HumanResource.Worker {
             }
 
             bf.AddSensorBelief($"{_worker.Name}AtMachine", WorkMachineSensor);
-            bf.AddBelief($"{_worker.Name}Working", () => _worker.Machine is not null);
+            bf.AddBelief($"{_worker.Name}Working", () => _worker.Machine is not null && !GameController.Instance.MachineController.IsRecoveryMachine((MachineBase)_worker.Machine, out _));
+            bf.AddBelief($"{_worker.Name}Resting", () => _worker.Machine is not null && GameController.Instance.MachineController.IsRecoveryMachine((MachineBase)_worker.Machine, out _));
         }
 
         protected override void SetupGoals() {
@@ -223,29 +232,31 @@ namespace Script.HumanResource.Worker {
                 .WithStrategy(new WanderStrategy(_navMeshAgent, 10f))
                 .AddEffect(Beliefs[$"{_worker.Name}Walking"])
                 .Build());
-            Actions.Add(new AgentAction.Builder($"MoveToMachine")
+
+            Actions.Add(new AgentAction.Builder("ConsiderWorkMachine")
+                .WithStrategy(new WishlistMachineStrategy(_worker, _workMachines, _navMeshAgent, 3))
+                .AddPrecondition(Beliefs[$"{_worker.Name}HasWorkableMachine"])
+                // .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
+                .AddPrecondition(Beliefs[$"{_worker.Name}IsRested"])
+                .AddEffect(Beliefs[$"{_worker.Name}TargetMachineIsWorkMachine"])
+                .AddEffect(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                .Build());
+            Actions.Add(new AgentAction.Builder($"MoveToWorkMachine")
                 .WithCost(2)
                 .WithStrategy(new MoveToSlotStrategy(_worker))
                 .AddPrecondition(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                .AddPrecondition(Beliefs[$"{_worker.Name}TargetMachineIsWorkMachine"])
+                .AddPrecondition(Beliefs[$"{_worker.Name}IsRested"])
                 .AddEffect(Beliefs[$"{_worker.Name}AtMachine"])
                 .Build());
             Actions.Add(new AgentAction.Builder("WorkAtMachine")
                 .WithCost(3)
                 .WithStrategy(new WorkStrategy(_worker))
                 .AddPrecondition(Beliefs[$"{_worker.Name}HasTargetMachine"])
-                .AddPrecondition(Beliefs[$"{_worker.Name}WishListedAMachine"])
+                .AddPrecondition(Beliefs[$"{_worker.Name}TargetMachineIsWorkMachine"])
                 .AddPrecondition(Beliefs[$"{_worker.Name}AtMachine"])
                 .AddPrecondition(Beliefs[$"{_worker.Name}IsRested"])
                 .AddEffect(Beliefs[$"{_worker.Name}Working"])
-                .Build());
-
-            Actions.Add(new AgentAction.Builder("ConsiderWorkMachine")
-                .WithStrategy(new WishlistMachineStrategy(_worker, _workMachines, _navMeshAgent, 3))
-                .AddPrecondition(Beliefs[$"{_worker.Name}HasWorkableMachine"])
-                .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
-                .AddPrecondition(Beliefs[$"{_worker.Name}IsRested"])
-                .AddEffect(Beliefs[$"{_worker.Name}WishListedAMachine"])
-                .AddEffect(Beliefs[$"{_worker.Name}HasTargetMachine"])
                 .Build());
 
             foreach (CoreType core in Enum.GetValues(typeof(CoreType))) {
@@ -255,14 +266,23 @@ namespace Script.HumanResource.Worker {
                     .AddPrecondition(Beliefs[$"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsDepleted"])
                     .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
                     .AddPrecondition(Beliefs[$"{_worker.Name}Has{core}RecoveryMachine"])
-                    .AddEffect(Beliefs[$"{_worker.Name}WishListedAMachine"])
+                    .AddEffect(Beliefs[$"{_worker.Name}TargetMachineIsRecoveryMachine"])
                     .AddEffect(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                    .Build());
+                Actions.Add(new AgentAction.Builder($"MoveTo{core}RecoveryMachine")
+                    .WithCost(2)
+                    .WithStrategy(new MoveToSlotStrategy(_worker))
+                    .AddPrecondition(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                    .AddPrecondition(Beliefs[$"{_worker.Name}TargetMachineIsRecoveryMachine"])
+                    .AddEffect(Beliefs[$"{_worker.Name}AtMachine"])
                     .Build());
                 Actions.Add(new AgentAction.Builder($"{core}RecoverAtMachine")
                     .WithCost(3)
                     .WithStrategy(new WorkStrategy(_worker))
+                    .AddPrecondition(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                    .AddPrecondition(Beliefs[$"{_worker.Name}TargetMachineIsRecoveryMachine"])
                     .AddPrecondition(Beliefs[$"{_worker.Name}AtMachine"])
-                    .AddEffect(Beliefs[$"{_worker.Name}Working"])
+                    .AddEffect(Beliefs[$"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsFulfilled"])
                     .Build());
             }
         }

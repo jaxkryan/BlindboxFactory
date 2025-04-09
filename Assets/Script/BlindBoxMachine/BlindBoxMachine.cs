@@ -25,6 +25,8 @@ public class BlindBoxMachine : MachineBase
         base.Update();
     }
 
+    public override bool IsWorkable => base.IsWorkable && amount > 0;
+
     protected override void Start()
     {
         BlindBox nullbb = new BlindBox()

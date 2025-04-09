@@ -44,7 +44,7 @@ namespace Script.Machine {
             get => _product.CanCreateProduct;
         }
 
-        public bool IsWorkable {
+        public virtual bool IsWorkable {
             get => !_isClosed && HasResourceForWork && HasEnergyForWork && CanCreateProduct;
         }
 

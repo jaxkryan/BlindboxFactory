@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AYellowpaper.SerializedCollections;
 using Script.Controller;
 using Script.Resources;
@@ -35,11 +36,9 @@ namespace Script.Quest {
 
         public override bool Evaluate(Quest quest) {
             var controller = GameController.Instance.ResourceController;
-            Debug.LogWarning($"Evaluating quest {quest.Name}");
             bool passed = true;
 
             foreach (var resource in Resources.Keys) {
-                Debug.LogWarning($"Quest: {quest.Name}. Resource: {resource}");
                 var resourceKey = keyName(resource);
                 var remKey = keyName(resource)+"Remaining";
                 if (!controller.TryGetAmount(resource, out long current)) {
@@ -58,20 +57,12 @@ namespace Script.Quest {
                     remValue = Resources[resource];
                 }
 
-                if (current == resValue) continue;
-                if (resValue > current) {
-                    resValue = current;
-                    quest.SetData(resourceKey, resValue);
-                }
-                else {
-                    var newRemValue = remValue - (current - resValue);
-                    if (remValue > 0) quest.SetData(remKey, newRemValue);
-                    remValue = newRemValue;
-                }
-                if (remValue > 0) passed = false;
+                var newRemValue = new[]{remValue - (current - resValue), remValue}.Min();
+                if (resValue > current) quest.SetData(resourceKey, current);
+                quest.SetData(remKey, newRemValue >= 0 ? newRemValue : 0);
+                
+                if (newRemValue > 0) passed = false;
             }
-
-            Debug.LogWarning($"Quest: {quest.Name}. Pass: {passed}");
             
             return passed;
         }
