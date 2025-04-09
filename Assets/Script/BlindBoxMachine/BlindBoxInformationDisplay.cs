@@ -33,5 +33,14 @@ public class BlindBoxInformationDisplay : MonoBehaviour
         _constructionLayer.Sell(currentCoordinate);
         ChosePanelAll.SetActive(false);
         ChosePanelBB.SetActive(false);
+        gameObject.SetActive(false);
+    }
+
+    public void StoreThis()
+    {
+        _constructionLayer.Stored(currentCoordinate);
+        ChosePanelAll.SetActive(false);
+        ChosePanelBB.SetActive(false);
+        gameObject.SetActive(false);
     }
 }
