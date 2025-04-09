@@ -152,4 +152,10 @@ namespace Script.UI.Mission {
     public class CommissionPanel : MissionPanel {
         [FormerlySerializedAs("ItemUI")] [SerializeField] public CommissionItemUI ItemPrefab;       
     }
+
+    [Serializable]
+    public class AvailableCommissionPanel : MissionPanel
+    {
+        [SerializeField] public AvailableCommissionPanel ItemPrefab;
+    }
 }
