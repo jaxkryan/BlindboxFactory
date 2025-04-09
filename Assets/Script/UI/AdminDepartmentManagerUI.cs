@@ -98,7 +98,7 @@ public class AdminDepartmentManagerUI : MonoBehaviour
 
     private void SetUpAdmin()
     {
-        _position.text = Enum.GetName(typeof(MascotType), Position);
+        //_position.text = Enum.GetName(typeof(MascotType), Position);
         _portrait.sprite = Mascot?.Portrait ?? _defaultPortrait;
         _name.text = Mascot?.Name.ToString() ?? string.Empty;
        
