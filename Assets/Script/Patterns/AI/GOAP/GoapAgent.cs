@@ -118,6 +118,8 @@ public abstract class GoapAgent : MonoBehaviour {
             if (_log) Debug.Log("Current goal exists, checking goals with higher priority");
             goalsToCheck = new HashSet<AgentGoal>(Goals.Where(g => g.Priority > priorityLevel));
         }
+
+        if (_log) Debug.Log($"Checking goals: {string.Join(", ", goalsToCheck.Select(a => a.Name))}");
         
         var potentialPlan = _planner.Plan(this, goalsToCheck, _lastGoal);
         if (potentialPlan != null) {

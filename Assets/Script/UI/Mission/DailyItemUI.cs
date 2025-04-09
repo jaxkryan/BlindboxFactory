@@ -25,10 +25,8 @@ namespace Script.UI.Mission {
             }
             
             DailyMission.Evaluate();
-            bool isCompleted = DailyMission.State is QuestState.Complete;
-
-            Debug.LogWarning("Is complete: " + isCompleted);
-
+            bool isCompleted = DailyMission.State is QuestState.Complete; 
+            
             _name.text = DailyMission.Name;
             _description.text = DailyMission.Description;
             _progress.text = isCompleted ? "isComplete" : string.Join("\n", DailyMission.Objectives.Select(p => p.Progress(DailyMission)));

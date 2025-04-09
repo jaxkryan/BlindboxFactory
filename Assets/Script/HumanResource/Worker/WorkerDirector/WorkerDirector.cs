@@ -87,8 +87,7 @@ namespace Script.HumanResource.Worker {
             get => _slot;
             set {
                 MachineLocation = value?.transform;
-                if (value is not null)
-                    WorkMachineSensor.Target = value.Machine.gameObject;
+                WorkMachineSensor.Target = value?.Machine.gameObject;
                 _slot = value;
             }
         }
@@ -131,21 +130,18 @@ namespace Script.HumanResource.Worker {
                     m.Slots.Any(s => s.WishListWorker != null && (Worker)s.WishListWorker == _worker)));
             bf.AddBelief($"{_worker.Name}HasTargetMachine", () => _slot?.Machine is not null);
             bf.AddBelief($"{_worker.Name}IsRested", () => {
+                    var needList = GameController.Instance.WorkerController.WorkerNeedsList;
 
-                    if (!GameController.Instance.WorkerController.WorkerNeedsList.ContainsKey(
-                            IWorker.ToWorkerType(_worker))) {
+                    if (!needList.ContainsKey(IWorker.ToWorkerType(_worker))) {
                         Debug.LogError($"Worker needs are not configured in game controller: {IWorker.ToWorkerType(_worker)}");
                         return true;
                     }
                     
                     return _worker.CurrentCores.All(c =>
-                        GameController.Instance.WorkerController.WorkerNeedsList.ContainsKey(
-                            IWorker.ToWorkerType(_worker))
-                        && c.Value
-                        > GameController.Instance.WorkerController.WorkerNeedsList[IWorker.ToWorkerType(_worker)]
+                        needList.ContainsKey(IWorker.ToWorkerType(_worker))
+                        && c.Value > needList[IWorker.ToWorkerType(_worker)]
                             .GetValueOrDefault(c.Key));
-                }
-                );
+                });
 
             foreach (CoreType core in Enum.GetValues(typeof(CoreType))) {
                 var workerType = IWorker.ToWorkerType(_worker);
@@ -236,6 +232,8 @@ namespace Script.HumanResource.Worker {
             Actions.Add(new AgentAction.Builder("WorkAtMachine")
                 .WithCost(3)
                 .WithStrategy(new WorkStrategy(_worker))
+                .AddPrecondition(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                .AddPrecondition(Beliefs[$"{_worker.Name}WishListedAMachine"])
                 .AddPrecondition(Beliefs[$"{_worker.Name}AtMachine"])
                 .AddPrecondition(Beliefs[$"{_worker.Name}IsRested"])
                 .AddEffect(Beliefs[$"{_worker.Name}Working"])

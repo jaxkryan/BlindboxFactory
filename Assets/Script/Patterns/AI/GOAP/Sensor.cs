@@ -1,4 +1,5 @@
 using System;
+using JetBrains.Annotations;
 using Script.Machine;
 using UnityEngine;
 
@@ -13,21 +14,22 @@ using UnityEngine;
         public Vector3 TargetPosition => _currentTarget ? _currentTarget.transform.position : Vector3.zero;
         public bool IsTargetInRange => TargetPosition != Vector3.zero;
 
+        [CanBeNull]
         public GameObject Target {
             get => _target;
             set {
-                var machine = value.GetComponent<Collider2D>();
-                if (!machine) {
-                    Debug.LogError("Target doesn't have a Collider");
-                    return;
-                }
+                var machine = value?.GetComponent<Collider2D>();
+                // if (!machine) {
+                //     Debug.LogError("Target doesn't have a Collider");
+                //     return;
+                // }
                 _target = value;
             }
         }
 
-        [SerializeField] private GameObject _target;
+        [SerializeField] [CanBeNull] private GameObject _target;
 
-        private GameObject _currentTarget;
+        [SerializeField][CanBeNull] private GameObject _currentTarget;
         private Vector3 _lastKnownPos = Vector3.zero;
 
         CountdownTimer _timer;
