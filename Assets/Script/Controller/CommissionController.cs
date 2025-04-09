@@ -46,7 +46,7 @@ namespace Script.Controller {
                 //Find the number of box sold the previous day
                 var prevSales = controller.SaleData.Where(s => s.BoxTypeName == boxType && s.DateTime >= DateTime.Now.AddDays(-1)).ToList();
                 var prevBoxSold = prevSales.Sum(s => s.Amount);
-                var prevBoxSoldPerCommission = prevBoxSold / prevSales.Count;
+                var prevBoxSoldPerCommission = prevBoxSold / (prevSales.Count == 0 ? 1 : prevSales.Count);
                 //If sold 0 box or fewer than base, use the base number instead
                 if (prevBoxSoldPerCommission < _baseCommission) prevBoxSold = _baseCommission;
                 //Use the number of box sold as medium, find upper and lower number of box should be sold based on amount modifier
