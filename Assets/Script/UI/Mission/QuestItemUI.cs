@@ -42,7 +42,6 @@ namespace Script.UI.Mission {
             _reward.sprite = GetSprite();
             Quest.onQuestStateChanged += OnQuesStateChanged;
             Debug.LogWarning(string.Join("\n", Quest.Objectives.Select(p => p.Progress(Quest))));
-            Debug.LogWarning(GetSprite().texture);
             
             Sprite GetSprite() {
                 if (!Quest.Rewards.Any()) {

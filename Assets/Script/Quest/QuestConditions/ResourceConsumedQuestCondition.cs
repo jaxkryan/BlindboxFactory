@@ -19,8 +19,10 @@ namespace Script.Quest {
             foreach (var pair in Resources) {
                 long value;
                 if (!quest.TryGetQuestData(keyName(pair.Key)+"Remaining", out value)) {
-                    value = 0;
+                    value = pair.Value;
                 }
+
+                value = pair.Value - value;
                 
                 if (value > pair.Value) value = pair.Value;
                 var str = $"{value}/{pair.Value}";
@@ -28,7 +30,7 @@ namespace Script.Quest {
                 list.Add(str);
             }
             
-            return string.Join("\n", list.ToArray()) + "aaaaa";
+            return string.Join("\n", list.ToArray());
         }
 
         public override bool Evaluate(Quest quest) {

@@ -35,6 +35,7 @@ namespace Script.Quest {
         private string Key(string keyName) => $"{Name}: {keyName}";
         
         public void Evaluate() {
+            Debug.Log($"Evaluating quest {Name}. State {State}");
             QuestState oriState;
             do {
                 oriState = State;
@@ -59,7 +60,8 @@ namespace Script.Quest {
                 if (oriState != State) onQuestStateChanged?.Invoke(this, State); 
             }
             while (oriState != State);
-            
+
+            Debug.Log($"Complete evaluation of quest {Name}. Final state {State}");
         }
 
         public event Action<Quest, QuestState> onQuestStateChanged = delegate { };
