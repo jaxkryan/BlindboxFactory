@@ -24,10 +24,14 @@ public class WorkStrategy : IActionStrategy {
 
     public void Start() {
         _slot = _worker.Director.TargetSlot;
+        if (_slot == null) {
+            Complete = true;
+            return;
+        }
         _slot.Machine.AddWorker(_worker, _slot);
 
         if (!ReferenceEquals(_worker.Machine, _slot.Machine)) {
-            Debug.LogError("Adding worker to machine failed.");
+            Debug.LogWarning("Adding worker to machine failed.");
             return;
         }
 
@@ -43,6 +47,10 @@ public class WorkStrategy : IActionStrategy {
         _slot.Machine.onCreateProduct -= ConsiderStopWorking;
         _worker.onCoreChanged -= ConsiderStopWorking;
         _worker.onStopWorking -= Unsubscribe;
+    }
+
+    public void Update(float deltaTime) {
+        if (!Complete && (_slot?.Machine is null || _slot.CurrentWorker != _worker)) StopWorking();
     }
 
     private void ConsiderStopWorking(ProductBase product) => ConsiderStopWorking(true);
@@ -87,9 +95,11 @@ public class WorkStrategy : IActionStrategy {
     }
 
     public void Stop() { 
-        if (NavMesh.SamplePosition(_worker.transform.position, out var hit, Single.MaxValue, 1))
+        var outPos = _worker.transform.position + Vector3.Normalize(_slot.Machine.transform.position - _worker.transform.position) * (Vector3.Distance(_slot.Machine.transform.position, _worker.transform.position) + 0.5f);
+        if (NavMesh.SamplePosition(outPos, out var hit, Single.MaxValue, 1))
             _worker.Agent.Warp(hit.position);
         _worker.Agent.enabled = true;
+        _worker.Director.TargetSlot = null;
         _slot.Machine.RemoveWorker(_worker);
     }
 }

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5907126064801445382}
   - component: {fileID: 5459140429585887110}
   - component: {fileID: 546976629933463146}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: WorkMachineSensor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b53b0ffad4884178b352b0654e0ed380, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _detectionRadius: 0.6
+  _detectionRadius: 2
   _timerInterval: 0.5
   _target: {fileID: 0}
 --- !u!58 &546976629933463146
@@ -99,7 +99,7 @@ GameObject:
   - component: {fileID: 4164426561507227290}
   - component: {fileID: 8431995696745897092}
   - component: {fileID: 4403571311298409433}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: FactoryWorker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -186,7 +186,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 4451395542604640335}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5
+  m_Radius: 0.00001
   m_Speed: 4
   m_Acceleration: 1000
   avoidancePriority: 50
@@ -235,7 +235,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _current: 
   _log: 1
-  _workMachineSensor: {fileID: 5459140429585887110}
+  WorkMachineSensor: {fileID: 5459140429585887110}
   MachineLocation: {fileID: 0}
 --- !u!114 &8431995696745897092
 MonoBehaviour:
@@ -270,6 +270,8 @@ MonoBehaviour:
       Value: 30
     - Key: 2
       Value: 30
+  _currentCores:
+    _serializedList: []
   _bonuses: []
   _runtimeAnimator: {fileID: 0}
   references:

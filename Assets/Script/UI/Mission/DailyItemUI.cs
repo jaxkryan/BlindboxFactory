@@ -23,7 +23,7 @@ namespace Script.UI.Mission {
             }
             
             DailyMission.Evaluate();
-            bool isCompleted = DailyMission.State == QuestState.Complete; 
+            bool isCompleted = DailyMission.State is QuestState.Complete; 
             
             _name.text = DailyMission.Name;
             _description.text = DailyMission.Description;

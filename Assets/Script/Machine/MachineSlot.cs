@@ -12,7 +12,9 @@ namespace Script.Machine {
     public class MachineSlot : MonoBehaviour {
         [CanBeNull] public Worker CurrentWorker { get => _currentWorker; }
         [SerializeField] [CanBeNull] private Worker _currentWorker;
-        [CanBeNull] public Worker WishListWorker  {get; private set;}
+        [CanBeNull] public Worker WishListWorker  {get => _wishListWorker; private set => _wishListWorker = value; }
+        [SerializeField] [CanBeNull] private Worker _wishListWorker;
+        
         private CountdownTimer _wishlistTimer;
 
         [SerializeField] private float _wishlistTravelTimer = 3f;
