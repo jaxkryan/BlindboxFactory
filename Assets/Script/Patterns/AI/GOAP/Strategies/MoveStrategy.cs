@@ -24,7 +24,7 @@ public class MoveToSlotStrategy : IActionStrategy {
     readonly Worker _worker;
 
     public bool CanPerform => !Complete;
-    public bool Complete => _agent.remainingDistance <= 0.2f && !_agent.pathPending;
+    public bool Complete => _agent.remainingDistance <= 0.4f && !_agent.pathPending;
 
     public MoveToSlotStrategy(Worker worker) {
         this._agent = worker.Agent;

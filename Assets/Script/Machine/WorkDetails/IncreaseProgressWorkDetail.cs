@@ -1,4 +1,5 @@
 using System;
+using Script.Utils;
 using UnityEngine;
 
 namespace Script.Machine.WorkDetails {
@@ -31,7 +32,8 @@ namespace Script.Machine.WorkDetails {
         }
 
         public override SaveData Save() {
-            if (base.Save() is not IncreaseProgressSaveData data) return base.Save();
+            var data = base.Save().CastToSubclass<IncreaseProgressSaveData, SaveData>();
+            if (data is null) return base.Save();
             
             data.ProgressionPerInterval = ProgressionPerInterval;
             data.IntervalSeconds = IntervalSeconds;

@@ -51691,7 +51691,6 @@ GameObject:
   - component: {fileID: 1253588325}
   - component: {fileID: 1253588324}
   - component: {fileID: 1253588323}
-  - component: {fileID: 1253588322}
   m_Layer: 0
   m_Name: ConstructionLayer
   m_TagString: Untagged
@@ -52065,51 +52064,6 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
---- !u!66 &1253588322
-CompositeCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1253588320}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_GeometryType: 0
-  m_GenerationType: 0
-  m_EdgeRadius: 0
-  m_ColliderPaths: []
-  m_CompositePaths:
-    m_Paths: []
-  m_VertexDistance: 0.0005
-  m_OffsetDistance: 0.00005
-  m_UseDelaunayMesh: 0
-  m_CompositeGameObject: {fileID: 1253588320}
 --- !u!50 &1253588323
 Rigidbody2D:
   serializedVersion: 5
@@ -54113,8 +54067,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1534057209}
-  - component: {fileID: 1534057208}
   - component: {fileID: 1534057210}
+  - component: {fileID: 1534057208}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -54208,6 +54162,15 @@ MonoBehaviour:
       _serializedList:
       - Key: 1
         Value: {fileID: 8431995696745897092, guid: 241319dc4ac1d2741b7b2193648ab8f6, type: 3}
+    _workerNeedsList:
+      _serializedList:
+      - Key: 1
+        Value:
+          _serializedList:
+          - Key: 0
+            Value: 10
+          - Key: 1
+            Value: 10
   MascotController:
     Portraits: []
   ResourceController:
@@ -54246,17 +54209,17 @@ MonoBehaviour:
       - Key: 1
         Value: 45000
       - Key: 2
-        Value: 0
+        Value: 1000
       - Key: 3
-        Value: 0
+        Value: 1000
       - Key: 4
-        Value: 0
+        Value: 1000
       - Key: 5
-        Value: 0
+        Value: 1000
       - Key: 6
-        Value: 0
+        Value: 1000
       - Key: 7
-        Value: 0
+        Value: 1000
   QuestController:
     _quests:
     - {fileID: 11400000, guid: dba8210d1fba7654494ff877771ebbe4, type: 2}
@@ -54318,6 +54281,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e40979e51c05411abfe73798edf3b6c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AutoUnparentOnLoad: 1
 --- !u!1 &1548750706
 GameObject:
   m_ObjectHideFlags: 0
