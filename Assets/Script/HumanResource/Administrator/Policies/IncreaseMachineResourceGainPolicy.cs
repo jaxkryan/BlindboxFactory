@@ -6,6 +6,7 @@ using Script.HumanResource.Worker;
 using Script.Machine;
 using Script.Machine.Products;
 using Script.Resources;
+using Script.Utils;
 using UnityEngine;
 
 namespace Script.HumanResource.Administrator.Policies
@@ -101,7 +102,8 @@ namespace Script.HumanResource.Administrator.Policies
 
         public override SaveData Save()
         {
-            var data = (IncreaseMachineResourceGainData)base.Save();
+            var data = base.Save().CastToSubclass<IncreaseMachineResourceGainData, SaveData>();
+            if (data is null) return base.Save();
 
             data.Additives = Additives;
             data.Multiplier = Multiplier;

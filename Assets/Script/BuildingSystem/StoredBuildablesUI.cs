@@ -129,6 +129,5 @@ public class StoredBuildablesUI : MonoBehaviour
         Debug.Log("Selected Buildable: " + buildable.name);
         _buildingPlacer.SetBuildableFromInventory(buildable);
         _buildingPlacer.SetStoreMode(false);
-        StoreModeButton.GetComponentInChildren<TMP_Text>().text = "Store Mode: OFF";
     }
 }

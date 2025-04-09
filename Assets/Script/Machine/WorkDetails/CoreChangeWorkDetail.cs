@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using Script.HumanResource.Worker;
+using Script.Utils;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -26,8 +28,9 @@ namespace Script.Machine.WorkDetails {
         }
 
         public override SaveData Save() {
-            if (base.Save() is not CoreChangeSaveData data) return base.Save();
-
+            var data = base.Save().CastToSubclass<CoreChangeSaveData, SaveData>();
+            if (data is null) return base.Save();
+            
             data.Core = Core;
             data.IncreaseBy = IncreaseBy;
             return data;

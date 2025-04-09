@@ -4,6 +4,7 @@ using Script.Machine.Products;
 using Script.Machine.ResourceManager;
 using System;
 using System.Collections.Generic;
+using Script.Utils;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -29,7 +30,8 @@ public class BlindBox : SingleProductBase
 
     public override IProduct.SaveData Save()
     {
-        if (base.Save() is not BlindBoxSaveData data) return base.Save();
+        var data = base.Save().CastToSubclass<BlindBoxSaveData, IProduct.SaveData>();
+        if (data is null) return base.Save();
 
         data.BoxTypeName = BoxTypeName;
 

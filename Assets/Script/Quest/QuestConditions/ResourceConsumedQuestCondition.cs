@@ -10,7 +10,7 @@ namespace Script.Quest {
     public class ResourceConsumedQuestCondition : QuestCondition {
         Func<Resource, string> keyName = (resource) => $"Consumed{Enum.GetName(typeof(Resource), resource)}";
         
-        [SerializeReference]
+        [SerializeField]
         public SerializedDictionary<Resource, long> Resources;
 
         protected override string OnProgressCheck(Quest quest) {
@@ -28,7 +28,7 @@ namespace Script.Quest {
                 list.Add(str);
             }
             
-            return string.Join("\n", list.ToArray());
+            return string.Join("\n", list.ToArray()) + "aaaaa";
         }
 
         public override bool Evaluate(Quest quest) {

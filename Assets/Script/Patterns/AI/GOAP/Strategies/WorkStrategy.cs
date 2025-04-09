@@ -33,22 +33,34 @@ public class WorkStrategy : IActionStrategy {
 
         _worker.Agent.enabled = false;
         _worker.transform.position = _slot.transform.position;
+        _worker.onCoreChanged += ConsiderStopWorking;
         _slot.Machine.onCreateProduct += ConsiderStopWorking;
-        _worker.onStopWorking += () => _slot.Machine.onCreateProduct -= ConsiderStopWorking;
+        _worker.onStopWorking += Unsubscribe;
+        
     }
 
-    private void ConsiderStopWorking(ProductBase obj) {
+    private void Unsubscribe() {
+        _slot.Machine.onCreateProduct -= ConsiderStopWorking;
+        _worker.onCoreChanged -= ConsiderStopWorking;
+        _worker.onStopWorking -= Unsubscribe;
+    }
+
+    private void ConsiderStopWorking(ProductBase product) => ConsiderStopWorking(true);
+    private void ConsiderStopWorking(CoreType core, float amount) => ConsiderStopWorking();
+    private void ConsiderStopWorking(bool isProductCreate = false) {
         var min = new Dictionary<CoreType, float>();
         Enum.GetValues(typeof(CoreType)).Cast<CoreType>()
             .ForEach(c => min[c] = MinimumCoreValue);
-        if (!WorkerDirector
+        if (isProductCreate && !WorkerDirector
                 .ContinueAfterProductCreated(
                     _worker.CurrentCores
                     , _worker.Director.CoreChangePerSec
                     , _worker.MaximumCore
                     , min
-                    , 0f))
+                    , 0f)){
             StopWorking();
+            return;
+        }
         
         var controller = GameController.Instance.MachineController;
         List<MachineBase> recoveryMachine = new();
@@ -57,15 +69,20 @@ public class WorkStrategy : IActionStrategy {
         }
 
         if (_worker.CurrentCores.Any(c => c.Value <= 0f)
-            && recoveryMachine.All(r => r != _slot.Machine))
+            && recoveryMachine.All(r => r != _slot.Machine)){
             StopWorking();
+            return;
+        }
 
         if (_worker.CurrentCores.Any(c => c.Value >= _worker.MaximumCore[c.Key])
-            && recoveryMachine.Any(r => r == _slot.Machine)) 
+            && recoveryMachine.Any(r => r == _slot.Machine)) {
             StopWorking();
+            return;
+        }
     }
 
     private void StopWorking() {
+        Debug.LogWarning($"Worker stop working!");
         Complete = true;
     }
 

@@ -17,7 +17,7 @@ namespace Script.Machine.MachineDataGetter {
 
 
         public virtual void Draw() {
-            _panel.Name.text = _machine.name;
+            _panel.Name.text = _machine.name.Replace("(Clone)", "").Trim(); ;
             _panel.Icon.sprite = _machine.GetComponent<SpriteRenderer>().sprite;
             _panel.Description.text = GetDescriptionText();
         }
@@ -90,7 +90,7 @@ namespace Script.Machine.MachineDataGetter {
             if (_canteen == null) return "No data available.";
 
 
-            if (_canteen.Save() is not Canteen.CanteenData saveData) return "Failed to retrieve data.";
+            if (_canteen.GetCanteenData() is not Canteen.CanteenData saveData) return "Failed to retrieve data.";
 
             int availableMeals = saveData.Storage.AvailableMeals;
             int maxCapacity = saveData.Storage.MaxCapacity;
@@ -121,8 +121,7 @@ namespace Script.Machine.MachineDataGetter {
         {
             if (_generator == null) return "No data available.";
 
-            // Retrieve generator save data
-            if (_generator.Save() is not Generator.GeneratorData saveData) return "Failed to retrieve data.";
+            if (_generator.GetGeneratorData() is not Generator.GeneratorData saveData) return "Failed to retrieve data.";
 
             int powerOutput = saveData.Power;
 

@@ -10,7 +10,7 @@ namespace Script.Quest {
     public class ResourceGainedQuestCondition : QuestCondition {
         Func<Resource, string> keyName = (resource) => $"Gained{Enum.GetName(typeof(Resource), resource)}";
         
-        [SerializeReference]
+        [SerializeField]
         public SerializedDictionary<Resource, long> Resources;
 
         protected override string OnProgressCheck(Quest quest) {

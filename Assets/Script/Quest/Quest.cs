@@ -40,7 +40,7 @@ namespace Script.Quest {
                 oriState = State;
                 switch (oriState) {
                     case QuestState.Locked:
-                        if (Preconditions.All(c => c.Evaluate(this)))
+                        if (Preconditions.All(c => c?.Evaluate(this) ?? true))
                             State = QuestState.InProgress;
                         if (State == QuestState.InProgress) Debug.Log($"State of quest {Name} change to {State}");
                         break;
@@ -64,8 +64,8 @@ namespace Script.Quest {
 
         public event Action<Quest, QuestState> onQuestStateChanged = delegate { };
         
-        [SerializeField] public List<QuestCondition> Preconditions;
-        [SerializeField] public List<QuestCondition> Objectives;
+        [SerializeField] public List<QuestCondition> Preconditions = new();
+        [SerializeField] public List<QuestCondition> Objectives = new();
 
         [SerializeReference, SubclassSelector] public List<QuestReward> Rewards; 
         
