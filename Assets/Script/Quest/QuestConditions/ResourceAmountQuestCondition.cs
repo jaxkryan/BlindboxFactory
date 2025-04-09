@@ -20,7 +20,6 @@ namespace Script.Quest {
                 var str = $"{ResourceController.FormatNumber(value)}/{ResourceController.FormatNumber(pair.Value)}";
                 str = $"{pair.Key} {str}";
                 list.Add(str);
-                Debug.LogWarning(str);
             }
             
             return string.Join("\n", list.ToArray());

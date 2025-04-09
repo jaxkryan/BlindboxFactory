@@ -49,9 +49,11 @@ namespace Script.Controller {
             try {
                 if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
                       || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
-            
+
+                DailyMissions.ForEach(d => d.State = Quest.QuestState.Locked);
                 _lastUpdate = data.LastUpdate;
                 for (var i = 0; i < data.DailyMissionsState.Count; i++) {
+                    Debug.LogError("Saved State: " + DailyMissions[i].Name + " " + data.DailyMissionsState[i]);
                     _dailyMissions[i].State = data.DailyMissionsState[i];
                 }           
 

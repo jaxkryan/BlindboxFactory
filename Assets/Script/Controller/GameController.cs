@@ -145,10 +145,15 @@ namespace Script.Controller {
             Debug.Log("Save complete. Quitting app.");
             _isSaving = false;
             _quitNow = true;
-
-            Application.Quit();
+#if UNITY_EDITOR
+            //Application.Quit() does not work in the editor so
+            // this need to be set to false to end the game
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+        UnityEngine.Application.Quit();
+#endif
         }
-        
+
         private void Update() {
             _controllers.ForEach(c => c.OnUpdate(Time.deltaTime));
             _saveTimer?.Tick(Time.deltaTime);
