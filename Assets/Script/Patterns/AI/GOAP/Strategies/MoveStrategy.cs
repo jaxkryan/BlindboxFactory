@@ -24,7 +24,7 @@ public class MoveToSlotStrategy : IActionStrategy {
     readonly Worker _worker;
 
     public bool CanPerform => !Complete;
-    public bool Complete => _agent.remainingDistance <= 0.2f && !_agent.pathPending;
+    public bool Complete => _agent.remainingDistance <= 1f && !_agent.pathPending;
 
     public MoveToSlotStrategy(Worker worker) {
         this._agent = worker.Agent;
@@ -32,9 +32,12 @@ public class MoveToSlotStrategy : IActionStrategy {
     }
 
     public void Start() {
-        if (_worker.Director.TargetSlot is null) _agent.SetDestination(_worker.transform.position);
+        if (_worker.Director.TargetSlot is null) {
+            Debug.LogWarning("Worker has no target slot!");
+            _agent.SetDestination(_worker.transform.position);
+        }
         else {
-            if (NavMesh.SamplePosition(_worker.Director.TargetSlot.transform.position, out var hit, Single.MaxValue,
+            if (NavMesh.SamplePosition(_worker.Director.TargetSlot.Machine.transform.position, out var hit, Single.MaxValue,
                     1)) {
                 var newPath = new NavMeshPath();
                 if (_agent.CalculatePath(hit.position, newPath)) _agent.SetPath(newPath);

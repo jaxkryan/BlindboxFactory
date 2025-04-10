@@ -13,6 +13,8 @@ namespace Script.UI.Mission {
         public Quest.Quest DailyMission { get; set; }
         
         public void UpdateQuestData() {
+            Debug.LogWarning($"Quest {DailyMission.Name}: {DailyMission.State}");
+
             if (DailyMission == null) {
                 _name.text = "";
                 _description.text = "";
@@ -23,12 +25,12 @@ namespace Script.UI.Mission {
             }
             
             DailyMission.Evaluate();
-            bool isCompleted = DailyMission.State == QuestState.Complete; 
+            bool isCompleted = DailyMission.State is QuestState.Complete; 
             
             _name.text = DailyMission.Name;
             _description.text = DailyMission.Description;
-            _progress.text = isCompleted ? "" : string.Join("\n", DailyMission.Objectives.Select(p => p.Progress(DailyMission)));
-            _tick.enabled = isCompleted;
+            _progress.text = isCompleted ? "isComplete" : string.Join("\n", DailyMission.Objectives.Select(p => p.Progress(DailyMission)));
+            _tick.gameObject.SetActive(isCompleted);
             DailyMission.onQuestStateChanged += OnQuestStateChanged;
         }
 

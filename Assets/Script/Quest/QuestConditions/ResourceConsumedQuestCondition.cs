@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AYellowpaper.SerializedCollections;
 using Script.Controller;
 using Script.Resources;
@@ -10,7 +11,7 @@ namespace Script.Quest {
     public class ResourceConsumedQuestCondition : QuestCondition {
         Func<Resource, string> keyName = (resource) => $"Consumed{Enum.GetName(typeof(Resource), resource)}";
         
-        [SerializeReference]
+        [SerializeField]
         public SerializedDictionary<Resource, long> Resources;
 
         protected override string OnProgressCheck(Quest quest) {
@@ -19,8 +20,10 @@ namespace Script.Quest {
             foreach (var pair in Resources) {
                 long value;
                 if (!quest.TryGetQuestData(keyName(pair.Key)+"Remaining", out value)) {
-                    value = 0;
+                    value = pair.Value;
                 }
+
+                value = pair.Value - value;
                 
                 if (value > pair.Value) value = pair.Value;
                 var str = $"{value}/{pair.Value}";
@@ -55,17 +58,11 @@ namespace Script.Quest {
                     remValue = Resources[resource];
                 }
 
-                if (current == resValue) continue;
-                if (resValue < current) {
-                    resValue = current;
-                    quest.SetData(resourceKey, resValue);
-                }
-                else {
-                    var newRemValue = remValue - (resValue - current);
-                    if (remValue > 0) quest.SetData(remKey, newRemValue);
-                    remValue = newRemValue;
-                }
-                if (remValue > 0) passed = false;
+                var newRemValue = new[]{remValue - (resValue - current), remValue}.Min();
+                if (resValue < current) quest.SetData(resourceKey, current);
+                quest.SetData(remKey, newRemValue >= 0 ? newRemValue : 0);
+                
+                if (newRemValue > 0) passed = false;
             }
 
             return passed;

@@ -12,7 +12,7 @@ namespace Script.Quest {
         Func<MachineBase, string> keyName = (machine) => $"{machine.name}";
         
         [Tooltip("For prefabs comparison only")]
-        [SerializeReference] public SerializedDictionary<MachineBase, int> BuildMachines;
+        [SerializeField] public SerializedDictionary<MachineBase, int> BuildMachines;
 
         protected override string OnProgressCheck(Quest quest) {
             List<string> list = new List<string>();

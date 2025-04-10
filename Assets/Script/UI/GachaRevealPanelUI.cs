@@ -22,7 +22,6 @@ public class GachaRevealPanelUI : MonoBehaviour
     [SerializeField] private GameObject _summaryPanel; // New summary panel for 10-pull
     [SerializeField] private MascotDetailUI _mascotDetailPanel; // New info panel for mascot details
 
-    // Summary screen slots (2-3-3-2 layout)
     [SerializeField] private List<MascotSummarySlot> _mascotSlots = new List<MascotSummarySlot>(); // 10 slots
     [SerializeField] private Button _summaryExitButton; // Exit button for summary screen
 
@@ -54,10 +53,6 @@ public class GachaRevealPanelUI : MonoBehaviour
         var button = gameObject.GetComponent<Button>() ?? gameObject.AddComponent<Button>();
         button.onClick.AddListener(SkipAnimation);
 
-        // Ensure the background is black
-        //_backgroundCanvasGroup.alpha = 1f;
-        //_backgroundCanvasGroup.GetComponent<Image>().color = Color.black;
-
         // Hide UI elements initially
         _portraitImage.gameObject.SetActive(false);
         _gradeBorder.gameObject.SetActive(false);
@@ -76,6 +71,9 @@ public class GachaRevealPanelUI : MonoBehaviour
 
     public void RevealMascots(List<Mascot> mascots, Action onComplete)
     {
+        // Reset the UI state before starting a new reveal
+        ResetUIState();
+
         _mascotsToReveal = mascots;
         _currentMascotIndex = 0;
         _onComplete = onComplete;
@@ -84,6 +82,32 @@ public class GachaRevealPanelUI : MonoBehaviour
         _skipAllButton.gameObject.SetActive(mascots.Count > 1);
 
         RevealNextMascot();
+    }
+
+    private void ResetUIState()
+    {
+        // Hide summary panel and mascot detail panel
+        _summaryPanel.SetActive(false);
+        _mascotDetailPanel.gameObject.SetActive(false);
+
+        // Show reveal UI elements
+        _cardImage.gameObject.SetActive(true);
+        _portraitImage.gameObject.SetActive(false); // Will be shown during animation
+        _gradeBorder.gameObject.SetActive(false); // Will be shown during animation
+        _nameText.gameObject.SetActive(true);
+        _policiesText.gameObject.SetActive(true);
+
+        // Reset text
+        _nameText.text = "";
+        _policiesText.text = "";
+
+        // Hide buttons until needed
+        _nextButton.gameObject.SetActive(false);
+        _confirmButton.gameObject.SetActive(false);
+        _skipAllButton.gameObject.SetActive(false);
+
+        // Stop any ongoing animations
+        _animationSequence?.Kill();
     }
 
     private void RevealNextMascot()
@@ -103,7 +127,7 @@ public class GachaRevealPanelUI : MonoBehaviour
             return;
         }
 
-        // Reset UI elements
+        // Reset UI elements for the next mascot
         _cardImage.color = Color.white;
         _portraitImage.gameObject.SetActive(false);
         _gradeBorder.gameObject.SetActive(false);

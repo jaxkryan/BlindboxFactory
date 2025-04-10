@@ -5,6 +5,7 @@ using Script.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Script.Utils;
 using UnityEngine;
 
 [Serializable]
@@ -23,6 +24,8 @@ public class BlindBoxMachine : MachineBase
     {
         base.Update();
     }
+
+    public override bool IsWorkable => base.IsWorkable && amount > 0;
 
     protected override void Start()
     {
@@ -87,9 +90,9 @@ public class BlindBoxMachine : MachineBase
     }
 
     public override MachineBaseData Save() {
-        var data = base.Save() as BBMData;
-        
+        var data = base.Save().CastToSubclass<BBMData, MachineBaseData>();
         if (data is null) return base.Save();
+        
         data.Amount = amount;
         data.MaxAmount = maxAmount;
         data.Recipes = recipes.Select(r => r.Save()).Cast<BlindBox.BlindBoxSaveData>().ToList();

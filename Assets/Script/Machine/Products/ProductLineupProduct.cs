@@ -4,6 +4,7 @@ using System.Linq;
 using MyBox;
 using Script.Machine.ResourceManager;
 using Script.Resources;
+using Script.Utils;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -55,7 +56,8 @@ namespace Script.Machine.Products {
         }
 
         public override IProduct.SaveData Save() {
-            var data = base.Save() as ProductLineupListSaveData;
+            var data = base.Save().CastToSubclass<ProductLineupListSaveData, IProduct.SaveData>();
+            if (data is null) return base.Save();
 
             if (data is null) return base.Save();
             data.Products = _products.Select(p => p.Save()).ToList();

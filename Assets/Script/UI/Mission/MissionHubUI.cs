@@ -18,6 +18,7 @@ namespace Script.UI.Mission {
         [SerializeField] private DailyMissionPanel _dailyMissionPanel;
         [SerializeField] private QuestPanel _questPanel;
         [SerializeField] private CommissionPanel _commissionPanel;
+        [SerializeField] private AvailableCommissionPanel _availableCommissionPanel;
 
 
         public void Open() {
@@ -75,6 +76,27 @@ namespace Script.UI.Mission {
             //
             //     return null;
             // }).Where(c => c != null).ToList();
+        }
+
+        public void OpenAvailableCommissionsPanel()
+        {
+            Setup(_availableCommissionPanel);
+
+            var controller = GameController.Instance.CommissionController;
+            foreach (var available in controller.CreateCommissions())
+            {
+                var go = Instantiate(_availableCommissionPanel.ItemPrefab.gameObject, _contentHolder.transform);
+                var ui = go.GetComponent<AvailableCommissionItemUI>();
+                ui.Commission = available;
+                ui.UpdateCommissionData();
+
+                // Optionally bind the accept button behavior
+                ui.GetComponentInChildren<Button>().onClick.AddListener(() =>
+                {
+                    controller.TryAddCommission(available);
+                    OpenCommissionPanel(); 
+                });
+            }
         }
 
         public void OpenQuestPanel() {
@@ -151,5 +173,11 @@ namespace Script.UI.Mission {
     [Serializable]
     public class CommissionPanel : MissionPanel {
         [FormerlySerializedAs("ItemUI")] [SerializeField] public CommissionItemUI ItemPrefab;       
+    }
+
+    [Serializable]
+    public class AvailableCommissionPanel : MissionPanel
+    {
+        [SerializeField] public AvailableCommissionItemUI ItemPrefab;
     }
 }

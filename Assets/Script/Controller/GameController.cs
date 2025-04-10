@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MyBox;
 using NavMeshPlus.Components;
@@ -11,6 +13,7 @@ using Script.Controller.Permissions;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Administrator;
 using Script.HumanResource.Worker;
+using Script.Utils;
 using UnityEngine;
 using UnityEngine.Android;
 using UnityEngine.Serialization;
@@ -64,6 +67,7 @@ namespace Script.Controller {
             SaveManager = new();
             PermissionHandler.RequestPermissionIfNeeded(Permission.ExternalStorageWrite);
             PermissionHandler.RequestPermissionIfNeeded(Permission.ExternalStorageRead);
+            var dispatcher = UnityMainThreadDispatcher.Instance;
         }
 
         public void BuildNavMesh() {
@@ -74,16 +78,13 @@ namespace Script.Controller {
 
         private void OnDestroy() => _controllers.ForEach(c => c.OnDestroy());
 
-        private void OnApplicationQuit() {
-            _controllers.ForEach(c => c.OnApplicationQuit());
-            Task.Run(async () => await Save(SaveManager));
-        }
+        private void OnApplicationQuit() => _controllers.ForEach(c => c.OnApplicationQuit());
         
         private void OnEnable() => _controllers.ForEach(c => c.OnEnable());
 
         private void OnDisable() => _controllers.ForEach(c => c.OnDisable());
 
-        private void Start() {
+        private IEnumerator Start() {
             if (HasSaveTimer) {
                 _saveTimer = new CountdownTimer(MinutesBetweenSave * 60);
                 _saveTimer.OnTimerStop += () => Task.Run(async () => await OnSaveTimerOnTimerStop(SaveManager));
@@ -102,9 +103,10 @@ namespace Script.Controller {
             };
 
             _controllers.ForEach(c => c.OnStart());
-            Task.Run(async () => await LoadOnStart(SaveManager));
+            Application.wantsToQuit += WantsToQuit;
+            StartCoroutine(LoadOnStart(SaveManager).AsCoroutine());
             BuildNavMesh();
-            return;
+            yield break;
 
             async Task LoadOnStart(SaveManager saveManager) { await Load(saveManager); }
 
@@ -112,6 +114,44 @@ namespace Script.Controller {
                 await Save(saveManager);
                 _saveTimer.Start();
             }
+        }
+
+        private bool _isSaving = false;
+        private bool _quitNow = false;
+        private bool WantsToQuit() {
+            if (_quitNow) return true;
+            if (_isSaving)
+            {
+                Debug.Log("Quit requested, but save is in progress.");
+                return false; // Block quitting while saving
+            }
+
+            StartCoroutine(SaveAndQuit());
+            return false; //Hold quitting until save finishes
+        }
+
+        private IEnumerator SaveAndQuit() {
+            if (_isSaving)
+            {
+                Debug.Log("Save already in progress.");
+                yield break;
+            }
+
+            _isSaving = true;
+
+            Debug.Log("Saving game...");
+            yield return Save(SaveManager).AsCoroutine();
+
+            Debug.Log("Save complete. Quitting app.");
+            _isSaving = false;
+            _quitNow = true;
+#if UNITY_EDITOR
+            //Application.Quit() does not work in the editor so
+            // this need to be set to false to end the game
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+        UnityEngine.Application.Quit();
+#endif
         }
 
         private void Update() {
@@ -122,6 +162,7 @@ namespace Script.Controller {
         private void OnValidate() => _controllers.ForEach(c => c.OnValidate());
 
         private async Task Load(SaveManager saveManager) {
+            Debug.Log($"Loading game on {Thread.CurrentThread} thread");
             await SaveManager.LoadFromCloud();
             await SaveManager.LoadFromLocal();
 
@@ -150,11 +191,11 @@ namespace Script.Controller {
                 }); 
                 
             }
-            catch (System.Exception ex) { Debug.Log(ex); }
+            catch (System.Exception ex) { Debug.LogError(ex); }
         }
 
         private async Task Save(SaveManager saveManager) {
-            Debug.Log("Saving");
+            Debug.Log($"Saving game on {Thread.CurrentThread} thread");
             try {
                 _controllers.ForEach(c => {
                     Debug.Log($"Saving {c.GetType().Name}");
@@ -166,7 +207,7 @@ namespace Script.Controller {
                 saveManager.SaveData.AddOrUpdate(nameof(HasSaveTimer), HasSaveTimer ? bool.TrueString : bool.FalseString, (s, s1) => HasSaveTimer ? bool.TrueString : bool.FalseString);
                 saveManager.SaveData.AddOrUpdate(nameof(MinutesBetweenSave), MinutesBetweenSave.ToString(CultureInfo.InvariantCulture),
                     (s, s1) => MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
-                saveManager.SaveData.AddOrUpdate(nameof(GroundAddedTiles), SaveManager.Serialize(GroundAddedTiles.Select(V2Int.ToV2Int)), (s, s1) => SaveManager.Serialize(GroundAddedTiles));
+                saveManager.SaveData.AddOrUpdate(nameof(GroundAddedTiles), SaveManager.Serialize(GroundAddedTiles.Select(V2Int.ToV2Int).ToList()), (s, s1) => SaveManager.Serialize(GroundAddedTiles.Select(V2Int.ToV2Int).ToList()));
                 #endregion
             }
             catch (System.Exception e) {

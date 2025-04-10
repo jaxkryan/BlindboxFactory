@@ -47,7 +47,7 @@ namespace Script.HumanResource.Worker {
         private static readonly int VerticalMovement = Animator.StringToHash("VerticalMovement");
         private static readonly int HorizontalMovement = Animator.StringToHash("HorizontalMovement");
         private static readonly int IsWorking = Animator.StringToHash("IsWorking");
-        private static readonly int IsResting = Animator.StringToHash("IsDining");
+        private static readonly int IsResting = Animator.StringToHash("IsResting");
         private static readonly int IsDining = Animator.StringToHash("IsDining");
 
         public Animator Animator {

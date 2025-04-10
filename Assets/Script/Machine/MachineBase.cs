@@ -28,13 +28,23 @@ namespace Script.Machine {
         }
 
         private ResourceManager.ResourceManager _resourceManager;
-        public virtual bool HasResourceForWork => _resourceManager.HasResourcesForWork(out _);
+        public virtual bool HasResourceForWork {
+            get {
+                if (_resourceManager == null) return false;
+                if (!_resourceManager.HasResourcesForWork(out _)) {
+                    _resourceManager.UnlockResource();
+                    _resourceManager.TryPullResource(1, out _);
+                }
+                
+                return _resourceManager.HasResourcesForWork(out _);
+            }
+        }
 
-        public bool CanCreateProduct {
+            public bool CanCreateProduct {
             get => _product.CanCreateProduct;
         }
 
-        public bool IsWorkable {
+        public virtual bool IsWorkable {
             get => !_isClosed && HasResourceForWork && HasEnergyForWork && CanCreateProduct;
         }
 
@@ -89,7 +99,7 @@ namespace Script.Machine {
         }
 
         private float _lastProgress = 0f;
-        private float _currentProgress;
+        [SerializeField]private float _currentProgress;
 
         public float MaxProgress {
             get => Product.MaxProgress;

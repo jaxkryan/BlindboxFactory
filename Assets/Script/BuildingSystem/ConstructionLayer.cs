@@ -131,7 +131,19 @@ namespace BuildingSystem {
         
         private bool TryGetBuildable(Vector3 worldCoords, out Buildable buildable) {
             var coords = _tilemap.WorldToCell(worldCoords);
-            return _buildables.TryGetValue(coords, out buildable);
+            foreach (var building in _buildables)
+            {
+                var origin = building.Key;
+                var b = building.Value;
+                if (b.BuildableType.CollisionSpace.Contains((Vector2Int)(coords - origin)))
+                {
+                    buildable = b;
+                    return true;
+                }
+            }
+
+            buildable = null;
+            return false;
         }
         
         private void Remove(Vector3 worldCoords) {
@@ -146,9 +158,9 @@ namespace BuildingSystem {
                 GameController.Instance.MachineController.RemoveMachine(machine);
 
             var coords = _tilemap.WorldToCell(worldCoords);
+            RemoveBuildingWorker(machine);
             _buildables.Remove(coords);
             buildable.Destroy();
-            RemoveBuildingWorker(machine);
 
             FindFirstObjectByType<StoredBuildablesUI>()?.UpdateStoredBuildablesUI();
         }
@@ -156,7 +168,7 @@ namespace BuildingSystem {
         private void RemoveBuildingWorker(MachineBase machine)
         {
             Debug.LogWarning("Removing Worker");
-            List<Worker> worker = FindWorkersByMachine(machine);
+            List<Worker> worker = GameController.Instance.WorkerSpawner.FindSpawnedWorkers(machine).ToList();
             if (worker != null)
             {
                 if(worker.Count > 0)

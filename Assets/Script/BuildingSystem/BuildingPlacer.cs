@@ -70,7 +70,7 @@ namespace BuildingSystem
                         {
                             try
                             {
-                                _constructionLayer.Sell(position);
+                                _constructionLayer.Stored(position);
                             }
                             catch
                             {

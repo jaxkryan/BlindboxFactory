@@ -39,7 +39,6 @@ namespace Script.HumanResource.Worker {
         Sprite Portrait { get; }
         WorkerDirector Director { get; }
 
-
         public static WorkerType ToWorkerType<TWorker>(TWorker worker) where TWorker : Worker {
             return worker switch {
                 FactoryWorker factoryWorker => WorkerType.FactoryWorker,

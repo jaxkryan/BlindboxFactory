@@ -6,6 +6,7 @@ using AYellowpaper.SerializedCollections;
 using MyBox;
 using Script.Controller;
 using Script.HumanResource.Worker;
+using Script.Utils;
 using UnityEngine;
 
 namespace Script.HumanResource.Administrator.Policies {
@@ -95,7 +96,8 @@ namespace Script.HumanResource.Administrator.Policies {
         private float PickRandom(Vector2 range) => new Unity.Mathematics.Random().NextFloat(range.x, range.y);
 
         public override SaveData Save() {
-            var data = (CoreChangeOnWorkData)base.Save();
+            var data = base.Save().CastToSubclass<CoreChangeOnWorkData, SaveData>();
+            if (data is null) return base.Save();
 
             data.Additives = Additives;
             data.Multiplier = Multiplier;

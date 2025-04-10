@@ -8,6 +8,7 @@ using MyBox;
 using Script.Controller;
 using Script.Machine.ResourceManager;
 using Script.Resources;
+using Script.Utils;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -45,7 +46,8 @@ namespace Script.Machine.Products {
         }
 
         public override IProduct.SaveData Save() {
-            if (base.Save() is not PlaceMachineSaveData data) return base.Save();
+            var data = base.Save().CastToSubclass<PlaceMachineSaveData, IProduct.SaveData>();
+            if (data is null) return base.Save();
             
             data.BuildableIndex = GameController.Instance.MachineController.Buildables.IndexOf(_building);
             data.OffsetFromParent = _hasOffset ? (0,0) : (_offsetFromParent.x, _offsetFromParent.y);

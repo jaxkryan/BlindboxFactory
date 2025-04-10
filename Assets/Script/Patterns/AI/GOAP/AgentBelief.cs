@@ -9,7 +9,14 @@ public class AgentBelief {
     private Func<Vector3> _observedLocation = () => Vector3.zero;
 
     public Vector3 Location => _observedLocation();
-    public bool Evaluate() => _condition();
+
+    public bool Evaluate() {
+        
+        var x = _condition();
+        // Debug.Log($"Belief {Name} is {x}");
+        return x;
+    } 
+        
 
     AgentBelief(string name) {
         Name = name;

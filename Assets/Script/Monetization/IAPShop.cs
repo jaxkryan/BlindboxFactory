@@ -4,14 +4,20 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
+public class ResourceGainData
+{
+    public Resource resourceGain;
+    public int amountGain;
+}
+
+[Serializable]
 public class ConsumableItem
 {
     public string id;
     public string name;
     public string description;
     public int price;
-    public List<Resource> resourceGain;
-    public int amountGain;
+    public List<ResourceGainData> resourceGainData;
     public bool rewardMascot;
     public Sprite bannerImage;
 }

@@ -4,6 +4,7 @@ using UnityEngine.Audio;
 using UnityEngine.Localization.Settings;
 using UnityEngine.UI;
 using DG.Tweening;
+using Script.Utils;
 
 [System.Serializable]
 public class SettingPreferences
@@ -89,15 +90,16 @@ public class SettingUI : MonoBehaviour
 
     public void SetEnglish()
     {
-        settings.language = 0;
-        SetLocale(0);
+        settings.language = 0; 
+        LocalizationExtension.SetLocale(settings.language);
+
         SaveSettings();
     }
 
     public void SetVietnamese()
     {
         settings.language = 1;
-        SetLocale(1);
+        LocalizationExtension.SetLocale(settings.language);
         SaveSettings();
     }
 
