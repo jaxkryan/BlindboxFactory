@@ -1,7 +1,6 @@
 ﻿using Script.Utils;
 using System;
 using Unity.Cinemachine;
-using UnityEditor.Localization.Editor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
