@@ -1336,22 +1336,22 @@ MonoBehaviour:
     rid: 7910668632747933989
   amount: 0
   recipes:
-  - _maxProgress: 5
+  - _maxProgress: 200
     _resourceUse:
     - rid: 7910668519338934394
     - rid: 7910668519338934395
     BoxTypeName: 0
-  - _maxProgress: 5
+  - _maxProgress: 200
     _resourceUse:
     - rid: 7910668519338934396
     - rid: 7910668519338934397
     BoxTypeName: 1
-  - _maxProgress: 5
+  - _maxProgress: 200
     _resourceUse:
     - rid: 7910668519338934398
     - rid: 7910668519338934399
     BoxTypeName: 2
-  maxAmount: 2000000000
+  maxAmount: 20
   references:
     version: 2
     RefIds:
@@ -1383,37 +1383,37 @@ MonoBehaviour:
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 3
-        _amount: 10
+        _amount: 1
         Machine: {fileID: 0}
     - rid: 7910668519338934395
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 2
-        _amount: 5
+        _amount: 1
         Machine: {fileID: 0}
     - rid: 7910668519338934396
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 4
-        _amount: 10
+        _amount: 1
         Machine: {fileID: 0}
     - rid: 7910668519338934397
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 7
-        _amount: 5
+        _amount: 1
         Machine: {fileID: 0}
     - rid: 7910668519338934398
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 5
-        _amount: 6
+        _amount: 1
         Machine: {fileID: 0}
     - rid: 7910668519338934399
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 6
-        _amount: 5
+        _amount: 1
         Machine: {fileID: 0}
     - rid: 7910668632747933989
       type: {class: BlindBox, ns: , asm: Assembly-CSharp}
