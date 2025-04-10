@@ -409,6 +409,7 @@ MonoBehaviour:
   _powerUse: 1
   _isClosed: 0
   _slots: []
+  _currentProgress: 0
   _spawnWorkers: 0
   _spawnWorkerType: 1
   _workDetails:
@@ -423,7 +424,7 @@ MonoBehaviour:
     - rid: 3978049613651247212
       type: {class: IncreaseProgressWorkDetail, ns: Script.Machine.WorkDetails, asm: Assembly-CSharp}
       data:
-        Slot: 1
+        Slot: 0
         ProgressionPerInterval: 1
         IntervalSeconds: 1
     - rid: 8006286881648541818

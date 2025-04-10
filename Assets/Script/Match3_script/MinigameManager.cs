@@ -13,17 +13,18 @@ public class MinigameManager : MonoBehaviour
     [SerializeField] private string match3SceneName = "Match3Scene";
     [SerializeField] private string whackAMoleSceneName = "WhackAMoleScene";
     [SerializeField] private string wireConnectionSceneName = "WireConnectionScene";
-    [SerializeField] private string mainSceneName = "MainScene"; // Thêm tên scene chính
+    [SerializeField] private string mainSceneName = "MainScreen";
     [SerializeField] private string exclamationButtonName = "needfix";
     [SerializeField] private float minigameInterval = 3f * 3600f; // 3 giờ
     [SerializeField] private float maxInactiveTime = 20f * 60f; // 20 phút
     [SerializeField] private bool testMode = true;
+    [SerializeField] private float minigameSpawnChance = 0.3f; // Xác suất 30% spawn minigame khi máy được đặt
 
     private const int MAX_MINIGAMES_PER_DAY = 5;
     private int remainingMinigamesToday = MAX_MINIGAMES_PER_DAY;
     private DateTime lastMinigameTime;
     private DateTime lastResetTime;
-    private DateTime? minigameStartTime; // Lưu thời gian bắt đầu minigame
+    private DateTime? minigameStartTime;
     private Dictionary<MachineBase, MinigameData> activeMinigames = new();
 
     private class MinigameData
@@ -42,6 +43,9 @@ public class MinigameManager : MonoBehaviour
         // Đăng ký sự kiện khi scene được load
         SceneManager.sceneLoaded += OnSceneLoaded;
 
+        // Đăng ký sự kiện khi máy được thêm
+        machineController.onMachineAdded += OnMachineAdded;
+
         if (testMode)
         {
             int minigamesToSpawn = Random.Range(1, 3);
@@ -57,8 +61,11 @@ public class MinigameManager : MonoBehaviour
 
     void OnDestroy()
     {
-        // Hủy đăng ký sự kiện để tránh memory leak
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        if (machineController != null)
+        {
+            machineController.onMachineAdded -= OnMachineAdded;
+        }
     }
 
     void Update()
@@ -110,6 +117,26 @@ public class MinigameManager : MonoBehaviour
         }
 
         MachineBase selectedMachine = availableMachines[Random.Range(0, availableMachines.Count)];
+        SpawnMinigameForMachine(selectedMachine);
+    }
+
+    private void OnMachineAdded(MachineBase machine)
+    {
+        if (!testMode && remainingMinigamesToday > 0 && IsMinigameEligibleMachine(machine))
+        {
+            float roll = Random.value;
+            if (roll <= minigameSpawnChance)
+            {
+                SpawnMinigameForMachine(machine);
+                remainingMinigamesToday--;
+                lastMinigameTime = DateTime.UtcNow; // Cập nhật thời gian để tránh spawn liên tục
+                Debug.Log($"Minigame spawned due to machine placement: {machine.name}");
+            }
+        }
+    }
+
+    private void SpawnMinigameForMachine(MachineBase selectedMachine)
+    {
         string sceneName = GetMinigameSceneName(selectedMachine);
         if (string.IsNullOrEmpty(sceneName)) return;
 
@@ -184,7 +211,7 @@ public class MinigameManager : MonoBehaviour
         {
             activeMinigames[machine].ExclamationButton.gameObject.SetActive(false);
             activeMinigames.Remove(machine);
-            minigameStartTime = DateTime.UtcNow; // Lưu thời gian bắt đầu minigame
+            minigameStartTime = DateTime.UtcNow;
             Debug.Log($"Minigame started at machine: {machine.name}, loading scene: {sceneName}");
             SceneManager.LoadScene(sceneName);
         }
@@ -219,17 +246,15 @@ public class MinigameManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Khi quay lại scene chính, cập nhật thời gian và spawn minigame nếu cần
         if (scene.name == mainSceneName && minigameStartTime.HasValue)
         {
             DateTime currentTime = DateTime.UtcNow;
             float timeInMinigame = (float)(currentTime - minigameStartTime.Value).TotalSeconds;
-            lastMinigameTime = lastMinigameTime.AddSeconds(timeInMinigame); // Cộng thời gian chơi minigame
+            lastMinigameTime = lastMinigameTime.AddSeconds(timeInMinigame);
             minigameStartTime = null;
 
             Debug.Log($"Returned to main scene. Time spent in minigame: {timeInMinigame}s. Updated lastMinigameTime: {lastMinigameTime}");
 
-            // Kiểm tra và spawn minigame ngay nếu đủ thời gian
             if (!testMode)
             {
                 float elapsedTime = (float)(currentTime - lastMinigameTime).TotalSeconds;

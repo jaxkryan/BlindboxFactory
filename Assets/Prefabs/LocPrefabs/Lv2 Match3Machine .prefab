@@ -773,21 +773,28 @@ MonoBehaviour:
   _powerUse: 0
   _isClosed: 0
   _slots: []
+  _currentProgress: 0
   _spawnWorkers: 0
   _spawnWorkerType: 0
-  _workDetails: []
+  _workDetails:
+  - rid: 3978049794704670722
   _product:
     rid: 8006286881648541818
-  level: 2
   miningOutputPoint: {fileID: 7617777351846270091}
   materialPrefab: {fileID: 5222802327831557298}
   references:
     version: 2
     RefIds:
+    - rid: 3978049794704670722
+      type: {class: IncreaseProgressWorkDetail, ns: Script.Machine.WorkDetails, asm: Assembly-CSharp}
+      data:
+        Slot: 0
+        ProgressionPerInterval: 11
+        IntervalSeconds: 1
     - rid: 8006286881648541818
       type: {class: AddResourceToStorageProduct, ns: Script.Machine.Products, asm: Assembly-CSharp}
       data:
-        _maxProgress: 100
+        _maxProgress: 5
         _resourceUse: []
         _amount: 0
         Resource: 0
