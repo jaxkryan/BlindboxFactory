@@ -63,6 +63,8 @@ namespace Script.UI.Mission {
             Setup(_commissionPanel);
             
             var controller = GameController.Instance.CommissionController;
+            var commissions = controller.CreateCommissions();
+            Debug.Log($"Generated commissions(Count {commissions.Count}): " + string.Join("\t", commissions.Select(c => $"Commission: {c.Items.FirstOrDefault().Key} Price: {c.Price}")));
             // var list = controller.Commissions.Select(c => {
             //     var commission = Instantiate(_commissionPanel.ItemPrefab.gameObject, _contentHolder.transform);
             //     if (commission.TryGetComponent<CommissionItemUI>(out var item)) {
