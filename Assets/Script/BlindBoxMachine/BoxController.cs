@@ -21,6 +21,16 @@ public struct BoxMaxAmount
     }
 }
 
+[Serializable]
+public class SaveData
+{
+    public Dictionary<BoxTypeName, BoxMaxAmount> BoxData;
+    public Dictionary<BoxTypeName, long> BoxAmount;
+    public long WarehouseMaxAmount;
+    public List<SaleData> SaleData;
+    public Dictionary<BoxTypeName, List<BoxLog>> BoxLog;
+}
+
 public struct SaleData
 {
     public int UnitPrice;
@@ -51,6 +61,9 @@ namespace Script.Controller
 
         public ReadOnlyCollection<SaleData> SaleData => _saleData.AsReadOnly();
         private List<SaleData> _saleData = new();
+
+        public event Action<BoxTypeName, long, long> onBoxAmountChanged = delegate { };
+        public event Action<BoxTypeName, BoxMaxAmount> onBoxDataChanged = delegate { };
 
         [SerializeField] private long _wareHouseMaxAmount;
         public void AddSaleData(int UnitPrice, int TotalPrice, BoxTypeName BoxTypeName, int Amount, DateTime DateTime)
@@ -143,16 +156,73 @@ namespace Script.Controller
 
         public override void Load(SaveManager saveManager)
         {
-            Debug.Log("run Load");
-            foreach (BoxTypeName btn in Enum.GetValues(typeof(BoxTypeName)))
+            try
             {
-                _boxAmount[btn] = 100;
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                    || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data)
+                {
+                    // Initialize defaults if no save data
+                    foreach (BoxTypeName btn in Enum.GetValues(typeof(BoxTypeName)))
+                    {
+                        _boxAmount[btn] = 100;
+                    }
+                    return;
+                }
+
+                _boxData = new(data.BoxData);
+                _boxAmount = new(data.BoxAmount);
+                _wareHouseMaxAmount = data.WarehouseMaxAmount;
+                _saleData = data.SaleData != null ? new List<SaleData>(data.SaleData) : new List<SaleData>();
+                _boxLog = data.BoxLog != null ? new Dictionary<BoxTypeName, List<BoxLog>>(data.BoxLog) : new Dictionary<BoxTypeName, List<BoxLog>>();
+
+                UnityMainThreadDispatcher.Instance.Enqueue(() =>
+                {
+                    try
+                    {
+                        _boxAmount.ForEach(b => onBoxAmountChanged?.Invoke(b.Key, 0, b.Value));
+                        _boxData.ForEach(b => onBoxDataChanged?.Invoke(b.Key, b.Value));
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
+                });
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Cannot load {GetType()}");
+                Debug.LogException(ex);
             }
         }
 
         public override void Save(SaveManager saveManager)
         {
-            //throw new System.NotImplementedException();
+            var newSave = new SaveData
+            {
+                BoxData = _boxData,
+                BoxAmount = _boxAmount,
+                WarehouseMaxAmount = _wareHouseMaxAmount,
+                SaleData = _saleData,
+                BoxLog = _boxLog
+            };
+
+            try
+            {
+                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                    || SaveManager.Deserialize<SaveData>(saveData) is SaveData)
+                {
+                    saveManager.SaveData.TryAdd(this.GetType().Name, SaveManager.Serialize(newSave));
+                }
+                else
+                {
+                    saveManager.SaveData[this.GetType().Name] = SaveManager.Serialize(newSave);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Cannot save {GetType()}");
+                Debug.LogException(ex);
+            }
         }
 
         public override void OnAwake()
