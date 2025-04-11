@@ -6,12 +6,10 @@ using AYellowpaper.SerializedCollections;
 using BuildingSystem;
 using BuildingSystem.Models;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Worker;
 using Script.Machine;
 using Script.Machine.Products;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Tilemaps;
@@ -30,10 +28,10 @@ namespace Script.Controller {
 
         private List<MachineBase> _machines;
 
-        public ReadOnlyDictionary<MachineBase, List<MachineCoreRecovery>> RecoveryMachines =>
+        public ReadOnlyDictionary<RecoveryMachineKey, List<MachineCoreRecovery>> RecoveryMachines =>
             new(_recoverMachines);
 
-        [SerializeField] private SerializedDictionary<MachineBase, List<MachineCoreRecovery>> _recoverMachines = new();
+        [SerializeField] private SerializedDictionary<RecoveryMachineKey, List<MachineCoreRecovery>> _recoverMachines = new();
 
         public List<MachineBase> FindMachinesOfType(Type type) {
             if (!type.IsSubclassOf(typeof(MachineBase))) return new();
@@ -76,21 +74,30 @@ namespace Script.Controller {
             onMachineUnlocked?.Invoke(name);
         }
 
-        public bool IsRecoveryMachine(MachineBase machine, out List<MachineCoreRecovery> recoveries) { 
+        public bool IsRecoveryMachine(MachineBase machine, out List<WorkerType> forWorkers, out List<MachineCoreRecovery> recoveries) { 
+            forWorkers = default;
             recoveries = default;
             if (machine.PrefabName == null) return false;
 
-            var prefab = Buildables.FirstOrDefault(b => b.Name == machine.PrefabName)?.gameObject;
-            if (prefab is null || prefab.TryGetComponent<MachineBase>(out var machinePrefab)) return false;
+            var prefab = GetPrefab(machine);
+            if (prefab is null) return false;
 
-            var keys = RecoveryMachines.Keys?.Where(r => ReferenceEquals(r,machinePrefab))?.ToList() ?? new ();
+            var keys = RecoveryMachines.Keys?.Where(r => r.Machine == prefab)?.ToList() ?? new ();
 
             recoveries = RecoveryMachines
                 .Where(r => keys.Contains(r.Key))
                 .Select(r => r.Value)
                 .Aggregate(new List<MachineCoreRecovery>(), (x, y) => x.Concat(y).ToList());
+            forWorkers = RecoveryMachines
+                .Where(r => keys.Contains(r.Key))
+                .Select(r => r.Key.Worker)
+                .Aggregate(new List<WorkerType>(), (x, y) => x.Concat(y).ToList());
             return recoveries.Any();
         }
+
+        [CanBeNull]
+        public BuildableItem GetPrefab(MachineBase machine) 
+            => machine.PrefabName == null ? null : Buildables.FirstOrDefault(b => b.Name == machine.PrefabName);
 
         public void AddMachine(MachineBase machine) {
             _machines.Add(machine);
@@ -107,13 +114,18 @@ namespace Script.Controller {
             var workableMachines = worker == null ? FindWorkableMachines() : FindWorkableMachines(worker);
             var list = new List<MachineBase>();
 
+            // foreach (var machine in workableMachines) {
+            //     var key = _recoverMachines.Keys.FirstOrDefault(k => k.GetType() == machine.GetType());
+            //     if (key == null || !_recoverMachines.TryGetValue(key, out var recoveryInfo)) continue;
+            //     if (recoveryInfo.All(r => r.Core != core)) continue;
+            //     if (worker != null && recoveryInfo.All(r => r.Worker != IWorker.ToWorkerType(worker))) continue;
+            //
+            //     list.Add(machine);
+            // }
+            
             foreach (var machine in workableMachines) {
-                var key = _recoverMachines.Keys.FirstOrDefault(k => k.GetType() == machine.GetType());
-                if (key == null || !_recoverMachines.TryGetValue(key, out var recoveryInfo)) continue;
-                if (recoveryInfo.All(r => r.Core != core)) continue;
-                if (worker != null && recoveryInfo.All(r => r.Worker != IWorker.ToWorkerType(worker))) continue;
-
-                list.Add(machine);
+                if (IsRecoveryMachine(machine, out var workerType, out _) && workerType.Contains(IWorker.ToWorkerType(worker)))
+                    list.Add(machine);
             }
 
             return list;
@@ -146,9 +158,13 @@ namespace Script.Controller {
         public override void OnValidate() {
             base.OnValidate();
 
-            if (Buildables.Select(b => b.Name).GroupBy(n => n).Any(n => n.Count() > 1)) {
-                Debug.LogError("Buildable names conflict");
-            }
+            Buildables.Select(b => b.Name)
+                .GroupBy(n => n)
+                .ForEach(g => {
+                    if (g.Count() > 1) {
+                        Debug.LogError("Buildable name conflict: " + g.Key);
+                    }
+                });
 
             foreach (var machine in Buildables) {
                 if (UnlockMachines.ContainsKey(machine.Name)) continue;
@@ -244,6 +260,16 @@ namespace Script.Controller {
         private class SaveData {
             public List<MachineBase.MachineBaseData> Machines;
             public Dictionary<string, bool> UnlockMachines;
+        }
+    }
+
+    [Serializable]
+    public class RecoveryMachineKey : IEquatable<RecoveryMachineKey> {
+        [SerializeField] public BuildableItem Machine;
+        [SerializeField] public List<WorkerType> Worker;
+
+        public bool Equals(RecoveryMachineKey other) {
+            return Machine == other?.Machine && Equals(Worker, other?.Worker);
         }
     }
 }
