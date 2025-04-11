@@ -132,15 +132,15 @@ namespace Script.HumanResource.Worker {
             bf.AddBelief($"{_worker.Name}TargetMachineIsWorkMachine", () => {
                 // if (_slot?.Machine is not null) Debug.Log("Condition 1 passed");
                 // else Debug.Log("Condition 1 failed");
-                // if (_slot?.Machine is not null && !GameController.Instance.MachineController.IsRecoveryMachine(_slot.Machine, out _)) Debug.Log("Condition 2 passed");
+                // if (_slot?.Machine is not null && !GameController.Instance.MachineController.IsRecoveryMachine(_slot.Machine)) Debug.Log("Condition 2 passed");
                 // else Debug.Log("Condition 2 failed");
                 
                 return _slot?.Machine is not null && (
-                    !GameController.Instance.MachineController.IsRecoveryMachine(_slot.Machine, out var forWorker, out _)
+                    !GameController.Instance.MachineController.IsRecoveryMachine(_slot.Machine, out var forWorker)
                     || !forWorker.Contains(_worker.ToWorkerType()));
             });
             bf.AddBelief($"{_worker.Name}TargetMachineIsRecoveryMachine", () => _slot?.Machine is not null 
-                && GameController.Instance.MachineController.IsRecoveryMachine(_slot.Machine, out var forWorker, out _) 
+                && GameController.Instance.MachineController.IsRecoveryMachine(_slot.Machine, out var forWorker) 
                 && forWorker.Contains(_worker.ToWorkerType()));
             bf.AddBelief($"{_worker.Name}IsRested", () => {
                     var needList = GameController.Instance.WorkerController.WorkerNeedsList;
@@ -199,8 +199,8 @@ namespace Script.HumanResource.Worker {
             }
 
             bf.AddSensorBelief($"{_worker.Name}AtMachine", WorkMachineSensor);
-            bf.AddBelief($"{_worker.Name}Working", () => _worker.Machine is not null && (!GameController.Instance.MachineController.IsRecoveryMachine((MachineBase)_worker.Machine, out var forWorker, out _) || !forWorker.Contains(_worker.ToWorkerType())));
-            bf.AddBelief($"{_worker.Name}Resting", () => _worker.Machine is not null && GameController.Instance.MachineController.IsRecoveryMachine((MachineBase)_worker.Machine, out var forWorker, out _) && forWorker.Contains(_worker.ToWorkerType()));
+            bf.AddBelief($"{_worker.Name}Working", () => _worker.Machine is not null && (!GameController.Instance.MachineController.IsRecoveryMachine((MachineBase)_worker.Machine, out var forWorker) || !forWorker.Contains(_worker.ToWorkerType())));
+            bf.AddBelief($"{_worker.Name}Resting", () => _worker.Machine is not null && GameController.Instance.MachineController.IsRecoveryMachine((MachineBase)_worker.Machine, out var forWorker) && forWorker.Contains(_worker.ToWorkerType()));
         }
 
         protected override void SetupGoals() {
