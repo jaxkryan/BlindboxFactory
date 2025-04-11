@@ -71,7 +71,7 @@ namespace Script.HumanResource.Worker {
             list.AddRange(GetOrderedWorkers(idleWorker));
             //Find recovering workers
             var recoveringWorker = allWorkers.Where(w => w.Machine is MachineBase).Where(w =>
-                GameController.Instance.MachineController.IsRecoveryMachine(w.Machine as MachineBase, out var forWorkers, out _) && forWorkers.Contains(w.ToWorkerType())).ToList();
+                GameController.Instance.MachineController.IsRecoveryMachine(w.Machine as MachineBase, out var forWorkers) && forWorkers.Contains(w.ToWorkerType())).ToList();
             list.AddRange(GetOrderedWorkers(recoveringWorker));
             //Find working workers
             list.AddRange(GetOrderedWorkers(allWorkers.Except(idleWorker).Except(recoveringWorker)));
