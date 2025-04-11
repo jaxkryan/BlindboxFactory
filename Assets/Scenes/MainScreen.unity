@@ -992,6 +992,57 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 87019067}
   m_CullTransparentMesh: 1
+--- !u!1 &117778127
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 117778129}
+  - component: {fileID: 117778128}
+  m_Layer: 0
+  m_Name: WorkerPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &117778128
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 117778127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2852ff1dec14f29878b9b891f20719e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AutoUnparentOnLoad: 1
+  _minimumReservedSize: 10
+  _maximumReservedSize: 40
+  _workerPrefabs:
+    _serializedList:
+    - Key: 1
+      Value: {fileID: 8431995696745897092, guid: 241319dc4ac1d2741b7b2193648ab8f6, type: 3}
+--- !u!4 &117778129
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 117778127}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -184.45703, y: 1311.25, z: -3.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &134924211
 GameObject:
   m_ObjectHideFlags: 0
@@ -8080,7 +8131,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.071, y: 0.2535959}
   m_AnchorMax: {x: 0.26266503, y: 0.40538356}
-  m_AnchoredPosition: {x: 0.2999878, y: -2.899994}
+  m_AnchoredPosition: {x: 0.29992676, y: -2.899994}
   m_SizeDelta: {x: 3.2448006, y: 0.5418}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &840011216
@@ -55712,7 +55763,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8809560998682853388, guid: 8912897d74df11649a60dab256c6b7a7, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -48.00006
+      value: -48
       objectReference: {fileID: 0}
     - target: {fileID: 8829674884522020810, guid: 8912897d74df11649a60dab256c6b7a7, type: 3}
       propertyPath: m_AnchorMax.x
@@ -61158,3 +61209,4 @@ SceneRoots:
   - {fileID: 1935527199}
   - {fileID: 1833336722}
   - {fileID: 1586484037}
+  - {fileID: 117778129}

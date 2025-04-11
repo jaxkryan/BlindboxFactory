@@ -148,7 +148,7 @@ namespace Script.Controller {
 
         private Vector3 GetNavMeshHit(Worker worker) {
             NavMeshHit hit;
-            if (!NavMesh.SamplePosition(worker.transform.position, out hit, Single.MaxValue, 1)) return Vector3.zero;
+            if (!NavMesh.SamplePosition(worker.transform.position, out hit, Single.MaxValue, NavMesh.AllAreas)) return Vector3.zero;
             return hit.position;
         }
 

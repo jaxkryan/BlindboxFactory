@@ -20,7 +20,7 @@ public class WanderStrategy : IActionStrategy {
             randomDirection.z = 0;
             NavMeshHit hit;
 
-            if (NavMesh.SamplePosition(agent.transform.position + randomDirection, out hit, wanderRadius, 1)
+            if (NavMesh.SamplePosition(agent.transform.position + randomDirection, out hit, wanderRadius, NavMesh.AllAreas)
                 && Vector3.Distance(hit.position, agent.transform.position) > wanderRadius / 2) {
                 
                 agent.SetDestination(hit.position);

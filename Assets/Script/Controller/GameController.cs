@@ -68,6 +68,7 @@ namespace Script.Controller {
             PermissionHandler.RequestPermissionIfNeeded(Permission.ExternalStorageWrite);
             PermissionHandler.RequestPermissionIfNeeded(Permission.ExternalStorageRead);
             var dispatcher = UnityMainThreadDispatcher.Instance;
+            var pool = WorkerPooling.Instance;
         }
 
         public void BuildNavMesh() {

@@ -114,7 +114,7 @@ public class WorkStrategy : IActionStrategy {
         var outPos = _worker.transform.position +
                      Vector3.Normalize(_slot.Machine.transform.position - _worker.transform.position) *
                      (Vector3.Distance(_slot.Machine.transform.position, _worker.transform.position) + 0.5f);
-            if (NavMesh.SamplePosition(outPos, out var hit, Single.MaxValue, 1))
+            if (NavMesh.SamplePosition(outPos, out var hit, Single.MaxValue, NavMesh.AllAreas))
                 _worker.Agent.Warp(hit.position);
             _slot.Machine.RemoveWorker(_worker);
 

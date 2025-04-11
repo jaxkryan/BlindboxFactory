@@ -38,7 +38,7 @@ public class MoveToSlotStrategy : IActionStrategy {
         }
         else {
             if (NavMesh.SamplePosition(_worker.Director.TargetSlot.Machine.transform.position, out var hit, Single.MaxValue,
-                    1)) {
+                    NavMesh.AllAreas)) {
                 var newPath = new NavMeshPath();
                 if (_agent.CalculatePath(hit.position, newPath)) _agent.SetPath(newPath);
                 else _agent.SetDestination(_worker.transform.position);
