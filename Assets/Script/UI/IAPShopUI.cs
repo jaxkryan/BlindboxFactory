@@ -7,7 +7,6 @@ using Script.HumanResource.Administrator;
 using Script.Controller;
 using Script.Gacha.Base;
 using UnityEngine.Purchasing;
-using UnityEditor.PackageManager;
 using System;
 using System.Linq;
 
