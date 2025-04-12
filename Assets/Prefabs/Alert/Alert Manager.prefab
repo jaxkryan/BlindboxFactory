@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &198634060512534767
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6704707144336452464}
+  - component: {fileID: 7131804904948413870}
+  m_Layer: 5
+  m_Name: Alert Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6704707144336452464
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 198634060512534767}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &7131804904948413870
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 198634060512534767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f78d8332e2343dea505dd99e27403b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AutoUnparentOnLoad: 1
+  _errorAlertPrefab: {fileID: 1131356583113300015, guid: 033c1d3efc36fce46af83a697a042e8f, type: 3}
+  _warningAlertPrefab: {fileID: 1949578963990977481, guid: 2c45438a5744ee94e80a0ed00c7667f1, type: 3}
+  _notificationAlertPrefab: {fileID: 8224830386538407812, guid: 603159227a18dfa429cff8c80592ea6d, type: 3}
+  Red: {fileID: 21300000, guid: f214ce61114d38d4eb3442a10da5d551, type: 3}
+  Blue: {fileID: 21300000, guid: 12e02dc59e1372f4bbdc291b6a55bde4, type: 3}
+  Green: {fileID: 1144028612729988080, guid: 0000a542db3bb5b42b30ad4d388e09cf, type: 3}
+  Purple: {fileID: 21300000, guid: a0af203bfddba5144bcade489f786e61, type: 3}
+  Yellow: {fileID: 21300000, guid: d1720b34105c5d947be1e88ae81de271, type: 3}
+  _logs: 0

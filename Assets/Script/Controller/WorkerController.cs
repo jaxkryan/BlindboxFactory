@@ -5,6 +5,7 @@ using System.Linq;
 using AYellowpaper.SerializedCollections;
 using BuildingSystem;
 using Newtonsoft.Json;
+using Script.Alert;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Worker;
 using Script.Machine;
@@ -76,7 +77,10 @@ namespace Script.Controller {
                     constructionLayer.onItemBuilt -= OnMachineOnItemBuilt;
                 }
             }
-            catch (System.Exception e) { Debug.LogWarning(e.Message); }
+            catch (System.Exception e) {
+                Debug.LogWarning(e.Message);                
+                e.RaiseException();
+            }
         }
 
         private void OnMachineOnItemBuilt(GameObject obj) {
@@ -157,6 +161,7 @@ namespace Script.Controller {
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot load {GetType()}");
                 Debug.LogException(ex);
+                ex.RaiseException();
                 return;
             }
         }
@@ -178,7 +183,7 @@ namespace Script.Controller {
                         }
                         catch (System.Exception e)
                         {
-                            Debug.LogWarning(new System.Exception("Cannot save worker",e));
+                            Debug.LogWarning(new System.Exception("Cannot save worker",e).RaiseException());
                         }
                     }
 
@@ -193,6 +198,8 @@ namespace Script.Controller {
                 catch (System.Exception ex) {
                     Debug.LogError($"Cannot save {GetType()}");
                     Debug.LogException(ex);
+                    ex.RaiseException();
+
                 }
             });
         }

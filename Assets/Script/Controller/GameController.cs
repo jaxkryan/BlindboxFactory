@@ -9,6 +9,7 @@ using MyBox;
 using NavMeshPlus.Components;
 using NavMeshPlus.Extensions;
 using Newtonsoft.Json;
+using Script.Alert;
 using Script.Controller.Permissions;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Administrator;
@@ -51,6 +52,9 @@ namespace Script.Controller {
         public SaveManager SaveManager;
         private Timer _saveTimer;
         
+        [Space][Header("Log")]
+        [SerializeField] private bool _log;
+        
         
         public List<Vector2Int> GroundAddedTiles = new();
 
@@ -72,7 +76,7 @@ namespace Script.Controller {
         }
 
         public void BuildNavMesh() {
-            Debug.Log("Rebuilding NavMesh");
+            if (_log) Debug.Log("Rebuilding NavMesh");
             Physics2D.SyncTransforms();
             NavMeshSurface.BuildNavMesh();
         }
@@ -108,6 +112,7 @@ namespace Script.Controller {
             StartCoroutine(LoadOnStart(SaveManager).AsCoroutine());
             BuildNavMesh();
             yield break;
+            
 
             async Task LoadOnStart(SaveManager saveManager) { await Load(saveManager); }
 
@@ -123,7 +128,7 @@ namespace Script.Controller {
             if (_quitNow) return true;
             if (_isSaving)
             {
-                Debug.Log("Quit requested, but save is in progress.");
+                if (_log) Debug.Log("Quit requested, but save is in progress.");
                 return false; // Block quitting while saving
             }
 
@@ -134,16 +139,16 @@ namespace Script.Controller {
         private IEnumerator SaveAndQuit() {
             if (_isSaving)
             {
-                Debug.Log("Save already in progress.");
+                if (_log) Debug.Log("Save already in progress.");
                 yield break;
             }
 
             _isSaving = true;
 
-            Debug.Log("Saving game...");
+            if (_log) Debug.Log("Saving game...");
             yield return Save(SaveManager).AsCoroutine();
 
-            Debug.Log("Save complete. Quitting app.");
+            if (_log) Debug.Log("Save complete. Quitting app.");
             _isSaving = false;
             _quitNow = true;
 #if UNITY_EDITOR
@@ -163,16 +168,16 @@ namespace Script.Controller {
         private void OnValidate() => _controllers.ForEach(c => c.OnValidate());
 
         private async Task Load(SaveManager saveManager) {
-            Debug.Log($"Loading game on {Thread.CurrentThread} thread");
+            if (_log) Debug.Log($"Loading game on {Thread.CurrentThread} thread");
             await SaveManager.LoadFromCloud();
             await SaveManager.LoadFromLocal();
 
 
-            try { 
+            try {
                 #region Game Controller's own save
 
                 if (saveManager.SaveData.TryGetValue(nameof(HasSaveTimer), out string hasSaveTimerString)) {
-                    HasSaveTimer = hasSaveTimerString == bool.TrueString; 
+                    HasSaveTimer = hasSaveTimerString == bool.TrueString;
                 }
 
                 if (saveManager.SaveData.TryGetValue(nameof(MinutesBetweenSave), out string minutesBetweenSaveString)) {
@@ -181,22 +186,27 @@ namespace Script.Controller {
                 }
 
                 if (saveManager.SaveData.TryGetValue(nameof(GroundAddedTiles), out string groundAddedTilesString)) {
-                    var list =SaveManager.Deserialize<List<V2Int>>(groundAddedTilesString);
+                    var list = SaveManager.Deserialize<List<V2Int>>(groundAddedTilesString);
 
                     list.Select(v => (Vector2Int)v).ForEach(v => Ground.SetTile(v.ToVector3Int(), GroundTile));
                 }
+
                 #endregion
+
                 _controllers.ForEach(c => {
-                    Debug.Log($"Loading {c.GetType().Name}");
+                    if (_log) Debug.Log($"Loading {c.GetType().Name}");
                     c.Load(saveManager);
-                }); 
-                
+                });
+
             }
-            catch (System.Exception ex) { Debug.LogError(ex); }
+            catch (System.Exception ex) {
+                Debug.LogError(ex);
+                ex.RaiseException();
+            }
         }
 
         private async Task Save(SaveManager saveManager) {
-            Debug.Log($"Saving game on {Thread.CurrentThread} thread");
+            if (_log) Debug.Log($"Saving game on {Thread.CurrentThread} thread");
             try {
                 _controllers.ForEach(c => {
                     Debug.Log($"Saving {c.GetType().Name}");
@@ -213,6 +223,7 @@ namespace Script.Controller {
             }
             catch (System.Exception e) {
                 Debug.LogWarning(e);
+                e.RaiseException();
             }
 
             await SaveManager.SaveToLocal();

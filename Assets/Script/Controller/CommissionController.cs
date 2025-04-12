@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using MyBox;
 using Newtonsoft.Json;
+using Script.Alert;
 using Script.Controller.Commission;
 using Script.Controller.SaveLoad;
 using Script.Machine;
@@ -189,6 +190,7 @@ namespace Script.Controller {
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot load {GetType()}");
                 Debug.LogException(ex);
+                ex.RaiseException();
                 return;
             }
             
@@ -221,6 +223,7 @@ namespace Script.Controller {
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
                 Debug.LogException(ex);
+                ex.RaiseException();
             }
         }
 
