@@ -74,6 +74,9 @@ namespace Script.Controller {
             onMachineUnlocked?.Invoke(name);
         }
 
+        public bool IsRecoveryMachine(MachineBase machine) => IsRecoveryMachine(machine, out _, out _);
+        public bool IsRecoveryMachine(MachineBase machine, out List<WorkerType> forWorkers) => IsRecoveryMachine(machine, out forWorkers, out _);
+        
         public bool IsRecoveryMachine(MachineBase machine, out List<WorkerType> forWorkers, out List<MachineCoreRecovery> recoveries) { 
             forWorkers = default;
             recoveries = default;
