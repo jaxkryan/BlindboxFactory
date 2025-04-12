@@ -18,6 +18,7 @@ public class InventoryUIManager : MonoBehaviour
     {
         DisplayInventory();
         GameController.Instance.ResourceController.onResourceAmountChanged += HandleResourceAmountChanged;
+        GameController.Instance.BoxController.onBoxAmountChanged += HandleBoxAmountChanged;
     }
 
     //private void Update()
@@ -103,6 +104,11 @@ public class InventoryUIManager : MonoBehaviour
     }
 
     private void HandleResourceAmountChanged(Resource resource, long oldAmount, long newAmount)
+    {
+        DisplayInventory();
+    }
+
+    private void HandleBoxAmountChanged(BoxTypeName btn, long oldAmount, long newAmount)
     {
         DisplayInventory();
     }
