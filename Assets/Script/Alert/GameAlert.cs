@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace Script.Alert {
     public class GameAlert {
@@ -18,7 +19,14 @@ namespace Script.Alert {
         public class Builder {
             private GameAlert _alert;
             public Builder(AlertType type) => _alert = new GameAlert(type);
-            public GameAlert Build() => _alert;
+
+            public GameAlert Build() {
+                if (!_alert.HasCloseButton && _alert.Button1 is null & _alert.Button2 is null) {
+                    Debug.LogWarning("Alert doesn't have any button");
+                    WithCloseButton();
+                }
+                return _alert;
+            }
 
             public Builder WithHeader(string header) {
                 _alert.Header = header;
@@ -35,7 +43,7 @@ namespace Script.Alert {
                 return this;
             }
 
-            public Builder HasCloseButton(bool hasCloseButton = true) {
+            public Builder WithCloseButton(bool hasCloseButton = true) {
                 _alert.HasCloseButton = hasCloseButton;
                 return this;
             }
@@ -55,9 +63,5 @@ namespace Script.Alert {
                 return this;
             }
         }
-    }
-
-    public static class GameAlertExtensions {
-        public static void Raise(this GameAlert alert) => AlertManager.Instance.Raise(alert);
     }
 }

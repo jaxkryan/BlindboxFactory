@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Firebase;
 using Firebase.Database;
 using Newtonsoft.Json;
+using Script.Alert;
 using UnityEngine;
 using UnityEngine.Android;
 
@@ -117,6 +118,11 @@ namespace Script.Controller.SaveLoad {
                     if (!SaveData.TryGetValue(data, out var value)) SaveData.TryAdd(data, saveData[data]);
                     else if (value != saveData[data]) SaveData[data] = saveData[data];
                 }
+                // AlertManager.Instance.Raise(new GameAlert.Builder(AlertType.Notification)
+                //     .WithHeader("Loading data")
+                //     .WithMessage("Loading data successfully")
+                //     .WithCloseButton()
+                //     .Build());
             }
             catch (System.Exception e) {
                 Debug.LogException(new System.Exception($"Error loading data from local file", e));

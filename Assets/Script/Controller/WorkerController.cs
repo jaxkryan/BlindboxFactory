@@ -9,6 +9,7 @@ using Script.Alert;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Worker;
 using Script.Machine;
+using Script.Utils;
 using UnityEngine;
 
 namespace Script.Controller {

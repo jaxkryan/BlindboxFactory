@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using Script.Alert;
 using Script.Controller.SaveLoad;
 using Script.Resources;
+using Script.Utils;
 using UnityEngine;
 
 namespace Script.Controller {
@@ -36,7 +37,7 @@ namespace Script.Controller {
                 new GameAlert.Builder(AlertType.Warning)
                     .WithHeader(nameof(ResourceController))
                     .WithMessage($"Failed to update resource data: {resource}")
-                    .HasCloseButton()
+                    .WithCloseButton()
                     .Build().Raise();
             }
 
