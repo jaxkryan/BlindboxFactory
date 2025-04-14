@@ -16,6 +16,10 @@ namespace Script.Alert {
             Type = type;
         }
 
+        public static GameAlert QuickNotification(string message, string header = null, bool canPause = false, Action onClose = null) => new GameAlert.Builder(AlertType.Notification).WithHeader(header).WithMessage(message).WithCloseButton().CanPauseGame(canPause).OnClose(onClose).Build();
+        public static GameAlert QuickWarning(string message, string header = null, bool canPause = true, Action onClose = null) => new GameAlert.Builder(AlertType.Notification).WithHeader(header).WithMessage(message).WithCloseButton().CanPauseGame(canPause).OnClose(onClose).Build();
+        public static GameAlert QuickError(string message, string header = null, bool canPause = true, Action onClose = null) => new GameAlert.Builder(AlertType.Notification).WithHeader(header).WithMessage(message).WithCloseButton().CanPauseGame(canPause).OnClose(onClose).Build();
+
         public class Builder {
             private GameAlert _alert;
             public Builder(AlertType type) => _alert = new GameAlert(type);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using Script.Utils;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -24,6 +25,8 @@ namespace Script.Alert {
         [SerializeField] public Sprite Purple;
         [SerializeField] public Sprite Yellow;
         [Space] [SerializeField] bool _logs = false;
+        //Test
+        [Space] [SerializeField] private bool _test = false;
         private GameObject _backgroundBlocker;
 
         public event Action<AlertType, string> onAlertRaised = delegate { };
@@ -50,14 +53,39 @@ namespace Script.Alert {
             }
         }
 
+        private void Update() {
+            if (_test) {
+                GameAlert.QuickNotification("Test", canPause: true).Raise();
+                _test = false;
+            }
+        }
+
         private GameObject CreateBlocker() {
             if (_backgroundBlocker is not null) {
                 Destroy(_backgroundBlocker.gameObject);
             }
 
             var blockers = GetComponentsInChildren<UIBlocker>();
+            var slatedForDestroy = new HashSet<UIBlocker>();
             foreach (var b in blockers) {
-                Destroy(b.gameObject);
+                if (!b.TryGetComponent<RectTransform>(out var rt)) {
+                    if (rt.anchorMin != Vector2.zero || rt.anchorMax != Vector2.one) slatedForDestroy.Add(b);
+                    if (rt.offsetMin != Vector2.zero || rt.offsetMax != Vector2.zero) slatedForDestroy.Add(b);
+                    if (rt.localScale != Vector3.one) slatedForDestroy.Add(b);
+                }
+                if (!b.TryGetComponent<Image>(out var im)) {
+                    if (im.color != Color.clear) slatedForDestroy.Add(b);
+                    if (!im.raycastTarget) slatedForDestroy.Add(b);
+                }
+            }
+
+            var exempt = blockers.Except(slatedForDestroy).ToList();
+            if (exempt.Any()) {
+                var first = exempt.First();
+                exempt.Remove(first);
+                slatedForDestroy.AddRange(exempt);
+                slatedForDestroy.ForEach(b => Destroy(b.gameObject));
+                return first.gameObject;
             }
 
             var blocker = new GameObject("Blocker", typeof(UIBlocker), typeof(RectTransform), typeof(CanvasRenderer),
@@ -156,6 +184,13 @@ namespace Script.Alert {
                     $"Field(s) not used when creating alert: {string.Join(", ", fields.Select(f => f.Name))}");
 
             _backgroundBlocker.gameObject.SetActive(true);
+            
+            Action RemoveBlockerOnAlertClosed = null;
+            RemoveBlockerOnAlertClosed = () => {
+                _backgroundBlocker.gameObject.SetActive(false);
+                raisingAlert.onAlertClosed -= RemoveBlockerOnAlertClosed;
+            };
+            raisingAlert.onAlertClosed += RemoveBlockerOnAlertClosed;
 
             raisingAlert.enabled = true;
             raisingAlert.gameObject.SetActive(true);
@@ -183,6 +218,7 @@ namespace Script.Alert {
             }
         }
     }
+
     public enum AlertType {
         Error,
         Warning,
