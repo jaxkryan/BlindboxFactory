@@ -87,7 +87,7 @@ public class BuildingSelector : MonoBehaviour
     {
         _buildingPlacer.IsbuildMode = false;
         Debug.Log("clear ActiveBuildable");
-        buildingSelectionUI.SetActive(false);
+        //buildingSelectionUI.SetActive(false);
         _buildingPlacer.SetActiveBuildable(null);
         _buildingPlacer.ClearPreview();
     }

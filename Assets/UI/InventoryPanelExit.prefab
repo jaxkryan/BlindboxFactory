@@ -1674,6 +1674,7 @@ GameObject:
   - component: {fileID: 3159454429026454848}
   - component: {fileID: 8180383957571535518}
   - component: {fileID: 4861042090680365861}
+  - component: {fileID: 4328079715186079280}
   m_Layer: 5
   m_Name: InventoryPanelExit
   m_TagString: Untagged
@@ -1783,3 +1784,24 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4328079715186079280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8847085422088918549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76d9c4057e8783c4ba619311c2a47b98, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _duration: 0.5
+  _scaleEaseIn: 27
+  _scaleEaseOut: 26
+  _fadeEaseIn: 6
+  _fadeEaseOut: 5
+  _slideEaseIn: 6
+  _slideEaseOut: 5
+  _slideOffsetHorizontal: 1000
+  _slideOffsetVertical: 1000
