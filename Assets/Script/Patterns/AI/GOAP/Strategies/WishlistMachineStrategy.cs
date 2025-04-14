@@ -62,7 +62,7 @@ namespace Script.Patterns.AI.GOAP.Strategies {
                     
                     NavMeshHit hit;
 
-                    if (!NavMesh.SamplePosition(machine.transform.position, out hit, Single.MaxValue, 1)) continue;
+                    if (!NavMesh.SamplePosition(machine.transform.position, out hit, Single.MaxValue, NavMesh.AllAreas)) continue;
                     if (!_agent.CalculatePath(hit.position, path)) {
                         Debug.Log($"Cannot calculate path to machine. From {_agent.transform.position} to {hit.position}");
                         continue;

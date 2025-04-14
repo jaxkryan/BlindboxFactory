@@ -39,21 +39,33 @@ namespace Script.HumanResource.Worker {
             SpawnAtPosition(type, location.position, out worker);
 
         public bool SpawnAtPosition(WorkerType type, Vector3 position, out Worker worker) {
-            if (!GameController.Instance.WorkerController.WorkerPrefabs.TryGetValue(type, out var prefab)) {
-                Debug.LogError("Cannot find worker prefab " + nameof(WorkerSpawner));
-                worker = null;
-                return false;
-            }
+            // if (!GameController.Instance.WorkerController.WorkerPrefabs.TryGetValue(type, out var prefab)) {
+            //     Debug.LogError("Cannot find worker prefab " + nameof(WorkerSpawner));
+            //     worker = null;
+            //     return false;
+            // }
+            //
+            // var instance = UnityEngine.Object.Instantiate(prefab.gameObject, position, Quaternion.identity);
+            // worker = instance.GetComponent<Worker>();
+            // GameController.Instance.WorkerController.AddWorker(worker);
+            // return instance;
 
-            var instance = UnityEngine.Object.Instantiate(prefab.gameObject, position, Quaternion.identity);
-            worker = instance.GetComponent<Worker>();
+            worker = WorkerPooling.Instance.GetReservedWorker(type);
+            if (worker == null) {
+                    Debug.LogError("Cannot spawn worker " + type);
+                    return false; 
+            }
+            
+            WorkerPooling.Instance.ActivateWorker(worker, position);
             GameController.Instance.WorkerController.AddWorker(worker);
-            return instance;
+            
+            worker = null;
+            return false;
         }
 
         public void RemoveWorker(Worker worker) {
             GameController.Instance.WorkerController.RemoveWorker(worker);
-            UnityEngine.Object.Destroy(worker.gameObject);
+            WorkerPooling.Instance.DeactivateWorker(worker);
         }
 
         public IOrderedEnumerable<Worker> FindSpawnedWorkers(MachineBase machine) {
@@ -71,7 +83,7 @@ namespace Script.HumanResource.Worker {
             list.AddRange(GetOrderedWorkers(idleWorker));
             //Find recovering workers
             var recoveringWorker = allWorkers.Where(w => w.Machine is MachineBase).Where(w =>
-                GameController.Instance.MachineController.IsRecoveryMachine(w.Machine as MachineBase, out var forWorkers) && forWorkers.Contains(w.ToWorkerType())).ToList();
+                machineController.IsRecoveryMachine(w.Machine as MachineBase, out var forWorkers) && forWorkers.Contains(w.ToWorkerType())).ToList();
             list.AddRange(GetOrderedWorkers(recoveringWorker));
             //Find working workers
             list.AddRange(GetOrderedWorkers(allWorkers.Except(idleWorker).Except(recoveringWorker)));

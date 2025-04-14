@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using MyBox;
 using Newtonsoft.Json;
+using Script.Alert;
 using Script.Controller.SaveLoad;
 using Script.Quest;
+using Script.Utils;
 using UnityEngine;
 
 namespace Script.Controller {
@@ -62,6 +64,7 @@ namespace Script.Controller {
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot load {GetType()}");
                 Debug.LogException(ex);
+                ex.RaiseException();
                 return;
             }
         }
@@ -86,7 +89,8 @@ namespace Script.Controller {
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
-                Debug.LogException(ex);
+                Debug.LogException(ex);                
+                ex.RaiseException();
             }
         }
 

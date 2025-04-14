@@ -6,10 +6,12 @@ using AYellowpaper.SerializedCollections;
 using BuildingSystem;
 using BuildingSystem.Models;
 using JetBrains.Annotations;
+using Script.Alert;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Worker;
 using Script.Machine;
 using Script.Machine.Products;
+using Script.Utils;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Tilemaps;
@@ -33,6 +35,7 @@ namespace Script.Controller {
 
         [SerializeField] private SerializedDictionary<RecoveryMachineKey, List<MachineCoreRecovery>> _recoverMachines = new();
 
+        [Space] [SerializeField] private bool _log;
         public List<MachineBase> FindMachinesOfType(Type type) {
             if (!type.IsSubclassOf(typeof(MachineBase))) return new();
 
@@ -148,7 +151,7 @@ namespace Script.Controller {
 
         private Vector3 GetNavMeshHit(Worker worker) {
             NavMeshHit hit;
-            if (!NavMesh.SamplePosition(worker.transform.position, out hit, Single.MaxValue, 1)) return Vector3.zero;
+            if (!NavMesh.SamplePosition(worker.transform.position, out hit, Single.MaxValue, NavMesh.AllAreas)) return Vector3.zero;
             return hit.position;
         }
 
@@ -188,22 +191,22 @@ namespace Script.Controller {
                 _unlockMachines = new(data.UnlockMachines);
                 if (_constructionLayerScript == null || _constructionLayerScript == default) { return; }
 
-                Debug.LogWarning($"Machine count: {data.Machines.Count}");
-                Debug.LogWarning($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
+                if(_log) Debug.Log($"Machine count: {data.Machines.Count}");
+                if(_log) Debug.Log($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
 
                 UnityMainThreadDispatcher.Instance.Enqueue(() => {
                     try { 
-                        Debug.Log($"Machine count: {data.Machines.Count}");
-                        Debug.Log($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
+                        if(_log) Debug.Log($"Machine count: {data.Machines.Count}");
+                        if(_log) Debug.Log($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
 
                         foreach (var m in data.Machines) {
                             try {
-                                Debug.Log($"Building prefab: {m.PrefabName}");
+                                if(_log) Debug.Log($"Building prefab: {m.PrefabName}");
                                 var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
                                 if (prefab == default) continue;
 
                                 var worldPos = _constructionLayer.CellToWorld(m.Position.ToVector3Int());
-                                Debug.Log($"Building machine: {prefab.Name} at {worldPos}");
+                                if(_log) Debug.Log($"Building machine: {prefab.Name} at {worldPos}");
                                 var constructedGameObject = _constructionLayerScript.Build(worldPos, prefab);
 
                                 if (constructedGameObject is null
@@ -212,18 +215,24 @@ namespace Script.Controller {
                             }
                             catch (System.Exception e) {
                                 Debug.LogWarning(new System.Exception($"Cannot load machine {m.PrefabName}", e));
+                                e.RaiseException();
+
                             }
                         }
                     }
                     catch (System.Exception ex) {
                         Debug.LogError($"Cannot load {nameof(MachineController)}");
                         Debug.LogException(ex);
+                        ex.RaiseException();
+
                     }
                 });
             }
             catch (System.Exception e) {
                 Debug.LogError($"Cannot load {GetType()}");
-                Debug.LogException(e);
+                Debug.LogException(e);               
+                e.RaiseException();
+
                 return;
             }
         }
@@ -240,6 +249,8 @@ namespace Script.Controller {
                 }
                 catch (System.Exception e) {
                     Debug.LogWarning(new System.Exception($"Cannot save machine {m.name}", e));
+                    e.RaiseException();
+
                 }
             });
             // Debug.LogWarning(SaveManager.Serialize(newSave));
@@ -257,6 +268,8 @@ namespace Script.Controller {
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
                 Debug.LogException(ex);
+                ex.RaiseException();
+
             }
         }
 

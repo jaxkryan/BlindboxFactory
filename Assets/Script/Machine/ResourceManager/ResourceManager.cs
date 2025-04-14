@@ -118,7 +118,7 @@ namespace Script.Machine.ResourceManager
                     return false;
                 }
 
-                count = count > lockedAmount / resourceUse.Amount ? lockedAmount / resourceUse.Amount : count;
+                if (resourceUse.Amount > 0) count = count > lockedAmount / resourceUse.Amount ? lockedAmount / resourceUse.Amount : count;
             }
 
             return count > 0;

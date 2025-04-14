@@ -4,8 +4,10 @@ using System.Linq;
 using AYellowpaper.SerializedCollections;
 using MyBox;
 using Newtonsoft.Json;
+using Script.Alert;
 using Script.Controller.SaveLoad;
 using Script.Resources;
+using Script.Utils;
 using UnityEngine;
 
 namespace Script.Controller {
@@ -31,6 +33,12 @@ namespace Script.Controller {
             }
             catch {
                 Debug.LogError($"Failed to update resource data: {resource}");
+
+                new GameAlert.Builder(AlertType.Warning)
+                    .WithHeader(nameof(ResourceController))
+                    .WithMessage($"Failed to update resource data: {resource}")
+                    .WithCloseButton()
+                    .Build().Raise();
             }
 
             return false;
@@ -126,6 +134,8 @@ namespace Script.Controller {
                     }
                     catch (System.Exception e) {
                         Debug.LogException(e);
+                        e.RaiseException();
+
                         return;
                     }
                 });
@@ -133,6 +143,8 @@ namespace Script.Controller {
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot load {GetType()}");
                 Debug.LogException(ex);
+                ex.RaiseException();
+
                 return;
             }
         }
@@ -157,6 +169,8 @@ namespace Script.Controller {
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
                 Debug.LogException(ex);
+                ex.RaiseException();
+
             }
         }
         

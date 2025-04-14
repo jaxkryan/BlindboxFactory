@@ -5,10 +5,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Script.Alert;
 using Script.Controller;
 using Script.Controller.SaveLoad;
 using Script.Gacha.Base;
 using Script.Resources;
+using Script.Utils;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
@@ -311,6 +313,8 @@ namespace Script.HumanResource.Administrator {
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot load {GetType()}");
                 Debug.LogException(ex);
+                ex.RaiseException();
+
                 return;
             }
             void ClearData() {
@@ -355,6 +359,8 @@ namespace Script.HumanResource.Administrator {
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
                 Debug.LogException(ex);
+                ex.RaiseException();
+
             }
         }
         public class SaveData {

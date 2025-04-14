@@ -1,28 +1,36 @@
 using System;
+using System.Collections;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Script.Alert {
     public class AlertUI : MonoBehaviour {
-        
-    }
+        [SerializeField] public Image Background;
+        [SerializeField] public TextMeshProUGUI Header;
+        [SerializeField] public TextMeshProUGUI Message;
+        [SerializeField] public AlertButtonUI Button1;
+        [SerializeField] public AlertButtonUI Button2;
+        [SerializeField] public Button CloseButton;
 
-    public class AlertUIButtonDetails {
-        public Color Color;
-        public string Text;
-        public Action OnClick;
-        public bool IsCloseButton;
-        
-        
-        public static AlertUIButtonDetails CloseButton = new AlertUIButtonDetails() {
-            Color = Color.red,
-            Text = "Close",
-            IsCloseButton = true,
+        public event Action onAlertClosed = delegate {
+            AlertManager.Instance.StartCoroutine(RaiseAlert());
+
+            IEnumerator RaiseAlert() {
+                yield return new WaitForNextFrameUnit();
+                AlertManager.Instance.RaiseBackLog();
+            }
         };
-        public static AlertUIButtonDetails CloseApplicationButton = new AlertUIButtonDetails() {
-            Color = Color.red,
-            Text = "Close",
-            IsCloseButton = true,
-            OnClick = Application.Quit
-        }; 
+
+        public void Close() {
+            this.gameObject.SetActive(false);
+        }
+
+        private void OnDisable() {
+            if (!gameObject.activeInHierarchy) {
+                onAlertClosed?.Invoke();
+            }
+        }
     }
 }
