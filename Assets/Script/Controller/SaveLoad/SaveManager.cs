@@ -1,6 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Firebase;
 using Firebase.Database;
@@ -16,14 +18,18 @@ namespace Script.Controller.SaveLoad {
         private DatabaseReference dbRef;
 
         public string Path { get; init; }
-        public string FileName { get; init; }
+        public string FileName => IncludeTimeStamp();
+        private string _fileName;
         public string FilePath => System.IO.Path.Combine(Path, FileName);
+        public int MaxSaves { get; init; }
+        private bool _log => GameController.Instance.Log;
 
-        public SaveManager() : this(Application.persistentDataPath) { }
+        public SaveManager(int maxSaves = 10) : this(Application.persistentDataPath, maxSaves: maxSaves) { }
 
-        public SaveManager(string path, string fileName = "data.json") {
+        public SaveManager(string path, string fileName = "data.json", int maxSaves = 10) {
             Path = path;
-            FileName = fileName;
+            _fileName = fileName;
+            MaxSaves = maxSaves;
             // InitializeFirebase();
         }
 
@@ -76,6 +82,15 @@ namespace Script.Controller.SaveLoad {
             await saveTask;
         }
 
+        private string IncludeTimeStamp() {
+            var startTime = GameController.Instance.SessionStartTime;
+            if (startTime == null || startTime == DateTime.MinValue) return _fileName;
+            var parts = _fileName.Split('.');
+            if (parts.Length < 1) return _fileName;
+            parts[0] = parts[0] + "-" + startTime.Ticks;
+            return string.Join(".", parts);
+        } 
+        
         public async Task SaveToLocal() {
             try {
                 if (Application.platform == RuntimePlatform.Android) {
@@ -83,21 +98,44 @@ namespace Script.Controller.SaveLoad {
                         || !Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead)) return;
                 }
 
+                if (GameController.Instance.SessionStartTime == DateTime.MinValue) {
+                    Debug.LogWarning("[Cannot save] Session not started!");
+                    return;
+                }
+
+                RemoveOldSaves();
+
                 using (var file = System.IO.File.Open(FilePath, FileMode.OpenOrCreate)) { }
 
-                Debug.Log($"Saving data to: {FilePath}");
+                if (_log) Debug.Log($"Saving data to: {FilePath}");
                 var str = Serialize(SaveData);
-                Debug.Log($"Serialized data: {str}");
+                if (_log) Debug.Log($"Serialized data: {str}");
 
                 await using (StreamWriter sw = new StreamWriter(FilePath, false)) {
                     await sw.WriteAsync(Encrypt(str));
                     await sw.FlushAsync();
-                    Debug.Log("Data saved successfully.");
+                    if (_log) Debug.Log("Data saved successfully.");
                 }
             }
             catch (System.Exception e) {
-                Debug.LogException(new System.Exception($"Error saving data from local file", e));
+                Debug.LogException(new System.Exception($"[Cannot save] Error saving data from local file", e));
             }
+        }
+
+        private void RemoveOldSaves() {
+            var filePaths = GetAllSavePaths();
+            while (filePaths.Count >= MaxSaves && filePaths.Count > 0) {
+                filePaths.RemoveAt(filePaths.Count - 1);
+            }
+        }
+
+        private List<string> GetAllSavePaths() {
+            var parts = _fileName.Split('.').ToList();
+            var name = parts.ElementAtOrDefault(0) ?? "";
+            name += "-";
+            if (parts.Count > 0) parts.RemoveAt(0);
+
+            return Directory.GetFiles(Path, $"{name}*{string.Join(".", parts)}").OrderByDescending(file => file).ToList();
         }
 
         public async Task LoadFromLocal() {
@@ -107,9 +145,13 @@ namespace Script.Controller.SaveLoad {
                         || !Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead)) return;
                 }
 
-                using (var file = System.IO.File.Open(FilePath, FileMode.OpenOrCreate)) { }
+                if (GameController.Instance.SessionStartTime == DateTime.MinValue) return;
+                
+                var latestSavePath = GetAllSavePaths().Count > 0 ? GetAllSavePaths().First() : FilePath;
 
-                using StreamReader sr = new StreamReader(FilePath);
+                using (var file = System.IO.File.Open(latestSavePath, FileMode.OpenOrCreate)) { }
+
+                using StreamReader sr = new StreamReader(latestSavePath);
                 var str = await sr.ReadToEndAsync();
                 var saveData = Deserialize<ConcurrentDictionary<string, string>>(Decrypt(str));
 
@@ -125,7 +167,7 @@ namespace Script.Controller.SaveLoad {
                 //     .Build());
             }
             catch (System.Exception e) {
-                Debug.LogException(new System.Exception($"Error loading data from local file", e));
+                Debug.LogException(new System.Exception($"[Cannot load] Error loading data from local file", e));
             }
         }
 
