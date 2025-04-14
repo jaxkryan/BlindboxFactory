@@ -56,7 +56,7 @@ namespace Script.Controller {
         
 
         public int SessionCount {get; private set;}
-        public bool CompletedTutorial {get; private set;}
+        public bool CompletedTutorial { get; private set; } = false;
         public long TotalPlaytime { get; private set; } = 0;
         public long SessionPlaytime { get; private set; } = 0;
         [CanBeNull] public string SessionId { get; private set; } = null;
@@ -92,7 +92,7 @@ namespace Script.Controller {
             NavMeshSurface.BuildNavMesh();
         }
 
-        public void CompleteTutorial() => CompletedTutorial = true; 
+        public void FinishTutorial() => CompletedTutorial = true; 
 
         private void OnDestroy() => _controllers.ForEach(c => c.OnDestroy());
 
