@@ -9,17 +9,13 @@ namespace Script.Machine
 {
     public class ResourceExtractor : MachineBase
     {
-        //[SerializeField] private int level = 1;
         [SerializeField] private Transform miningOutputPoint; // Position where materials appear
-        [SerializeField] private GameObject materialPrefab;   // Prefab for material animation
+        [SerializeField] private GameObject materialObject;   // Reference to the child GameObject (shootout)
 
         protected override void Start()
         {
             base.Start();
 
-            //ProgressionPerSec = 20f;
-            //if (level > 1) ProgressionPerSec *= 1.5f;
-            //SetMachineHasEnergyForWork(true);
             if (Product == null)
             {
                 Debug.LogWarning($"Product is not set for ResourceExtractor on {gameObject.name}. Please assign AddResourceToStorageProduct in the Inspector.");
@@ -29,48 +25,38 @@ namespace Script.Machine
                 Debug.LogWarning($"Product on ResourceExtractor {gameObject.name} is not an AddResourceToStorageProduct. Please assign the correct product type in the Inspector.");
             }
 
-            //Debug.Log("Machine workable: " + IsWorkable + CanCreateProduct + HasEnergyForWork + HasResourceForWork);
-
             // Subscribe to the product creation event to trigger animation
             onCreateProduct += OnProductCreatedHandler;
+
+            // Ensure the materialObject is initially inactive
+            if (materialObject != null)
+            {
+                materialObject.SetActive(false);
+            }
+            else
+            {
+                Debug.LogError("materialObject is not assigned in the Inspector!");
+            }
         }
 
         protected override void Update()
         {
             base.Update();
 
-            //// Increase progress each frame if workable
-            // tam thoi fix cung
             if (IsWorkable)
             {
                 ProgressionPerSec = 19f;
                 IncreaseProgress(ProgressionPerSec * Time.deltaTime);
             }
-            //Debug.Log("is workable: " + IsWorkable + !IsClosed + HasResourceForWork + HasEnergyForWork + CanCreateProduct);
-            //Debug.Log("Running per sec now" + WorkDetails.First().IsRunning);
-            //Debug.Log("Current Progress now" + CurrentProgress);
         }
-
-        //public override ProductBase CreateProduct()
-        //{
-        //    var product = base.CreateProduct();
-        //    return product;
-        //}
 
         private void OnProductCreatedHandler(ProductBase product)
         {
-            // Ensure the product is AddResourceToStorageProduct and cast it
             if (product is AddResourceToStorageProduct resourceProduct && resourceProduct.SelectedMaterial.HasValue)
             {
-                // Trigger the animation with the selected sprite
                 AnimateMaterial(resourceProduct.SelectedSprite);
             }
         }
-
-        //public void LevelUp()
-        //{
-        //    level++;
-        //}
 
         private void AnimateMaterial(Sprite materialSprite)
         {
@@ -80,24 +66,32 @@ namespace Script.Machine
                 return;
             }
 
-            GameObject materialObject = Instantiate(materialPrefab, miningOutputPoint.position, Quaternion.identity);
-            SpriteRenderer spriteRenderer = materialObject.GetComponent<SpriteRenderer>();
-            if (spriteRenderer == null)
+            if (materialObject == null)
             {
-                Debug.LogError("Material prefab does not have a SpriteRenderer component.");
-                Destroy(materialObject);
+                Debug.LogError("materialObject is not assigned in the Inspector!");
                 return;
             }
 
+            SpriteRenderer spriteRenderer = materialObject.GetComponent<SpriteRenderer>();
+            if (spriteRenderer == null)
+            {
+                Debug.LogError("materialObject does not have a SpriteRenderer component.");
+                return;
+            }
+
+            // Set the sprite and activate the object
             spriteRenderer.sprite = materialSprite;
+            materialObject.transform.position = miningOutputPoint.position; // Reset position
+            materialObject.transform.localScale = Vector3.one * 0.2f;       // Reset scale
+            spriteRenderer.color = Color.white;                             // Reset alpha to full opacity
+            materialObject.SetActive(true);
 
-            materialObject.transform.localScale = Vector3.one * 0.2f;
-            materialObject.transform.DOMoveY(miningOutputPoint.position.y + 0.7f, 0.5f).SetEase(Ease.OutQuad);
-            spriteRenderer.DOFade(0f, 0.8f).SetDelay(0.3f).OnComplete(() => Destroy(materialObject));
+            // Animate the object
+            materialObject.transform.DOMoveY(miningOutputPoint.position.y + 0.7f, 0.5f)
+                .SetEase(Ease.OutQuad);
+            spriteRenderer.DOFade(0f, 0.8f)
+                .SetDelay(0.3f)
+                .OnComplete(() => materialObject.SetActive(false)); // Deactivate instead of destroying
         }
-
-
-
-
     }
 }
