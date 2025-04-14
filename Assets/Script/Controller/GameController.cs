@@ -15,6 +15,7 @@ using Script.Controller.Permissions;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Administrator;
 using Script.HumanResource.Worker;
+using Script.Machine;
 using Script.Utils;
 using UnityEngine;
 using UnityEngine.Android;
@@ -61,6 +62,7 @@ namespace Script.Controller {
         public long SessionPlaytime { get; private set; } = 0;
         [CanBeNull] public string SessionId { get; private set; } = null;
         public DateTime SessionStartTime { get; private set; } = DateTime.MinValue;
+        public event Action onTutorialCompleted = delegate { };
         
         [Space][Header("Log")]
         [SerializeField] private bool _log;
@@ -92,16 +94,61 @@ namespace Script.Controller {
             NavMeshSurface.BuildNavMesh();
         }
 
-        public void FinishTutorial() => CompletedTutorial = true; 
+        public void FinishTutorial() {
+            CompletedTutorial = true;
+            if (!SaveManager.SaveData.TryGetValue(nameof(CompletedTutorial), out string completedTutorialString)
+                || completedTutorialString == bool.FalseString) {
+                onTutorialCompleted?.Invoke();
+            }
+        }
 
         private void OnDestroy() => _controllers.ForEach(c => c.OnDestroy());
 
         private void OnApplicationQuit() => _controllers.ForEach(c => c.OnApplicationQuit());
+
+        private void OnEnable() {
+            _controllers.ForEach(c => c.OnEnable());
+            if (_isSubbed) return;
+            Subscribe();
+        }
+
+        private void OnDisable() {
+            _controllers.ForEach(c => c.OnDisable());
+            if (!_isSubbed) return;
+            Unsubscribe();
+        } 
+
+        bool _isSubbed = false;
+        private void Subscribe() {
+            _isSubbed = true;
+            onTutorialCompleted += InitiateSave;
+            MachineController.onMachineAdded += InitiateSave;
+            MachineController.onMachineRemoved += InitiateSave;
+            MachineController.onMachineUnlocked += InitiateSave;
+            CommissionController.OnCommissionChanged += InitiateSave;
+            CommissionController.onCommissionCompleted += InitiateSave;
+            QuestController.onQuestStateChanged += InitiateSave;
+        }
+
+        private void Unsubscribe() {
+            _isSubbed = false;
+            onTutorialCompleted -= InitiateSave;
+            MachineController.onMachineAdded -= InitiateSave;
+            MachineController.onMachineRemoved -= InitiateSave;
+            MachineController.onMachineUnlocked -= InitiateSave;
+            CommissionController.OnCommissionChanged -= InitiateSave;
+            CommissionController.onCommissionCompleted -= InitiateSave;
+            QuestController.onQuestStateChanged -= InitiateSave;
+        }
+
+        private void InitiateSave(MachineBase obj) => InitiateSave();
+        private void InitiateSave(string obj) => InitiateSave();
+        private void InitiateSave(Commission.Commission obj) => InitiateSave();
+        private void InitiateSave(Quest.Quest obj) => InitiateSave();
+        private void InitiateSave() {
+            StartCoroutine(Save(SaveManager).AsCoroutine());
+        }
         
-        private void OnEnable() => _controllers.ForEach(c => c.OnEnable());
-
-        private void OnDisable() => _controllers.ForEach(c => c.OnDisable());
-
         private IEnumerator Start() {
             if (HasSaveTimer) {
                 _saveTimer = new CountdownTimer(MinutesBetweenSave * 60);
