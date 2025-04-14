@@ -83,11 +83,9 @@ public class CameraController : MonoBehaviour
 
         if (tile == null)
         {
-            Debug.Log($"No tile at {cellPosition}");
             return false;
         }
 
-        Debug.Log($"Tile found at {cellPosition}: {tile.name}");
         return true;
     }
 
