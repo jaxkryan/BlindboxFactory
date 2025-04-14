@@ -22,8 +22,8 @@ public class AudioManager : PersistentSingleton<AudioManager>
     void Update()
     {
 
-    }
 
+    }
 
     //Example AudioManager.Instance.PlayMusic("Freefire");
     public void PlayMusic(string name)
