@@ -251,8 +251,6 @@ namespace Script.Controller {
                 try {
                     var machine = m.Save();
                     newSave.Machines.Add(machine);
-                    Debug.Log($"{machine.Position.x}, {machine.Position.y}, {machine.Position.z}");
-                    Debug.Log(SaveManager.Serialize(machine));
                 }
                 catch (System.Exception e) {
                     Debug.LogWarning(new System.Exception($"Cannot save machine {m.name}", e));

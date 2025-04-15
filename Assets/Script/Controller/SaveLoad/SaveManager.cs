@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Firebase;
 using Firebase.Database;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Script.Alert;
 using UnityEngine;
@@ -23,6 +24,18 @@ namespace Script.Controller.SaveLoad {
         public string FilePath => System.IO.Path.Combine(Path, FileName);
         public int MaxSaves { get; init; }
         private bool _log => GameController.Instance.Log;
+
+        public string CurrentSavePath {
+            get => _currentSavePath ?? FilePath;
+            private set => _currentSavePath = value;
+        }
+
+        [CanBeNull] public string _currentSavePath; 
+        public string CurrentLoadPath { 
+            get => _currentLoadPath ?? FilePath;
+            private set => _currentLoadPath = value;
+        }
+        [CanBeNull] public string _currentLoadPath; 
 
         public SaveManager(int maxSaves = 10) : this(Application.persistentDataPath, maxSaves: maxSaves) { }
 
@@ -105,9 +118,11 @@ namespace Script.Controller.SaveLoad {
 
                 RemoveOldSaves();
 
-                using (var file = System.IO.File.Open(FilePath, FileMode.OpenOrCreate)) { }
+                CurrentSavePath = FilePath;
+                
+                using (var file = System.IO.File.Open(CurrentSavePath, FileMode.OpenOrCreate)) { }
 
-                if (_log) Debug.Log($"Saving data to: {FilePath}");
+                if (_log) Debug.Log($"Saving data to: {CurrentSavePath}");
                 var str = Serialize(SaveData);
                 if (_log) Debug.Log($"Serialized data: {str}");
 
@@ -125,8 +140,19 @@ namespace Script.Controller.SaveLoad {
         private void RemoveOldSaves() {
             var filePaths = GetAllSavePaths();
             while (filePaths.Count >= MaxSaves && filePaths.Count > 0) {
-                filePaths.RemoveAt(filePaths.Count - 1);
+                var removingFilePath = filePaths.ElementAtOrDefault(filePaths.Count - 1);
+                if (string.IsNullOrEmpty(removingFilePath)) {
+                    Debug.LogError($"{nameof(removingFilePath)} is empty");
+                    break;
+                }
+                RemoveSave(removingFilePath);
+                filePaths.Remove(removingFilePath);
             }
+        }
+
+        private void RemoveSave(string path) {
+            if (File.Exists(path)) { File.Delete(path); }
+            else Debug.LogError($"Cannot remove file because it doesn't exist: {path}");
         }
 
         private List<string> GetAllSavePaths() {
@@ -144,14 +170,13 @@ namespace Script.Controller.SaveLoad {
                     if (!Permission.HasUserAuthorizedPermission(Permission.ExternalStorageWrite)
                         || !Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead)) return;
                 }
-
-                if (GameController.Instance.SessionStartTime == DateTime.MinValue) return;
                 
-                var latestSavePath = GetAllSavePaths().Count > 0 ? GetAllSavePaths().First() : FilePath;
+                CurrentLoadPath = GetAllSavePaths().Count > 0 ? GetAllSavePaths().First() : FilePath;
+                if (_log) Debug.Log($"Current load path: {CurrentLoadPath}");
 
-                using (var file = System.IO.File.Open(latestSavePath, FileMode.OpenOrCreate)) { }
+                using (var file = System.IO.File.Open(CurrentLoadPath, FileMode.OpenOrCreate)) { }
 
-                using StreamReader sr = new StreamReader(latestSavePath);
+                using StreamReader sr = new StreamReader(CurrentLoadPath);
                 var str = await sr.ReadToEndAsync();
                 var saveData = Deserialize<ConcurrentDictionary<string, string>>(Decrypt(str));
 
