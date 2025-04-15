@@ -12,21 +12,28 @@ namespace Script.Utils {
                 //Check if Child is a direct descendant
                 switch (GetInheritanceDepth(typeof(TChild), typeof(TParent), out var path)) {
                     case > 1:
-                        try {
-                            var directParent = path.ElementAtOrDefault(path.Count - 2);
-                            if (directParent is null) throw new NullReferenceException();
-                            child = (TChild)Convert.ChangeType(SafeCastToSubclass(child, directParent
-                                    , typeof(TParent)), typeof(TChild));
-                            if (child is null) throw new NullReferenceException();
-                        }
-                        catch(System.Exception ex) {
-                            Debug.LogException(ex);
-                            return obj as TChild;
-                        }
+                        // try {
+                        //     var directParent = path.ElementAtOrDefault(path.Count - 2);
+                        //     if (directParent is null) throw new NullReferenceException();
+                        //     var result = SafeCastToSubclass(child, directParent, typeof(TParent));
+                        //
+                        //     Debug.Log($"Result type: {result.GetType()}, Expected type: {typeof(TChild)}");
+                        //     if (result is TChild validChild) child = validChild;
+                        //     else
+                        //         Debug.LogError($"Failed to cast object of type {result.GetType()} to {typeof(TChild)}");
+                        // }
+                        // catch (System.Exception ex) {
+                        //     Debug.LogException(ex);
+                        //     return obj as TChild;
+                        // }
+                        
+                        Debug.LogException(new System.Exception($"{nameof(CastToSubclass)} can only cast from direct descendants"));
 
                         break;
                     case 0:
-                        Debug.LogException(new System.Exception($"Child {typeof(TChild)} is not a subclass of Parent {typeof(TParent)}"));
+                        Debug.LogException(
+                            new System.Exception(
+                                $"Child {typeof(TChild)} is not a subclass of Parent {typeof(TParent)}"));
                         return obj as TChild;
                 }
 
@@ -43,7 +50,9 @@ namespace Script.Utils {
 
                 //Cast properties
                 foreach (var propertyInfo in typeof(TParent).GetProperties()) {
-                    try { propertyInfo.SetValue(child, propertyInfo.GetValue(obj)); }
+                    try {
+                        propertyInfo.SetValue(child, propertyInfo.GetValue(obj));
+                    }
                     catch (System.Exception e) {
                         Debug.LogWarning(new InvalidCastException($"Cannot cast field {propertyInfo.Name}", e));
                     }
@@ -51,20 +60,21 @@ namespace Script.Utils {
 
                 return child;
             }
-            catch (System.Exception ex) { Debug.LogException(ex); }
+            catch (System.Exception ex) {
+                Debug.LogException(ex);
+            }
 
             return obj as TChild;
         }
-        
-        static object? SafeCastToSubclass(object obj, Type childType, Type parentType)
-        {
-            try
-            {
+
+        static object? SafeCastToSubclass(object obj, Type childType, Type parentType) {
+            try {
                 if (!parentType.IsAssignableFrom(childType))
                     throw new InvalidCastException($"{childType.Name} is not a subclass of {parentType.Name}");
 
                 var method = typeof(SaveDataExtension)
-                    .GetMethod("CastToSubclass", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
+                    .GetMethod("CastToSubclass",
+                        System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
                     ?.MakeGenericMethod(childType, parentType);
 
                 if (method == null)
@@ -72,8 +82,7 @@ namespace Script.Utils {
 
                 return method.Invoke(null, new object[] { obj });
             }
-            catch (System.Exception ex)
-            {
+            catch (System.Exception ex) {
                 Console.WriteLine($"[Cast Error] {ex.GetType().Name}: {ex.Message}");
                 return null;
             }
