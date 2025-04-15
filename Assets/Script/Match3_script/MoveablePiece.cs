@@ -13,11 +13,6 @@ public class MoveablePiece : MonoBehaviour
         piece = GetComponent<GamePiece>();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
     public void Move(int newX, int newY,float time)
     {
         if (moveCorountine != null) {
