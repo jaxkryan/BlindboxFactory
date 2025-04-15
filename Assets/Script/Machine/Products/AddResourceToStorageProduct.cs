@@ -61,45 +61,48 @@ namespace Script.Machine.Products {
             get
             {
                 var controller = GameController.Instance.ResourceController;
-                if (controller == null)
-                {
-                    Debug.LogError("ResourceController is null in GameController.Instance.");
-                    return false;
+                if (controller == null) return false;
+                
+                if (materialDropRates == null || materialDropRates.Count == 0) return false;
+                foreach (var dropRate in materialDropRates) {
+                    if (!controller.TryGetData(dropRate.material, out var data, out var amount)) return false;
+                    if (amount > data.MaxAmount) return false;
                 }
-
-                // Check materials in materialDropRates
-                if (materialDropRates != null && materialDropRates.Count > 0)
-                {
-                    foreach (var materialRate in materialDropRates)
-                    {
-                     
-
-                        if (controller.TryGetData(materialRate.material, out var resourceData, out var amount))
-                        {
-                            long capacity = resourceData.MaxAmount; // Get the capacity from ResourceData
-                            if (capacity > amount)
-                            {
-                                //Debug.Log($"Can create product: {materialRate.material} has capacity (amount: {amount}, capacity: {capacity})");
-                                return true;
-                            }
-                            else
-                            {
-                                Debug.Log($"Material {materialRate.material} is at full capacity (amount: {amount}, capacity: {capacity})");
-                            }
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"Failed to get data for {materialRate.material}.");
-                        }
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning("materialDropRates is empty. Falling back to Resource field.");
-                }
-
-                Debug.Log("Cannot create product: No materials have available capacity.");
-                return false;
+                return true;
+                
+                // //Check materials in materialDropRates
+                // if (materialDropRates != null && materialDropRates.Count > 0)
+                // {
+                //     foreach (var materialRate in materialDropRates)
+                //     {
+                //      
+                //
+                //         if (controller.TryGetData(materialRate.material, out var resourceData, out var amount))
+                //         {
+                //             long capacity = resourceData.MaxAmount; // Get the capacity from ResourceData
+                //             if (capacity > amount)
+                //             {
+                //                 //Debug.Log($"Can create product: {materialRate.material} has capacity (amount: {amount}, capacity: {capacity})");
+                //                 return true;
+                //             }
+                //             else
+                //             {
+                //                 Debug.Log($"Material {materialRate.material} is at full capacity (amount: {amount}, capacity: {capacity})");
+                //             }
+                //         }
+                //         else
+                //         {
+                //             Debug.LogWarning($"Failed to get data for {materialRate.material}.");
+                //         }
+                //     }
+                // }
+                // else
+                // {
+                //     Debug.LogWarning("materialDropRates is empty. Falling back to Resource field.");
+                // }
+                //
+                // Debug.Log("Cannot create product: No materials have available capacity.");
+                // return false;
             }
         }
 
@@ -192,11 +195,12 @@ namespace Script.Machine.Products {
 
 
         public override IProduct.SaveData Save() {
-            var data = base.Save().CastToSubclass<AddResourceToStorageData, IProduct.SaveData>();
+            var castedData = base.Save().CastToSubclass<AddToStorageSaveData, IProduct.SaveData>();
+            var data = castedData.CastToSubclass<AddResourceToStorageData, AddToStorageSaveData>();
             if (data is null) return base.Save();
 
             data.Resource = Resource;
-            data.MaterialDropRates = materialDropRates;
+            data.MaterialDropRates = materialDropRates.Select(m => new AddResourceToStorageData.MaterialDropRateSave(){material = m.material, dropRate = m.dropRate}).ToList();
             data.QuantityDropRates = quantityDropRates;
             data.SelectedMaterial = SelectedMaterial;
             data.SelectedQuantity = SelectedQuantity;
@@ -209,7 +213,7 @@ namespace Script.Machine.Products {
             if (saveData is not AddResourceToStorageData data) return;
             
             Resource = data.Resource;
-            materialDropRates = data.MaterialDropRates;
+            materialDropRates = data.MaterialDropRates.Select(m => new MaterialDropRate(){dropRate = m.dropRate, material = m.material}).ToList();
             quantityDropRates = data.QuantityDropRates;
             SelectedMaterial = data.SelectedMaterial;
             SelectedQuantity = data.SelectedQuantity;
@@ -218,10 +222,15 @@ namespace Script.Machine.Products {
 
         public class AddResourceToStorageData : AddToStorageSaveData {
             public Resource Resource;
-            public List<MaterialDropRate> MaterialDropRates;
+            public List<MaterialDropRateSave> MaterialDropRates;
             public List<QuantityDropRate> QuantityDropRates;
             public Resource? SelectedMaterial;
             public int SelectedQuantity;
+
+            public class MaterialDropRateSave {
+                public Resource material;
+                public float dropRate; // Probability of dropping this material
+            }
         }
     }
 }
