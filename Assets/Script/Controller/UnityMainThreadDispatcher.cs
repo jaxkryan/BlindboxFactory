@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,6 +13,12 @@ public class UnityMainThreadDispatcher : PersistentSingleton<UnityMainThreadDisp
                     Debug.LogException(new System.Exception("Cannot execute queued action!", e));
                 }
             }
+        }
+    }
+
+    private void Start() {
+        lock (_executionQueue) {
+            _executionQueue.Clear();
         }
     }
 

@@ -35,7 +35,8 @@ namespace Script.Quest {
         private string Key(string keyName) => $"{Name}: {keyName}";
         
         public void Evaluate() {
-            Debug.Log($"Evaluating quest {Name}. State {State}");
+            var log = GameController.Instance.Log;
+            if (log) Debug.Log($"Evaluating quest {Name}. State {State}");
             QuestState oriState;
             do {
                 oriState = State;
@@ -43,14 +44,14 @@ namespace Script.Quest {
                     case QuestState.Locked:
                         if (Preconditions.All(c => c?.Evaluate(this) ?? true))
                             State = QuestState.InProgress;
-                        if (State == QuestState.InProgress) Debug.Log($"State of quest {Name} change to {State}");
+                        if (State == QuestState.InProgress) if (log) Debug.Log($"State of quest {Name} change to {State}");
                         break;
                     case QuestState.InProgress:
                         if (Objectives.All(o => o.Evaluate(this))) {
                             State = QuestState.Complete;
                             OnComplete();
                         }
-                        if (State == QuestState.Complete) Debug.Log($"State of quest {Name} change to {State}");
+                        if (State == QuestState.Complete) if (log) Debug.Log($"State of quest {Name} change to {State}");
                         break;
                     case QuestState.Complete:
                         break;
@@ -61,7 +62,7 @@ namespace Script.Quest {
             }
             while (oriState != State);
 
-            Debug.Log($"Complete evaluation of quest {Name}. Final state {State}");
+            if (log) Debug.Log($"Complete evaluation of quest {Name}. Final state {State}");
         }
 
         public event Action<Quest, QuestState> onQuestStateChanged = delegate { };

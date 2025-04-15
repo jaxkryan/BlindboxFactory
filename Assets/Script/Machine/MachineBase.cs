@@ -13,7 +13,8 @@ namespace Script.Machine {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(PolygonCollider2D))]
     public abstract class MachineBase : MonoBehaviour, IMachine, IBuilding {
-        public virtual Vector2Int Position { get; set; }
+        public virtual Vector3 Position { get => _position; set => _position = value; }
+        [SerializeField] private Vector3 _position;
         public virtual string PrefabName { get; set; }
 
         public int PowerUse {
@@ -317,10 +318,9 @@ namespace Script.Machine {
             UpdateWorkDetails();
         }
 
-        public virtual MachineBaseData Save() =>
-            new MachineBaseData() {
+        public virtual MachineBaseData Save() => new MachineBaseData() {
                 PrefabName = PrefabName,
-                Position = Position,
+                Position = new(Position),
                 PowerUse = _powerUse,
                 ResourceManager = _resourceManager.ToSaveData(),
                 HasEnergyForWork = HasEnergyForWork,
@@ -384,7 +384,7 @@ namespace Script.Machine {
 
         public class MachineBaseData {
             public string PrefabName;
-            public Vector2Int Position;
+            public V3 Position;
             public int PowerUse;
             public ResourceManager.ResourceManager.SaveData ResourceManager;
             public bool HasEnergyForWork;

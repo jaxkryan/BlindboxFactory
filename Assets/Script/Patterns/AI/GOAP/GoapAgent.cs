@@ -62,16 +62,16 @@ public abstract class GoapAgent : MonoBehaviour {
         
         // Update the plan and current action if there is one
         if (CurrentAction == null) {
-            Debug.Log("Calculating any potential new plan");
+            if (_log) Debug.Log("Calculating any potential new plan");
             CalculatePlan();
 
             if (ActionPlan != null && ActionPlan.Actions.Count > 0) {
                 if (!_navMeshAgent.isOnNavMesh) {
-                    _navMeshAgent.enabled = true;
                     if (NavMesh.SamplePosition(_navMeshAgent.transform.position, out var hit, Single.MaxValue, NavMesh.AllAreas)) {
                         Debug.LogWarning($"Warping agent to {hit.position}");
-                        _navMeshAgent.Warp(hit.position);
+                        _navMeshAgent.transform.position = hit.position;
                     }
+                    _navMeshAgent.enabled = true;
                 }
                 _navMeshAgent.ResetPath();
 
