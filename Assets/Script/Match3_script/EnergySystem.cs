@@ -137,7 +137,7 @@ public class EnergySystem : MonoBehaviour
     string FormatTime(double seconds)
     {
         TimeSpan time = TimeSpan.FromSeconds(seconds);
-        return string.Format("{0:D2}:{1:D2}", time.Minutes, time.Seconds);
+        return time.Minutes.ToString("D2") + ":" + time.Seconds.ToString("D2");
     }
 
     // Call this method to spend energy.

@@ -63,7 +63,7 @@ public class PowerGridUI : MonoBehaviour
         int maxCapacity = powerGridController.GridCapacity;
 
         // Update the text to show "currentUsage / maxCapacity"
-        powerText.text = $"{currentUsage} / {maxCapacity}";
+        powerText.text = currentUsage.ToString() + " / " + maxCapacity.ToString();
 
         // Update the slider value instantly (normalized between 0 and 1)
         float targetValue = maxCapacity > 0 ? (float)currentUsage / maxCapacity : 0f;

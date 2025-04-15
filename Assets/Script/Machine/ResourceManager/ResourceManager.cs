@@ -138,7 +138,7 @@ namespace Script.Machine.ResourceManager
             foreach (var resource in resources)
             {
                 var storage = ResourceStorageInterface.Get(resource, _machine);
-                Debug.LogWarning($"Resource {resource}, Unlock: {newAmount(resource)}");
+                
                 if (newAmount(resource) > 0) storage.TrySetAmount(newAmount(resource));
                 _lockedResources.Remove(resource);
             }
