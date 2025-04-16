@@ -93,7 +93,7 @@ namespace Script.HumanResource.Worker {
             DeactivateWorker(worker);
 
             worker.transform.position = position;
-            if (NavMesh.SamplePosition(position, out var hit, 1.0f, NavMesh.AllAreas)) {
+            if (NavMesh.SamplePosition(position, out var hit, float.MaxValue, NavMesh.AllAreas)) {
                 worker.transform.position = hit.position;
                 worker.Agent.enabled = true;
             }

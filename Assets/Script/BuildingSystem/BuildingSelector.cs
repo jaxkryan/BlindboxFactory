@@ -133,7 +133,6 @@ public class BuildingSelector : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-
         foreach (var buildable in Categories[categoryIndex].buildables)
         {
             GameController.Instance.MachineController.UnlockMachines.TryGetValue(buildable.Name, out bool lockstatus);
@@ -154,7 +153,7 @@ public class BuildingSelector : MonoBehaviour
             {
                 if (buildable.Cost == null || buildable.Cost == 0)
                 {
-                    goldText.text = "Free   ";
+                    goldText.text = "Free";
                     goldImg.gameObject.SetActive(false);
                 }
                 else 

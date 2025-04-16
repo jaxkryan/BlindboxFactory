@@ -670,7 +670,7 @@ GameObject:
   - component: {fileID: 1258388442449184693}
   - component: {fileID: 3843684146319829648}
   m_Layer: 0
-  m_Name: 'Lv2 Match3Machine '
+  m_Name: Lv2 Excavator
   m_TagString: Excavator
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -779,7 +779,7 @@ Animator:
   m_Enabled: 1
   m_Avatar: {fileID: 0}
   m_Controller: {fileID: -4565145756054892575, guid: 53c2d045075ccf54b87861892b428748, type: 3}
-  m_CullingMode: 0
+  m_CullingMode: 2
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
@@ -802,6 +802,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2620fb916e243964dbb841ddb1dd09ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _position: {x: 0, y: 0, z: 0}
   _powerUse: 0
   _isClosed: 0
   _slots: []

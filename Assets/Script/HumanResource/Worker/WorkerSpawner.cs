@@ -59,8 +59,7 @@ namespace Script.HumanResource.Worker {
             WorkerPooling.Instance.ActivateWorker(worker, position);
             GameController.Instance.WorkerController.AddWorker(worker);
             
-            worker = null;
-            return false;
+            return true;
         }
 
         public void RemoveWorker(Worker worker) {

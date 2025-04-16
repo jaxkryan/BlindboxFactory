@@ -33,9 +33,11 @@ namespace Script.Controller {
         public ReadOnlyDictionary<RecoveryMachineKey, List<MachineCoreRecovery>> RecoveryMachines =>
             new(_recoverMachines);
 
-        [SerializeField] private SerializedDictionary<RecoveryMachineKey, List<MachineCoreRecovery>> _recoverMachines = new();
+        [SerializeField]
+        private SerializedDictionary<RecoveryMachineKey, List<MachineCoreRecovery>> _recoverMachines = new();
 
-        [Space] [SerializeField] private bool _log;
+        private bool _log => GameController.Instance.Log;
+
         public List<MachineBase> FindMachinesOfType(Type type) {
             if (!type.IsSubclassOf(typeof(MachineBase))) return new();
 
@@ -78,9 +80,12 @@ namespace Script.Controller {
         }
 
         public bool IsRecoveryMachine(MachineBase machine) => IsRecoveryMachine(machine, out _, out _);
-        public bool IsRecoveryMachine(MachineBase machine, out List<WorkerType> forWorkers) => IsRecoveryMachine(machine, out forWorkers, out _);
-        
-        public bool IsRecoveryMachine(MachineBase machine, out List<WorkerType> forWorkers, out List<MachineCoreRecovery> recoveries) { 
+
+        public bool IsRecoveryMachine(MachineBase machine, out List<WorkerType> forWorkers) =>
+            IsRecoveryMachine(machine, out forWorkers, out _);
+
+        public bool IsRecoveryMachine(MachineBase machine, out List<WorkerType> forWorkers,
+            out List<MachineCoreRecovery> recoveries) {
             forWorkers = default;
             recoveries = default;
             if (machine.PrefabName == null) return false;
@@ -88,7 +93,7 @@ namespace Script.Controller {
             var prefab = GetPrefab(machine);
             if (prefab is null) return false;
 
-            var keys = RecoveryMachines.Keys?.Where(r => r.Machine == prefab)?.ToList() ?? new ();
+            var keys = RecoveryMachines.Keys?.Where(r => r.Machine == prefab)?.ToList() ?? new();
 
             recoveries = RecoveryMachines
                 .Where(r => keys.Contains(r.Key))
@@ -102,8 +107,8 @@ namespace Script.Controller {
         }
 
         [CanBeNull]
-        public BuildableItem GetPrefab(MachineBase machine) 
-            => machine.PrefabName == null ? null : Buildables.FirstOrDefault(b => b.Name == machine.PrefabName);
+        public BuildableItem GetPrefab(MachineBase machine) =>
+            machine.PrefabName == null ? null : Buildables.FirstOrDefault(b => b.Name == machine.PrefabName);
 
         public void AddMachine(MachineBase machine) {
             _machines.Add(machine);
@@ -128,9 +133,10 @@ namespace Script.Controller {
             //
             //     list.Add(machine);
             // }
-            
+
             foreach (var machine in workableMachines) {
-                if (IsRecoveryMachine(machine, out var workerType, out _) && workerType.Contains(IWorker.ToWorkerType(worker)))
+                if (IsRecoveryMachine(machine, out var workerType, out _)
+                    && workerType.Contains(IWorker.ToWorkerType(worker)))
                     list.Add(machine);
             }
 
@@ -139,19 +145,24 @@ namespace Script.Controller {
 
         public IEnumerable<MachineBase> FindWorkableMachines([CanBeNull] IEnumerable<MachineBase> machines = null) {
             if (machines == null) machines = Machines;
-            return machines.Where(m => m.IsWorkable && m.Slots.Count() > m.Workers.Count() 
-                                                    && m.Product is not NullProduct && m.Product is not BlindBox { BoxTypeName: BoxTypeName.Null });
+            return machines.Where(m => m.IsWorkable
+                                       && m.Slots.Count() > m.Workers.Count()
+                                       && m.Product is not NullProduct
+                                       && m.Product is not BlindBox { BoxTypeName: BoxTypeName.Null });
         }
 
         public IEnumerable<MachineBase> FindWorkableMachines(Worker worker,
             [CanBeNull] IEnumerable<MachineBase> machines = null) =>
             FindWorkableMachines(machines)
                 .Where(m => m.Slots.Any(s =>
-                    s.CanAddWorker(worker) && worker.Agent.isOnNavMesh == true && worker.Agent.CalculatePath(GetNavMeshHit(worker), new())));
+                    s.CanAddWorker(worker)
+                    && worker.Agent.isOnNavMesh == true
+                    && worker.Agent.CalculatePath(GetNavMeshHit(worker), new())));
 
         private Vector3 GetNavMeshHit(Worker worker) {
             NavMeshHit hit;
-            if (!NavMesh.SamplePosition(worker.transform.position, out hit, Single.MaxValue, NavMesh.AllAreas)) return Vector3.zero;
+            if (!NavMesh.SamplePosition(worker.transform.position, out hit, Single.MaxValue, NavMesh.AllAreas))
+                return Vector3.zero;
             return hit.position;
         }
 
@@ -167,9 +178,7 @@ namespace Script.Controller {
             Buildables.Select(b => b.Name)
                 .GroupBy(n => n)
                 .ForEach(g => {
-                    if (g.Count() > 1) {
-                        Debug.LogError("Buildable name conflict: " + g.Key);
-                    }
+                    if (g.Count() > 1) { Debug.LogError("Buildable name conflict: " + g.Key); }
                 });
 
             foreach (var machine in Buildables) {
@@ -191,46 +200,41 @@ namespace Script.Controller {
                 _unlockMachines = new(data.UnlockMachines);
                 if (_constructionLayerScript == null || _constructionLayerScript == default) { return; }
 
-                if(_log) Debug.Log($"Machine count: {data.Machines.Count}");
-                if(_log) Debug.Log($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
+                if (_log) Debug.Log($"Machine count: {data.Machines.Count}");
+                if (_log) Debug.Log($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
 
-                UnityMainThreadDispatcher.Instance.Enqueue(() => {
-                    try { 
-                        if(_log) Debug.Log($"Machine count: {data.Machines.Count}");
-                        if(_log) Debug.Log($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
+                try {
+                    if (_log) Debug.Log($"Machine count: {data.Machines.Count}");
+                    if (_log) Debug.Log($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
 
-                        foreach (var m in data.Machines) {
-                            try {
-                                if(_log) Debug.Log($"Building prefab: {m.PrefabName}");
-                                var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
-                                if (prefab == default) continue;
+                    foreach (var m in data.Machines) {
+                        try {
+                            if (_log) Debug.Log($"Building prefab: {m.PrefabName}");
+                            var prefab = Buildables.FirstOrDefault(b => b.Name == m.PrefabName);
+                            if (prefab == default) continue;
 
-                                var worldPos = _constructionLayer.CellToWorld(m.Position.ToVector3Int());
-                                if(_log) Debug.Log($"Building machine: {prefab.Name} at {worldPos}");
-                                var constructedGameObject = _constructionLayerScript.Build(worldPos, prefab);
+                            if (_log) Debug.Log($"Building machine: {prefab.Name} at {m.Position}");
+                            var constructedGameObject = _constructionLayerScript.Build(m.Position, prefab);
 
-                                if (constructedGameObject is null
-                                    || !constructedGameObject.TryGetComponent<MachineBase>(out var machine)) continue;
-                                machine.Load(m);
-                            }
-                            catch (System.Exception e) {
-                                Debug.LogWarning(new System.Exception($"Cannot load machine {m.PrefabName}", e));
-                                e.RaiseException();
-
-                            }
+                            if (constructedGameObject is null
+                                || !constructedGameObject.TryGetComponent<MachineBase>(out var machine)) continue;
+                            machine.Load(m);
+                        }
+                        catch (System.Exception e) {
+                            Debug.LogWarning(new System.Exception($"Cannot load machine {m.PrefabName}", e));
+                            e.RaiseException();
                         }
                     }
-                    catch (System.Exception ex) {
-                        Debug.LogError($"Cannot load {nameof(MachineController)}");
-                        Debug.LogException(ex);
-                        ex.RaiseException();
-
-                    }
-                });
+                }
+                catch (System.Exception ex) {
+                    Debug.LogError($"Cannot load {nameof(MachineController)}");
+                    Debug.LogException(ex);
+                    ex.RaiseException();
+                }
             }
             catch (System.Exception e) {
                 Debug.LogError($"Cannot load {GetType()}");
-                Debug.LogException(e);               
+                Debug.LogException(e);
                 e.RaiseException();
 
                 return;
@@ -243,6 +247,7 @@ namespace Script.Controller {
                 UnlockMachines = _unlockMachines
             };
             Machines.ForEach(m => {
+                if (_log) Debug.Log($"Saving machine: {m.name}");
                 try {
                     var machine = m.Save();
                     newSave.Machines.Add(machine);
@@ -250,26 +255,26 @@ namespace Script.Controller {
                 catch (System.Exception e) {
                     Debug.LogWarning(new System.Exception($"Cannot save machine {m.name}", e));
                     e.RaiseException();
-
                 }
             });
             // Debug.LogWarning(SaveManager.Serialize(newSave));
 
 
             try {
-                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                    || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
-                    saveManager.SaveData.TryAdd(this.GetType().Name,
-                        SaveManager.Serialize(newSave));
-                else
-                    saveManager.SaveData[this.GetType().Name]
-                        = SaveManager.Serialize(newSave);
+                var serialized = SaveManager.Serialize(newSave);
+                saveManager.SaveData.AddOrUpdate(this.GetType().Name, serialized, (key, oldValue) => serialized);
+                // if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                //     || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
+                //     saveManager.SaveData.TryAdd(this.GetType().Name,
+                //         SaveManager.Serialize(newSave));
+                // else
+                //     saveManager.SaveData[this.GetType().Name]
+                //         = SaveManager.Serialize(newSave);
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
                 Debug.LogException(ex);
                 ex.RaiseException();
-
             }
         }
 

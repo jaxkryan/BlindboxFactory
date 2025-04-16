@@ -30,9 +30,10 @@ namespace Script.Controller {
         private Dictionary<WorkerType, List<Worker>> _workerList;
 
         public ReadOnlyDictionary<WorkerType, Dictionary<CoreType, int>> WorkerNeedsList {
-            get => new(new Dictionary<WorkerType, Dictionary<CoreType, int>>
+            get =>
+                new(new Dictionary<WorkerType, Dictionary<CoreType, int>>
                 (_workerNeedsList
-                    .Select(pair => 
+                    .Select(pair =>
                         new KeyValuePair<WorkerType, Dictionary<CoreType, int>>
                             (pair.Key, new(pair.Value)))));
         }
@@ -44,7 +45,7 @@ namespace Script.Controller {
             _workerList = workerList;
             _workerNeedsList = new(
                 workerNeedsList
-                    .Select(pair => 
+                    .Select(pair =>
                         new KeyValuePair<WorkerType, SerializedDictionary<CoreType, int>>
                             (pair.Key, new(pair.Value))));
         }
@@ -79,7 +80,7 @@ namespace Script.Controller {
                 }
             }
             catch (System.Exception e) {
-                Debug.LogWarning(e.Message);                
+                Debug.LogWarning(e.Message);
                 e.RaiseException();
             }
         }
@@ -149,12 +150,10 @@ namespace Script.Controller {
                         while (list.Count > 0 && count-- > 0) { list.RemoveAt(0); }
                     }
 
-                    foreach (var w in list) {
-                        if (!GameController.Instance.WorkerSpawner.SpawnAtPosition(key, w.Position, out var worker)) {
-                            Debug.LogError($"Spawning {key} at {w.Position}");
-                            continue;
-                        }
-
+                    for (var i = 0; i < (data.WorkerData[key]?.Count ?? 0); i++) {
+                        var w = data.WorkerData[key]?.ElementAtOrDefault(i);
+                        var worker = workerList?.ElementAtOrDefault(i);
+                        if (worker is null || w is null) continue;
                         worker.Load(w);
                     }
                 }
@@ -168,12 +167,11 @@ namespace Script.Controller {
         }
 
         public override void Save(SaveManager saveManager) {
-            UnityMainThreadDispatcher.Instance.Enqueue(() => {
                 try {
                     var newSave = new SaveData() { WorkerData = new() };
-                    foreach (var w in WorkerList) {try
-                        {
-
+                    foreach (var w in WorkerList) {
+                        if (w.Value.IsNullOrEmpty()) continue;
+                        try {
                             if (newSave.WorkerData.ContainsKey(w.Key)) {
                                 Debug.LogError("Duplicate worker type: " + w.Key);
                                 continue;
@@ -182,9 +180,8 @@ namespace Script.Controller {
                             var list = w.Value.Select(worker => worker.Save()).ToList();
                             newSave.WorkerData.Add(w.Key, list);
                         }
-                        catch (System.Exception e)
-                        {
-                            Debug.LogWarning(new System.Exception("Cannot save worker",e).RaiseException());
+                        catch (System.Exception e) {
+                            Debug.LogWarning(new System.Exception("Cannot save worker", e).RaiseException());
                         }
                     }
 
@@ -200,9 +197,7 @@ namespace Script.Controller {
                     Debug.LogError($"Cannot save {GetType()}");
                     Debug.LogException(ex);
                     ex.RaiseException();
-
                 }
-            });
         }
 
         private class SaveData {
