@@ -21,15 +21,27 @@ public class BlindBoxMachine : MachineBase
     [SerializeField] public List<BlindBox> recipes;
     [SerializeField] public int maxAmount;
     public BoxTypeName lastBox;
+    private Animator _animator;
     protected override void Update()
     {
         base.Update();
+        if (_animator != null)
+        {
+            bool isActive = amount > 0;
+            Debug.Log($"Animator IsActive set to: {isActive}");
+            _animator.SetBool("IsActive", isActive);
+        }
+        else
+        {
+            Debug.Log("animator not found");
+        }
     }
 
     public override bool IsWorkable => base.IsWorkable && amount > 0;
 
     protected override void Start()
     {
+        _animator = GetComponent<Animator>();
         BlindBox nullbb = new BlindBox()
         {
             BoxTypeName = BoxTypeName.Null,
