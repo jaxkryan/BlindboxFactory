@@ -7,6 +7,7 @@ public class DefaultMapGenerator : MonoBehaviour
 {
     public Tilemap tilemap;
     public Tile groundTile;
+    public Tile portalTile;
 
     public int size = 32;
 
@@ -30,9 +31,15 @@ public class DefaultMapGenerator : MonoBehaviour
             }
         }
 
-        tilemap.CompressBounds();
-        Debug.Log("Default 32x32 map generated with 4-way crossroad.");
+        for (int x = -3; x < 3; x++)
+        {
+            for (int y = -3; y < 3; y++)
+            {
+                tilemap.SetTile(new Vector3Int(x, y, 0), portalTile);
+            }
+        }
 
+        tilemap.CompressBounds();
         GameController.Instance.BuildNavMesh();
     }
 }
