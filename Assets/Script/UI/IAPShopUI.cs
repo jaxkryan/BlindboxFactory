@@ -9,6 +9,8 @@ using Script.Gacha.Base;
 using UnityEngine.Purchasing;
 using System;
 using System.Linq;
+using Unity.Services.Core; // Required for Unity Gaming Services
+using System.Threading.Tasks;
 
 public class IAPShopUI : MonoBehaviour, IStoreListener
 {
@@ -23,6 +25,24 @@ public class IAPShopUI : MonoBehaviour, IStoreListener
     [SerializeField] private GachaRevealPanelUI revealPanel;
 
     IStoreController m_StoreController;
+    private bool _isUGSInitialized = false;
+
+    async void Awake()
+    {
+        // Initialize Unity Gaming Services
+        try
+        {
+            await UnityServices.InitializeAsync();
+            _isUGSInitialized = true;
+            //Debug.Log("Unity Gaming Services initialized successfully.");
+        }
+        catch (System.Exception e)
+        {
+            _isUGSInitialized = false;
+           // Debug.LogError($"Failed to initialize Unity Gaming Services: {e.Message}");
+        }
+    }
+
     void Start()
     {
         // Ensure the GachaRevealPanelUI is initially inactive
@@ -32,12 +52,20 @@ public class IAPShopUI : MonoBehaviour, IStoreListener
         }
         else
         {
-            Debug.LogWarning("Start: revealPanel is not assigned in IAPShopUI!");
+            //Debug.LogWarning("Start: revealPanel is not assigned in IAPShopUI!");
         }
 
         PopulateShopUI();
 
-        SetUpBuilder();
+        // Only initialize IAP if UGS is initialized
+        if (_isUGSInitialized)
+        {
+            SetUpBuilder();
+        }
+        else
+        {
+            //Debug.LogWarning("Skipping IAP initialization because Unity Gaming Services failed to initialize.");
+        }
     }
 
     void PopulateShopUI()
@@ -104,26 +132,45 @@ public class IAPShopUI : MonoBehaviour, IStoreListener
 
     public void ConsumableBtnPress(ConsumableItem item)
     {
-
-        m_StoreController.InitiatePurchase(item.id);
+        if (m_StoreController != null)
+        {
+            m_StoreController.InitiatePurchase(item.id);
+        }
+        else
+        {
+           // Debug.LogWarning($"Cannot purchase {item.id}: StoreController is not initialized.");
+        }
     }
+
     public void NonConsumableBtnPress(NonConsumableItem item)
     {
-
-        m_StoreController.InitiatePurchase(item.id);
+        if (m_StoreController != null)
+        {
+            m_StoreController.InitiatePurchase(item.id);
+        }
+        else
+        {
+           // Debug.LogWarning($"Cannot purchase {item.id}: StoreController is not initialized.");
+        }
     }
+
     public void SubscriptionBtnPress(SubscriptionItem item)
     {
-
-        m_StoreController.InitiatePurchase(item.id);
+        if (m_StoreController != null)
+        {
+            m_StoreController.InitiatePurchase(item.id);
+        }
+        else
+        {
+            //Debug.LogWarning($"Cannot purchase {item.id}: StoreController is not initialized.");
+        }
     }
 
     void BuyConsumableItem(ConsumableItem item)
     {
-
         ResourceController resourceController = GameController.Instance.ResourceController;
 
-        // Tăng resource dựa trên resourceGain và amountGain
+        // Increase resource based on resourceGain and amountGain
         if (item.resourceGainData != null && item.resourceGainData.Count > 0)
         {
             foreach (ResourceGainData resource in item.resourceGainData)
@@ -133,25 +180,25 @@ public class IAPShopUI : MonoBehaviour, IStoreListener
                     long newAmount = currentAmount + resource.amountGain;
                     if (resourceController.TrySetAmount(resource.resourceGain, newAmount))
                     {
-                        Debug.Log($"Increased {resource} by {resource.amountGain}. New amount: {newAmount}");
+                        //Debug.Log($"Increased {resource.resourceGain} by {resource.amountGain}. New amount: {newAmount}");
                     }
                     else
                     {
-                        Debug.LogWarning($"Failed to set {resource} to {newAmount}. Max amount exceeded or invalid.");
+                        //Debug.LogWarning($"Failed to set {resource.resourceGain} to {newAmount}. Max amount exceeded or invalid.");
                     }
                 }
                 else
                 {
-                    Debug.LogWarning($"Failed to get current amount for {resource}.");
+                   // Debug.LogWarning($"Failed to get current amount for {resource.resourceGain}.");
                 }
             }
         }
         else
         {
-            Debug.Log("No resources to gain from this consumable.");
+            //Debug.Log("No resources to gain from this consumable.");
         }
 
-        // Nếu rewardMascot = true, pull Epic Mascot và hiển thị animation
+        // If rewardMascot = true, pull Epic Mascot and show animation
         if (item.rewardMascot)
         {
             if (administratorGacha != null)
@@ -160,41 +207,37 @@ public class IAPShopUI : MonoBehaviour, IStoreListener
                 if (epicMascot != null)
                 {
                     ShowReveal(new List<Mascot> { epicMascot });
-                    Debug.Log($"Pulled Epic Mascot: {epicMascot.Name}");
+                   // Debug.Log($"Pulled Epic Mascot: {epicMascot.Name}");
                 }
                 else
                 {
-                    Debug.LogWarning("Failed to pull Epic Mascot.");
+                   // Debug.LogWarning("Failed to pull Epic Mascot.");
                 }
             }
             else
             {
-                Debug.LogError("AdministratorGacha is not assigned in IAPShopUI.");
+                //Debug.LogError("AdministratorGacha is not assigned in IAPShopUI.");
             }
         }
-        Debug.Log($"Bought Consumable: {item.name}");
+       // Debug.Log($"Bought Consumable: {item.name}");
     }
 
     void BuyNonConsumableItem(NonConsumableItem item)
     {
-        m_StoreController.InitiatePurchase(item.id);
-
-        Debug.Log("Remove ads");
-
+       // Debug.Log($"Bought Non-Consumable: {item.name}");
+        RemoveAds();
     }
 
     void BuySubscriptionItem(SubscriptionItem item)
     {
-        m_StoreController.InitiatePurchase(item.id);
-
-        Debug.Log($"Bought Subscription: {item.name} for ${item.price}");
+        //Debug.Log($"Bought Subscription: {item.name} for ${item.price}");
     }
 
     private void ShowReveal(List<Mascot> mascots)
     {
         if (revealPanel == null)
         {
-            Debug.LogWarning("Reveal panel is not assigned in IAPShopUI!");
+           // Debug.LogWarning("Reveal panel is not assigned in IAPShopUI!");
             return;
         }
 
@@ -224,55 +267,53 @@ public class IAPShopUI : MonoBehaviour, IStoreListener
 
         UnityPurchasing.Initialize(this, builder);
     }
+
     public void OnInitialized(IStoreController controller, IExtensionProvider extensions)
     {
-        Debug.Log("INITSUCCESS");
+       // Debug.Log("IAP Initialization Successful");
         m_StoreController = controller;
     }
 
-    //processing purchase 
     public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs purchaseEvent)
     {
         var product = purchaseEvent.purchasedProduct;
 
-        if (product.definition.id == iapShop.consumableItems.FirstOrDefault(i => i.id == product.definition.id).id)
+        var consumableItem = iapShop.consumableItems.FirstOrDefault(i => i.id == product.definition.id);
+        if (consumableItem != null)
         {
-            print("got in");
-            BuyConsumableItem(iapShop.consumableItems.FirstOrDefault(i => i.id == product.definition.id));
-        }
-        if (product.definition.id == iapShop.nonConsumableItems.FirstOrDefault(i => i.id == product.definition.id).id)
-        {
-            BuyNonConsumableItem(iapShop.nonConsumableItems.FirstOrDefault(i => i.id == product.definition.id));
-
-        }
-        if (product.definition.id == iapShop.subscriptionItems.FirstOrDefault(i => i.id == product.definition.id).id)
-        {
-            BuySubscriptionItem(iapShop.subscriptionItems.FirstOrDefault(i => i.id == product.definition.id));
-
+            BuyConsumableItem(consumableItem);
         }
 
-        Debug.Log("Purchase compelte" + product.definition.id);
+        var nonConsumableItem = iapShop.nonConsumableItems.FirstOrDefault(i => i.id == product.definition.id);
+        if (nonConsumableItem != null)
+        {
+            BuyNonConsumableItem(nonConsumableItem);
+        }
+
+        var subscriptionItem = iapShop.subscriptionItems.FirstOrDefault(i => i.id == product.definition.id);
+        if (subscriptionItem != null)
+        {
+            BuySubscriptionItem(subscriptionItem);
+        }
+
+       // Debug.Log($"Purchase completed: {product.definition.id}");
         return PurchaseProcessingResult.Complete;
     }
+
     public void OnInitializeFailed(InitializationFailureReason error)
     {
-        Debug.Log("Init purchasing failed:" + error);
+       // Debug.LogError($"IAP Initialization Failed: {error}");
     }
 
     public void OnInitializeFailed(InitializationFailureReason error, string message)
     {
-        Debug.Log("Init purchasing failed:" + error + message);
-
+       // Debug.LogError($"IAP Initialization Failed: {error}, {message}");
     }
-
-
 
     public void OnPurchaseFailed(Product product, PurchaseFailureReason failureReason)
     {
-        Debug.Log("Purchasing failed:" + failureReason);
-
+        //Debug.LogError($"Purchase Failed for {product.definition.id}: {failureReason}");
     }
-
 
     public void CheckNonConsumable(string id)
     {
@@ -287,15 +328,16 @@ public class IAPShopUI : MonoBehaviour, IStoreListener
                 }
                 else
                 {
-                    Debug.Log("Receipt not found");
+                  //  Debug.Log("Receipt not found");
                 }
             }
             else
             {
-                Debug.Log("No product found");
+              // Debug.Log("No product found");
             }
         }
     }
+
     public void CheckSubscription(string id)
     {
         if (m_StoreController != null)
@@ -309,35 +351,36 @@ public class IAPShopUI : MonoBehaviour, IStoreListener
                     {
                         var subManager = new SubscriptionManager(subProduct, null);
                         var info = subManager.getSubscriptionInfo();
-                        Debug.Log("EXP DATE"+ info.getExpireDate());
+                      //  Debug.Log($"Subscription Expire Date: {info.getExpireDate()}");
 
                         if (info.isSubscribed() == Result.True)
                         {
-                            Debug.Log("Subscribed");
+                        //    Debug.Log("Subscribed");
                         }
                         else
                         {
-                            Debug.Log(" Not Subscribed");
-
+                         //   Debug.Log("Not Subscribed");
                         }
                     }
                     else
                     {
-                        Debug.Log("Receipt not found");
+                     //   Debug.Log("Receipt not found");
                     }
-                }  catch(System.Exception e)
+                }
+                catch (System.Exception e)
                 {
-                    Debug.Log("Only work in GG, Appstore, amazone store");
+                   // Debug.LogWarning($"Subscription check failed: {e.Message}");
                 }
             }
             else
             {
-                Debug.Log("No product found");
+               // Debug.Log("No product found");
             }
         }
     }
+
     private void RemoveAds()
     {
-        Debug.Log("Remove ads");
+       // Debug.Log("Remove ads");
     }
 }
