@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using Script.Controller.Commission;
 using Script.Quest;
 using Script.Resources;
@@ -17,41 +18,79 @@ namespace Script.UI.Mission
         [SerializeField] private TextMeshProUGUI _expired;
         [SerializeField] private Button _accept;
 
-        public Commission Commission { get; set; }
+        private Commission _commission;
+        private StringBuilder _stringBuilder = new StringBuilder();
+        private float _nextUpdateTime;
+        private double _remainingSeconds;
+        private const float UPDATE_INTERVAL = 1f; // Update every second
+
+        public Commission Commission
+        {
+            get => _commission;
+            set
+            {
+                _commission = value;
+                if (_commission != null)
+                {
+                    // Calculate remaining time when commission is set
+                    _remainingSeconds = (_commission.ExpireDate - DateTime.Now).TotalSeconds;
+                    UpdateCommissionData();
+                    _nextUpdateTime = Time.time;
+                }
+            }
+        }
 
         private void Update()
         {
-            if (Commission == null) return;
-            UpdateTimerDisplay();
+            if (_commission == null) return;
+
+            // Update timer display only when the interval has passed
+            if (Time.time >= _nextUpdateTime)
+            {
+                // Decrease remaining time based on elapsed game time
+                _remainingSeconds -= (Time.time - _nextUpdateTime);
+                UpdateTimerDisplay();
+                _nextUpdateTime = Time.time + UPDATE_INTERVAL;
+            }
         }
 
         public void UpdateCommissionData()
         {
-            if (Commission == null) return;
+            var items = _commission.Items;
 
-            _name.text = string.Join(", ", Commission.Items.Keys);
-            _description.text = string.Join(", ", Commission.Items.Select(i => $"{i.Value}x {i.Key}"));
+            _stringBuilder.Clear();
+            _stringBuilder.AppendJoin(", ", items.Keys);
+            _name.text = _stringBuilder.ToString();
 
-            if (Commission.Reward is ResourceQuestReward reward)
+            _stringBuilder.Clear();
+            foreach (var item in items)
             {
-                _reward.text = reward.Resources.TryGetValue(Resource.Gold, out var goldAmount) ? $"{goldAmount} Gold" : "No reward";
+                _stringBuilder.Append($"{item.Value}x {item.Key}, ");
             }
+            if (_stringBuilder.Length > 0) _stringBuilder.Length -= 2;
+            _description.text = _stringBuilder.ToString();
+
+            _reward.text = _commission.Reward is ResourceQuestReward reward &&
+                          reward.Resources.TryGetValue(Resource.Gold, out var goldAmount)
+                ? $"{goldAmount} Gold"
+                : "No reward";
 
             UpdateTimerDisplay();
         }
 
         private void UpdateTimerDisplay()
         {
-            TimeSpan remaining = Commission.ExpireDate - DateTime.Now;
-
-            if (remaining <= TimeSpan.Zero)
+            bool isExpired = _remainingSeconds <= 0;
+            if (isExpired)
             {
                 _expired.text = "Expired";
                 _accept.interactable = false;
             }
             else
             {
-                _expired.text = $"{(int)remaining.TotalMinutes}m {remaining.Seconds:D2}s left";
+                int minutes = (int)(_remainingSeconds / 60);
+                int seconds = (int)(_remainingSeconds % 60);
+                _expired.text = $"{minutes:D2}m {seconds:D2}s";
                 _accept.interactable = true;
             }
         }
