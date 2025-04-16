@@ -140,11 +140,8 @@ public class RecipeButton : MonoBehaviour
     }
     public void CraftingAdd()
     {
-        Debug.Log("[CraftingAdd] Function was called.");
-
         if (BlindBoxQueueDisplay.Instance == null)
         {
-            Debug.LogError("[CraftingAdd] BlindBoxQueueDisplay.Instance is NULL!");
             return;
         }
 
@@ -157,6 +154,7 @@ public class RecipeButton : MonoBehaviour
         if (machine.amount <= 0)
         {
             machine.Product = currentBlindBox;
+            machine.lastBox = currentBlindBox.BoxTypeName;
             machine.amount = selectedAmount;
             machine.CurrentProgress = 0;
         }

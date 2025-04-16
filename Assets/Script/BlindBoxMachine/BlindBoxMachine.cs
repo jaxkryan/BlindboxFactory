@@ -20,6 +20,7 @@ public class BlindBoxMachine : MachineBase
     public int amount;
     [SerializeField] public List<BlindBox> recipes;
     [SerializeField] public int maxAmount;
+    public BoxTypeName lastBox;
     protected override void Update()
     {
         base.Update();
@@ -54,23 +55,15 @@ public class BlindBoxMachine : MachineBase
 
     public override ProductBase CreateProduct()
     {
-        Debug.Log($"Before CreateProduct - Amount: {amount}, Product: {Product}");
-
         var ret = base.CreateProduct();
-
-        Debug.Log($"After CreateProduct - Ret: {ret}");
 
         if (amount-- <= 0 && !(Product is BlindBox bbProduct && bbProduct.BoxTypeName == BoxTypeName.Null))
         {
-            Debug.LogWarning("Product order completed");
             amount = 0;
 
             ProductBase createdProduct = Product ?? new BlindBox { BoxTypeName = BoxTypeName.Null };
             Product = new BlindBox { BoxTypeName = BoxTypeName.Null };
-            Debug.Log($"Reset Product to: {Product}");
         }
-
-        Debug.Log($"Returning Product: {ret}");
         return ret;
     }
 
@@ -81,6 +74,7 @@ public class BlindBoxMachine : MachineBase
 
         amount = saveData.Amount;
         maxAmount = saveData.MaxAmount;
+        lastBox = saveData.LastBox;
         recipes.Clear();
         foreach (var recipe in saveData.Recipes) {
             var r = Activator.CreateInstance<BlindBox>();
@@ -95,13 +89,20 @@ public class BlindBoxMachine : MachineBase
         
         data.Amount = amount;
         data.MaxAmount = maxAmount;
+        data.LastBox = lastBox;
         data.Recipes = recipes.Select(r => r.Save()).Cast<BlindBox.BlindBoxSaveData>().ToList();
         return data;
+    }
+
+    public BlindBox GetLastUsedRecipe()
+    {
+        return recipes.FirstOrDefault(box => box.BoxTypeName == lastBox);
     }
 
     public class BBMData : MachineBase.MachineBaseData {
         public int Amount;
         public List<BlindBox.BlindBoxSaveData> Recipes;
         public int MaxAmount;
+        public BoxTypeName LastBox;
     }
 }
