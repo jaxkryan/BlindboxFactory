@@ -34,9 +34,20 @@ namespace BuildingSystem
                     Math.Abs(v.x - pos.x) <= 1 && Math.Abs(v.y - pos.y) <= 1
                     && v != pos).ToList();
                 //If all neighbors are in the list then true
-                return neighbors.Count == 8 && neighbors.All(v => list.Contains(v));
+
+                if (neighbors.Count == 8)
+                {
+                    foreach (var v in neighbors)
+                    {
+                        if (!list.Contains(v))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+                return false;
             }
         }
-
     }
 }
