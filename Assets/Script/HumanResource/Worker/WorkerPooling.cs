@@ -44,6 +44,10 @@ namespace Script.HumanResource.Worker {
             var children = _workerPool;
             var list = children.Where(w => w.ToWorkerType() == workerType).ToList();
 
+            for (int i = 0; i < list.Count; i++) {
+                list[i].Director.AgentUpdateOrder = i;
+            }
+
             return list;
         }
 

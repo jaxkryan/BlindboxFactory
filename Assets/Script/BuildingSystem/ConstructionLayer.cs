@@ -31,7 +31,7 @@ namespace BuildingSystem {
                     out long currentMoney);
                 // Ensure we have enough currency before proceeding
                 if (currentMoney < itemCost) {
-                    Debug.Log("Not enough money to build this item!" + currentMoney + "   /   " + itemCost);
+                    //Debug.Log("Not enough money to build this item!" + currentMoney + "   /   " + itemCost);
                     return null;
                 }
 
@@ -44,7 +44,6 @@ namespace BuildingSystem {
             var coords = _tilemap.WorldToCell(worldCoords);
 
             Vector3 tilemapPosition = _tilemap.GetCellCenterLocal(coords);
-            Debug.Log($"Tilemap Center Position: {tilemapPosition}");
 
             if (item.gameObject != null) {
                 itemObject = Instantiate(
@@ -167,7 +166,6 @@ namespace BuildingSystem {
 
         private void RemoveBuildingWorker(MachineBase machine)
         {
-            Debug.LogWarning("Removing Worker");
             List<Worker> worker = GameController.Instance.WorkerSpawner.FindSpawnedWorkers(machine).ToList();
             if (worker != null)
             {
@@ -215,7 +213,6 @@ namespace BuildingSystem {
         public List<Worker> FindWorkersByMachine(MachineBase machine)
         {
             int number = machine.SpawnWorkers;
-            Debug.LogWarning("Finding Worker");
 
             // Find Wokers in the machine
             List<Worker> workers = machine.Workers.ToList();
@@ -263,7 +260,7 @@ namespace BuildingSystem {
                 }
             }
 
-            Debug.LogWarning($"{workers.Count} workers found for machine {machine.name}");
+            //Debug.LogWarning($"{workers.Count} workers found for machine {machine.name}");
             return workers;
         }
     }

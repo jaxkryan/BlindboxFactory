@@ -64,6 +64,7 @@ namespace Script.Controller {
         }
 
         private void Subscribe() {
+            if (!Application.isPlaying) return;
             if (GameController.Instance.ConstructionLayer
                 .TryGetComponent<ConstructionLayer>(out var constructionLayer)) {
                 constructionLayer.onItemBuilt += OnMachineOnItemBuilt;
@@ -72,6 +73,7 @@ namespace Script.Controller {
         }
 
         private void Unsubscribe() {
+            if (!Application.isPlaying) return;
             try {
                 if (GameController.Instance.ConstructionLayer is not null
                     && GameController.Instance.ConstructionLayer

@@ -200,8 +200,8 @@ namespace Script.Machine.Products {
             if (data is null) return base.Save();
 
             data.Resource = Resource;
-            data.MaterialDropRates = materialDropRates.Select(m => new AddResourceToStorageData.MaterialDropRateSave(){material = m.material, dropRate = m.dropRate}).ToList();
-            data.QuantityDropRates = quantityDropRates;
+            // data.MaterialDropRates = materialDropRates.Select(m => new AddResourceToStorageData.MaterialDropRateSave(){material = m.material, dropRate = m.dropRate}).ToList();
+            // data.QuantityDropRates = quantityDropRates;
             data.SelectedMaterial = SelectedMaterial;
             data.SelectedQuantity = SelectedQuantity;
             return data;
@@ -213,17 +213,17 @@ namespace Script.Machine.Products {
             if (saveData is not AddResourceToStorageData data) return;
             
             Resource = data.Resource;
-            materialDropRates = data.MaterialDropRates.Select(m => new MaterialDropRate(){dropRate = m.dropRate, material = m.material}).ToList();
-            quantityDropRates = data.QuantityDropRates;
+            // materialDropRates = data.MaterialDropRates.Select(m => new MaterialDropRate(){dropRate = m.dropRate, material = m.material}).ToList();
+            // quantityDropRates = data.QuantityDropRates;
             SelectedMaterial = data.SelectedMaterial;
             SelectedQuantity = data.SelectedQuantity;
-            SelectedSprite = materialDropRates.First(m => m.material == SelectedMaterial.Value).materialSprite;
+            SelectedSprite = materialDropRates.FirstOrDefault(m => SelectedMaterial != null && m.material == SelectedMaterial.Value)?.materialSprite;
         }
 
         public class AddResourceToStorageData : AddToStorageSaveData {
             public Resource Resource;
-            public List<MaterialDropRateSave> MaterialDropRates;
-            public List<QuantityDropRate> QuantityDropRates;
+            // public List<MaterialDropRateSave> MaterialDropRates;
+            // public List<QuantityDropRate> QuantityDropRates;
             public Resource? SelectedMaterial;
             public int SelectedQuantity;
 

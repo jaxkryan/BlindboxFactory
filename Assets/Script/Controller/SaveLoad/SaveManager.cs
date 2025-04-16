@@ -173,6 +173,10 @@ namespace Script.Controller.SaveLoad {
                 
                 CurrentLoadPath = GetAllSavePaths().Count > 0 ? GetAllSavePaths().First() : FilePath;
                 if (_log) Debug.Log($"Current load path: {CurrentLoadPath}");
+                if (!File.Exists(CurrentLoadPath)) {
+                    if (_log) Debug.Log($"Save file doesn't exist: {CurrentLoadPath}. Cancelling...");
+                    return;
+                }
 
                 using (var file = System.IO.File.Open(CurrentLoadPath, FileMode.OpenOrCreate)) { }
 

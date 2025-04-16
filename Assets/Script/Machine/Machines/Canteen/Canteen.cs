@@ -59,7 +59,7 @@ namespace Script.Machine.Machines.Canteen {
             if (data is null) return base.Save();
             
             data.Storage = _storage.Save();
-            data.Kitchen = (CanteenData.KitchenData) _kitchen.Save();
+            data.Kitchen = _kitchen.Save().CastToSubclass<CanteenData.KitchenData, MachineBaseData>();
             return data;
         }
 
