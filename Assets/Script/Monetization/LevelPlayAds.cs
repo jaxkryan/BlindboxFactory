@@ -1,62 +1,72 @@
 using UnityEngine;
 using System;
 using Unity.Services.LevelPlay;
-using TMPro;
+using System.Collections.Generic;
+using Script.Controller;
+using Script.Resources;
+
 public class LevelPlayAds : MonoBehaviour
 {
-   
-    public void LoadInterstitialAd()
+    [Serializable]
+    public struct Reward
     {
-       
+        public Resource resourceType;
+        public long amount;
     }
-    public void ShowInterstitialAd()
+
+    [SerializeField]
+    private List<Reward> adRewards = new List<Reward>(); // Gems at index 0, Gold at index 1
+
+    private int _selectedRewardIndex = -1;
+
+    void Awake()
     {
-        //Show InterstitialAd, check if the ad is ready before showing
-        if (IronSource.Agent.isInterstitialReady())
+        DontDestroyOnLoad(gameObject);
+    }
+
+    public void ShowGemAd()
+    {
+        ShowRewardedAd(0); // Gems at index 0
+    }
+
+    public void ShowGoldAd()
+    {
+        ShowRewardedAd(1); // Gold at index 1
+    }
+
+    private void ShowRewardedAd(int rewardIndex)
+    {
+        if (rewardIndex < 0 || rewardIndex >= adRewards.Count)
         {
-            IronSource.Agent.showInterstitial();
+           // Debug.LogWarning($"Invalid reward index: {rewardIndex}. Configure adRewards in Inspector.");
+            return;
+        }
+
+        if (IronSource.Agent.isRewardedVideoAvailable())
+        {
+            _selectedRewardIndex = rewardIndex;
+            IronSource.Agent.showRewardedVideo();
+          //  Debug.Log($"Showing ad for reward: {adRewards[rewardIndex].resourceType}");
         }
         else
         {
-            Debug.Log("Ads not ready");
+         //   Debug.Log("Rewarded ad not ready.");
         }
     }
 
-    void DestroyInterstitialAd()
-    {
-    }
-    public void ShowRewardedAd()
-    {
-        if(IronSource.Agent.isRewardedVideoAvailable()){
-            IronSource.Agent.showRewardedVideo();
-        }
-        else
-        {
-            Debug.Log("Reward Ads not ready");
-        }
-    }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        IronSource.Agent.init("219b48145");
+        IronSource.Agent.init("219b48145"); // Replace with your IronSource App Key
         IronSourceEvents.onSdkInitializationCompletedEvent += SdkInitializationCompletedEvent;
-
-        //IronSource.Agent.setMetaData("is_test_suite", "enable");
-        //IronSource.Agent.launchTestSuite();
-        //IronSource.Agent.validateIntegration();
     }
 
     private void SdkInitializationCompletedEvent()
     {
+       // Debug.Log("IronSource SDK initialized.");
     }
 
     private void OnEnable()
     {
-        //IronSourceEvents.onSdkInitializationCompletedEvent += SdkInitializationCompletedEvent;
-        //Add ImpressionSuccess Event
-        IronSourceEvents.onImpressionDataReadyEvent += ImpressionDataReadyEvent;
-
-        //Add AdInfo Rewarded Video Events
         IronSourceRewardedVideoEvents.onAdAvailableEvent += RewardedVideoOnAdAvailable;
         IronSourceRewardedVideoEvents.onAdUnavailableEvent += RewardedVideoOnAdUnavailable;
         IronSourceRewardedVideoEvents.onAdOpenedEvent += RewardedVideoOnAdOpenedEvent;
@@ -64,52 +74,17 @@ public class LevelPlayAds : MonoBehaviour
         IronSourceRewardedVideoEvents.onAdClickedEvent += RewardedVideoOnAdClickedEvent;
         IronSourceRewardedVideoEvents.onAdClosedEvent += RewardedVideoOnAdClosedEvent;
         IronSourceRewardedVideoEvents.onAdRewardedEvent += RewardedVideoOnAdRewardedEvent;
-
-        IronSource.Agent.loadInterstitial();
-        IronSourceInterstitialEvents.onAdReadyEvent += InterstitialOnAdReadyEvent;
-        IronSourceInterstitialEvents.onAdLoadFailedEvent += InterstitialOnAdLoadFailed;
-        IronSourceInterstitialEvents.onAdOpenedEvent += InterstitialOnAdOpenedEvent;
-        IronSourceInterstitialEvents.onAdShowSucceededEvent += InterstitialOnAdShowSucceededEvent;
-        IronSourceInterstitialEvents.onAdClickedEvent += InterstitialOnAdClickedEvent;
-        IronSourceInterstitialEvents.onAdShowFailedEvent += InterstitialOnAdShowFailedEvent;
-        IronSourceInterstitialEvents.onAdClosedEvent += InterstitialOnAdClosedEvent;
-
     }
 
-    private void InterstitialOnAdClosedEvent(IronSourceAdInfo info)
+    private void OnDisable()
     {
-    }
-
-    private void InterstitialOnAdShowFailedEvent(IronSourceError error, IronSourceAdInfo info)
-    {
-    }
-
-    private void InterstitialOnAdClickedEvent(IronSourceAdInfo info)
-    {
-    }
-
-    private void InterstitialOnAdShowSucceededEvent(IronSourceAdInfo info)
-    {
-    }
-
-    private void InterstitialOnAdOpenedEvent(IronSourceAdInfo info)
-    {
-    }
-
-    private void InterstitialOnAdLoadFailed(IronSourceError error)
-    {
-    }
-
-    private void InterstitialOnAdReadyEvent(IronSourceAdInfo info)
-    {
-    }
-
-    private void InterstitialAdReadyEvent(IronSourceAdInfo info)
-    {
-    }
-
-    private void ImpressionDataReadyEvent(IronSourceImpressionData data)
-    {
+        IronSourceRewardedVideoEvents.onAdAvailableEvent -= RewardedVideoOnAdAvailable;
+        IronSourceRewardedVideoEvents.onAdUnavailableEvent -= RewardedVideoOnAdUnavailable;
+        IronSourceRewardedVideoEvents.onAdOpenedEvent -= RewardedVideoOnAdOpenedEvent;
+        IronSourceRewardedVideoEvents.onAdShowFailedEvent -= RewardedVideoOnAdShowFailedEvent;
+        IronSourceRewardedVideoEvents.onAdClickedEvent -= RewardedVideoOnAdClickedEvent;
+        IronSourceRewardedVideoEvents.onAdClosedEvent -= RewardedVideoOnAdClosedEvent;
+        IronSourceRewardedVideoEvents.onAdRewardedEvent -= RewardedVideoOnAdRewardedEvent;
     }
 
     void OnApplicationPause(bool isPaused)
@@ -118,49 +93,83 @@ public class LevelPlayAds : MonoBehaviour
     }
 
     /************* RewardedVideo AdInfo Delegates *************/
-    // Indicates that there’s an available ad.
-    // The adInfo object includes information about the ad that was loaded successfully
-    // This replaces the RewardedVideoAvailabilityChangedEvent(true) event
     void RewardedVideoOnAdAvailable(IronSourceAdInfo adInfo)
     {
+       // Debug.Log($"Rewarded ad available: {adInfo}");
     }
-    // Indicates that no ads are available to be displayed
-    // This replaces the RewardedVideoAvailabilityChangedEvent(false) event
+
     void RewardedVideoOnAdUnavailable()
     {
+       // Debug.Log("Rewarded ad unavailable");
     }
-    // The Rewarded Video ad view has opened. Your activity will loose focus.
+
     void RewardedVideoOnAdOpenedEvent(IronSourceAdInfo adInfo)
     {
+       // Debug.Log($"Rewarded ad opened: {adInfo}");
     }
-    // The Rewarded Video ad view is about to be closed. Your activity will regain its focus.
+
     void RewardedVideoOnAdClosedEvent(IronSourceAdInfo adInfo)
     {
+       // Debug.Log($"Rewarded ad closed: {adInfo}");
     }
-    // The user completed to watch the video, and should be rewarded.
-    // The placement parameter will include the reward data.
-    // When using server-to-server callbacks, you may ignore this event and wait for the ironSource server callback.
+
     void RewardedVideoOnAdRewardedEvent(IronSourcePlacement placement, IronSourceAdInfo adInfo)
     {
+        ResourceController resourceController = GameController.Instance.ResourceController;
+        if (resourceController == null)
+        {
+            //Debug.LogError("ResourceController not found. Cannot award rewards.");
+            _selectedRewardIndex = -1;
+            return;
+        }
 
+        if (_selectedRewardIndex < 0 || _selectedRewardIndex >= adRewards.Count)
+        {
+           // Debug.LogWarning($"Invalid reward index: {_selectedRewardIndex}.");
+            _selectedRewardIndex = -1;
+            return;
+        }
 
+        var reward = adRewards[_selectedRewardIndex];
+        if (resourceController.TryGetData(reward.resourceType, out var resourceData, out long currentAmount))
+        {
+            // Update MaxAmount if necessary
+            if (resourceData.MaxAmount < currentAmount + reward.amount)
+            {
+                resourceData.MaxAmount = currentAmount + reward.amount;
+                if (!resourceController.TryUpdateData(reward.resourceType, resourceData))
+                {
+                //    Debug.LogWarning($"Failed to update MaxAmount for {reward.resourceType}.");
+                }
+            }
 
+            long newAmount = currentAmount + reward.amount;
+            if (resourceController.TrySetAmount(reward.resourceType, newAmount))
+            {
+               // Debug.Log($"Awarded {reward.amount} {reward.resourceType}. New amount: {newAmount}");
+                resourceController.Save(GameController.Instance.SaveManager);
+            }
+            else
+            {
+                //Debug.LogWarning($"Failed to award {reward.amount} {reward.resourceType}.");
+            }
+        }
+        else
+        {
+            //Debug.LogWarning($"Failed to get data for {reward.resourceType}.");
+        }
 
-        GameObject.Find("ScoreTxt").GetComponent<TextMeshProUGUI>().text = "Score 10000";
-
+        _selectedRewardIndex = -1;
     }
-    // The rewarded video ad was failed to show.
+
     void RewardedVideoOnAdShowFailedEvent(IronSourceError error, IronSourceAdInfo adInfo)
     {
+        //Debug.LogError($"Rewarded ad failed to show: {error}");
+        _selectedRewardIndex = -1;
     }
-    // Invoked when the video ad was clicked.
-    // This callback is not supported by all networks, and we recommend using it only if
-    // it’s supported by all networks you included in your build.
+
     void RewardedVideoOnAdClickedEvent(IronSourcePlacement placement, IronSourceAdInfo adInfo)
     {
+        //Debug.Log($"Rewarded ad clicked: {adInfo}");
     }
-
-    //reward callback
-
-    //full size ads callback
 }
