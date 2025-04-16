@@ -37,6 +37,7 @@ namespace Script.Patterns.AI.GOAP.Strategies {
                     .Where(s => s.WishListWorker == _worker).ForEach(s => s.SetWishlist()));
             if (TryWishlistMachine() || _retryAttempts <= 0) {
                 Debug.Log($"Wishlisted: {_worker.Director?.TargetSlot?.name ?? "Empty"}");
+                Complete = true;
                 return;
             }
             _timer.OnTimerStop += Retry;
@@ -64,7 +65,7 @@ namespace Script.Patterns.AI.GOAP.Strategies {
 
                     if (!NavMesh.SamplePosition(machine.transform.position, out hit, Single.MaxValue, NavMesh.AllAreas)) continue;
                     if (!_agent.CalculatePath(hit.position, path)) {
-                        Debug.Log($"Cannot calculate path to machine. From {_agent.transform.position} to {hit.position}");
+                        Debug.LogWarning($"Cannot calculate path to machine. From {_agent.transform.position} to {hit.position}");
                         continue;
                     }
                     

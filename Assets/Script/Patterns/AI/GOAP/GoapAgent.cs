@@ -136,7 +136,10 @@ public abstract class GoapAgent : MonoBehaviour {
         if (_log) Debug.Log($"Checking goals: {string.Join(", ", goalsToCheck.Select(a => a.Name))}");
 
         var potentialPlan = _planner.Plan(this, goalsToCheck, _lastGoal);
-        if (potentialPlan != null) { ActionPlan = potentialPlan; }
+        if (potentialPlan != null) {
+            if (_log) Debug.Log($"Set current goal: {potentialPlan.AgentGoal.Name}");
+            ActionPlan = potentialPlan;
+        }
     }
 
     protected virtual void SetupTimers() { }

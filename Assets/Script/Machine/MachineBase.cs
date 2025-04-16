@@ -16,6 +16,7 @@ namespace Script.Machine {
         public virtual Vector3 Position { get => _position; set => _position = value; }
         [SerializeField] private Vector3 _position;
         public virtual string PrefabName { get; set; }
+        
 
         public int PowerUse {
             get => _powerUse;
@@ -80,6 +81,7 @@ namespace Script.Machine {
         }
 
         public event Action<bool> onMachineCloseStatusChanged = delegate { };
+        public event Action onMachineDisabled = delegate { };
         [SerializeField] private bool _isClosed;
 
         public IEnumerable<MachineSlot> Slots {
@@ -94,8 +96,8 @@ namespace Script.Machine {
             set {
                 _currentProgress = value;
                 if (!(CurrentProgress >= MaxProgress && MaxProgress > 0f)) return;
-                while (_currentProgress > MaxProgress) {
-                    _currentProgress -= MaxProgress;
+                if (CurrentProgress > MaxProgress) {
+                    CurrentProgress -= MaxProgress;
                     CreateProduct();
                 }
             }
@@ -256,7 +258,7 @@ namespace Script.Machine {
             _product?.SetParent(this);
         }
 
-        private void OnEnable() {
+        protected virtual  void OnEnable() {
             GameController.Instance.PowerGridController.RegisterMachine(this);
             ResourceUse?.ForEach(r => r.Start(this, _resourceManager));
             UpdateWorkDetails();
@@ -266,12 +268,13 @@ namespace Script.Machine {
 
         private void OnValidate() { WorkDetails.ForEach(d => d.Machine = this); }
 
-        private void OnDisable() {
+        protected virtual void OnDisable() {
             GameController.Instance.PowerGridController.UnregisterMachine(this);
             ResourceUse?.ForEach(r => r.Stop());
             UpdateWorkDetails();
             UnsubscribeWorkDetails();
             WorkDetails.ForEach(d => d.Stop());
+            onMachineDisabled?.Invoke();
         }
 
 
@@ -318,7 +321,7 @@ namespace Script.Machine {
 
         protected virtual void Update() {
             _progressPerSecTimer?.Tick(Time.deltaTime);
-            WorkDetails.ForEach(d => d.Update(Time.deltaTime));
+            foreach (var d in WorkDetails) d.Update(Time.deltaTime);
             UpdateWorkDetails();
         }
 

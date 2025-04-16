@@ -12,30 +12,11 @@ namespace Script.Machine.Machines.Canteen {
         public event Action<int> onMealAmountChanged = delegate { };
 
         public bool TryChangeMealAmount(int amount) {
-            var newAmount = amount + AvailableMeals;
+            if (amount > _maxCapacity || amount < 0) return false;
 
-            if (!IsFoodAmountValid(ref newAmount)) return false;
-
-            AvailableMeals = newAmount;
+            AvailableMeals = amount;
             onMealAmountChanged?.Invoke(amount);
             return true;
-        }
-        
-        bool IsFoodAmountValid(ref int newAmount) {
-            if (newAmount > MaxCapacity) {
-                if (AvailableMeals >= MaxCapacity) {
-                    Debug.LogError("Meal amount exceeds max capacity");
-                    return false;
-                }
-                
-                var amount = MaxCapacity - AvailableMeals;
-                newAmount = amount + AvailableMeals;
-            }
-
-            if (newAmount < 0) {
-                Debug.LogError("Meal amount cannot be negative");
-                return false;
-            }
 
             return true;
         }

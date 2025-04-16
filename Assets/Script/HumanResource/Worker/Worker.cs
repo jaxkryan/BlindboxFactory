@@ -49,6 +49,7 @@ namespace Script.HumanResource.Worker {
         private static readonly int IsWorking = Animator.StringToHash("IsWorking");
         private static readonly int IsResting = Animator.StringToHash("IsResting");
         private static readonly int IsDining = Animator.StringToHash("IsDining");
+        private bool _isWorking = false;
 
         public Animator Animator {
             get => GetComponent<Animator>();
@@ -82,6 +83,7 @@ namespace Script.HumanResource.Worker {
                 return;
             }
             
+            _isWorking = true;
             Animator.SetBool(IsWorking, true);
             var controller = GameController.Instance.MachineController;
             //Get prefab name of the working machine
@@ -90,15 +92,17 @@ namespace Script.HumanResource.Worker {
             var prefab = controller.Buildables.Find(prefab => prefab.Name == prefabName)?.gameObject;
             if (prefab != null && prefab.TryGetComponent<MachineBase>(out var recoveryMachine)) {
                 //Check if prefab is a resting machine prefab
-                var recovery = controller.RecoveryMachines.Any(m => m.Key.GetType() == recoveryMachine.GetType()) 
-                    ? controller.RecoveryMachines.FirstOrDefault(m => m.Key.GetType() == recoveryMachine.GetType()).Value : new ();
-                if (recovery is not null && recovery.Any(r => r.Worker == IWorker.ToWorkerType(this))) {
-                    var r = recovery.Where(r => r.Worker == IWorker.ToWorkerType(this)).ToList();
-                    //Check which core the prefab recover 
-                    if (r.Any(re => re.Core == CoreType.Happiness)) Animator.SetBool(IsResting, true);
-                    if (r.Any(re => re.Core == CoreType.Hunger)) Animator.SetBool(IsDining, true);
+                // var recovery = controller.RecoveryMachines.Any(m => m.Key.GetType() == recoveryMachine.GetType()) 
+                //     ? controller.RecoveryMachines.FirstOrDefault(m => m.Key.GetType() == recoveryMachine.GetType()) : new ();
+                // if (recovery is not null && recovery.Any(r => r.Worker == IWorker.ToWorkerType(this))) {
+                //     var r = recovery.Where(r => r.Worker == IWorker.ToWorkerType(this)).ToList();
+                //     //Check which core the prefab recover 
+                //     if (r.Any(re => re.Core == CoreType.Happiness)) Animator.SetBool(IsResting, true);
+                //     if (r.Any(re => re.Core == CoreType.Hunger)) Animator.SetBool(IsDining, true);
+                // }
+                if (controller.IsRecoveryMachine(recoveryMachine, out var forWorkers, out var recoveries)) {
+                    
                 }
-
             }
             
             
@@ -117,6 +121,7 @@ namespace Script.HumanResource.Worker {
                 return;
             }
             
+            _isWorking = false;
             Animator.SetBool(IsWorking, false);
             Animator.SetBool(IsDining, false);
             Animator.SetBool(IsResting, false);
@@ -170,7 +175,7 @@ namespace Script.HumanResource.Worker {
         }
 
         protected virtual void SetOrderInLayer() {
-            GetComponent<SpriteRenderer>().sortingOrder = ConstructionLayer.SortingOrder(new Vector3(transform.position.x, transform.position.y - 1f));
+            GetComponent<SpriteRenderer>().sortingOrder = ConstructionLayer.SortingOrder(new Vector3(transform.position.x, transform.position.y - 1f)) * (_isWorking ? 2 : 1);
         }
 
         public virtual SaveData Save() => new SaveData() {

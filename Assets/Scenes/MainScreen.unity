@@ -54253,7 +54253,15 @@ MonoBehaviour:
       - Key: Rest Room
         Value: 1
     _recoverMachines:
-      _serializedList: []
+      _serializedList:
+      - Key:
+          Machine: {fileID: 11400000, guid: 26f3d6c9866885b46b3fffc9633f52eb, type: 2}
+          Worker: 0000000001000000
+        Value: 01000000
+      - Key:
+          Machine: {fileID: 11400000, guid: eee8dbb741aa7fe488869db1c582b85b, type: 2}
+          Worker: 0000000001000000
+        Value: 01000000
   BoxController:
     _boxData:
       _serializedList: []
@@ -54331,6 +54339,8 @@ MonoBehaviour:
         Value: 10
       - Key: 7
         Value: 10
+  PowerGridController:
+    _registeredMachines: []
   QuestController:
     _quests:
     - {fileID: 11400000, guid: dba8210d1fba7654494ff877771ebbe4, type: 2}
@@ -55072,6 +55082,10 @@ PrefabInstance:
     - target: {fileID: 6556769138559607295, guid: 8912897d74df11649a60dab256c6b7a7, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809560998682853388, guid: 8912897d74df11649a60dab256c6b7a7, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -48.00006
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

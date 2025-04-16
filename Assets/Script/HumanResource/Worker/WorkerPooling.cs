@@ -96,7 +96,8 @@ namespace Script.HumanResource.Worker {
         public void ActivateWorker(Worker worker, Vector3 position) {
             DeactivateWorker(worker);
 
-            worker.transform.position = position;
+            worker.transform.position = position.ToVector2().ToVector3(GameController.Instance.NavMeshSurface.transform.position.z);
+            
             if (NavMesh.SamplePosition(position, out var hit, float.MaxValue, NavMesh.AllAreas)) {
                 worker.transform.position = hit.position;
                 worker.Agent.enabled = true;

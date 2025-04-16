@@ -24,7 +24,7 @@ namespace Script.Machine.Products {
                 ResourceUse = ResourceUse.Select(r => new IProduct.SaveData.ResourceUseData() {
                     Amount = r.Amount,
                     Resource = r.Resource,
-                    IsResourceUseOnProductCreated = r.GetType().IsSubclassOf(typeof(ResourceUseOnProductCreated)),
+                    IsResourceUseOnProductCreated = r.GetType().IsSubclassOf(typeof(ResourceUseOnProductCreated)) || r.GetType() == typeof(ResourceUseOnProductCreated),
                     CurrentTime = r is ResourceUseOvertime rOvertime1 ? rOvertime1.Timer.Time : 0f,
                     TimeInterval = r is ResourceUseOvertime rOvertime2 ? rOvertime2.TimeInterval : 0f,
                 }).ToList()

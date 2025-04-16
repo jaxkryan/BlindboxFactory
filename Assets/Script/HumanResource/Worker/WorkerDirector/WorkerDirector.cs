@@ -115,6 +115,7 @@ namespace Script.HumanResource.Worker {
                 var condition = bonus.Condition;
                 bf.AddBelief($"{_worker.Name}HasBonus: {bonus.Name}", () => condition.IsApplicable(_worker));
             });
+            bf.AddBelief($"{_worker.Name}HasWorkingMachine", () => _workMachines(this).Any());
             bf.AddBelief($"{_worker.Name}HasWorkableMachine", () => _workableMachines(this).Any());
             bf.AddBelief($"{_worker.Name}HasNoWorkableMachine", () => !_workableMachines(this).Any());
             bf.AddBelief($"{_worker.Name}WishListedAMachine",
@@ -166,7 +167,7 @@ namespace Script.HumanResource.Worker {
                 bf.AddBelief($"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsDepleted", () =>
                     _worker.CurrentCores[core] < needDict.GetValueOrDefault(core));
                 bf.AddBelief($"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsFulfilled", () =>
-                    _worker.CurrentCores[core] < needDict.GetValueOrDefault(core));
+                    _worker.CurrentCores[core] >= needDict.GetValueOrDefault(core));
                 //Beliefs for machines that improve cores
                 switch (core) {
                     case CoreType.Happiness:
@@ -240,7 +241,7 @@ namespace Script.HumanResource.Worker {
 
             Actions.Add(new AgentAction.Builder("ConsiderWorkMachine")
                 .WithStrategy(new WishlistMachineStrategy(_worker, _workMachines, _navMeshAgent, 3))
-                .AddPrecondition(Beliefs[$"{_worker.Name}HasWorkableMachine"])
+                .AddPrecondition(Beliefs[$"{_worker.Name}HasWorkingMachine"])
                 // .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
                 .AddPrecondition(Beliefs[$"{_worker.Name}IsRested"])
                 .AddEffect(Beliefs[$"{_worker.Name}TargetMachineIsWorkMachine"])
@@ -269,7 +270,7 @@ namespace Script.HumanResource.Worker {
                     .WithStrategy(new WishlistMachineStrategy(_worker, _recoveryMachines,
                         _navMeshAgent, 3))
                     .AddPrecondition(Beliefs[$"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsDepleted"])
-                    .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
+                    // .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
                     .AddPrecondition(Beliefs[$"{_worker.Name}Has{core}RecoveryMachine"])
                     .AddEffect(Beliefs[$"{_worker.Name}TargetMachineIsRecoveryMachine"])
                     .AddEffect(Beliefs[$"{_worker.Name}HasTargetMachine"])
@@ -300,6 +301,8 @@ namespace Script.HumanResource.Worker {
             list.AddRange(GameController.Instance.MachineController
                 .FindRecoveryMachine(CoreType.Happiness, director._worker));
 
+            // Debug.LogWarning("Happiness recovery machines: " + string.Join(", ", list.Select(r => r.name)));
+            
             return list.ToHashSet();
         };
 
@@ -308,6 +311,8 @@ namespace Script.HumanResource.Worker {
             list.AddRange(GameController.Instance.MachineController
                 .FindRecoveryMachine(CoreType.Hunger, director._worker));
 
+            // Debug.LogWarning("Hunger recovery machines: " + string.Join(", ", list.Select(r => r.name)));
+            
             return list.ToHashSet();
         };
 
