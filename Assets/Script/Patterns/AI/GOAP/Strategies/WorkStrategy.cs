@@ -99,12 +99,10 @@ public class WorkStrategy : IActionStrategy {
     }
 
     private void StopWorking() {
-        Debug.LogWarning($"Worker stop working!");
         Complete = true;
     }
 
     public void Stop() {
-            Debug.LogError($"{GetType().Name} stop!");
         
         if (_slot is null) {
             Debug.LogError("Cannot find worked slot!");
