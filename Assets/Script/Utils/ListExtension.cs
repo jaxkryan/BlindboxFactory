@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Script.Gacha.Machine;
+using Script.Machine;
 using Unity.VisualScripting;
 
 public static class ListExtension {
@@ -85,5 +86,10 @@ public static class ListExtension {
             root.SetNext(e);
         }
         return root;
+    }
+    
+
+    public static IEnumerable<MachineBase> FindMachinesOfType(this IEnumerable<MachineBase> list, Type type) {
+        return !type.IsSubclassOf(typeof(MachineBase)) ? Enumerable.Empty<MachineBase>() : list.Where(m => m.GetType() == type);
     }
 }

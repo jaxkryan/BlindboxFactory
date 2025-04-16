@@ -94,8 +94,10 @@ namespace Script.Machine {
             set {
                 _currentProgress = value;
                 if (!(CurrentProgress >= MaxProgress && MaxProgress > 0f)) return;
-                CurrentProgress -= MaxProgress;
-                CreateProduct();
+                while (_currentProgress > MaxProgress) {
+                    _currentProgress -= MaxProgress;
+                    CreateProduct();
+                }
             }
         }
 
@@ -255,6 +257,7 @@ namespace Script.Machine {
         }
 
         private void OnEnable() {
+            GameController.Instance.PowerGridController.RegisterMachine(this);
             ResourceUse?.ForEach(r => r.Start(this, _resourceManager));
             UpdateWorkDetails();
             SubscribeWorkDetails();
@@ -264,6 +267,7 @@ namespace Script.Machine {
         private void OnValidate() { WorkDetails.ForEach(d => d.Machine = this); }
 
         private void OnDisable() {
+            GameController.Instance.PowerGridController.UnregisterMachine(this);
             ResourceUse?.ForEach(r => r.Stop());
             UpdateWorkDetails();
             UnsubscribeWorkDetails();

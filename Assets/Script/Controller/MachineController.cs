@@ -38,11 +38,8 @@ namespace Script.Controller {
 
         private bool _log => GameController.Instance.Log;
 
-        public List<MachineBase> FindMachinesOfType(Type type) {
-            if (!type.IsSubclassOf(typeof(MachineBase))) return new();
-
-            return Machines.Where(m => m.GetType() == type).ToList();
-        }
+        public IEnumerable<MachineBase> FindMachinesOfType(Type type) 
+        => Machines.FindMachinesOfType(type);
 
         public List<BuildableItem> Buildables {
             get {

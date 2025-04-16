@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Script.Machine.Products {
     [Serializable]
     public abstract class ProductBase : IProduct {
-        public abstract float MaxProgress { get; }
+        [Min(1)]public abstract float MaxProgress { get; }
         public abstract List<ResourceUse> ResourceUse { get; }
         public virtual bool CanCreateProduct { get => true; }
         protected MachineBase _machine;
@@ -35,8 +35,8 @@ namespace Script.Machine.Products {
 
     [Serializable]
     public abstract class SingleProductBase : ProductBase {
-        public override float MaxProgress { get => _maxProgress; }
-        [SerializeField] protected float _maxProgress = 100f;
+        [Min(1)]public override float MaxProgress { get => _maxProgress; }
+        [Min(1)][SerializeField] protected float _maxProgress = 100f;
         public override List<ResourceUse> ResourceUse { get => _resourceUse; }
         [SerializeReference, SubclassSelector] protected List<ResourceUse> _resourceUse = new();
 
