@@ -179,13 +179,13 @@ namespace Script.HumanResource.Worker {
             PortraitIndex = GameController.Instance.WorkerController.PortraitSprites.Any(p => p == Portrait)
             ? GameController.Instance.WorkerController.PortraitSprites.FirstIndex(p => p == Portrait)
             : 0,
-            Position = transform.position,
+            Position = new V3(transform.position),
             MaximumCores = MaximumCore,
             StartingCores = _startingCores,
             CurrentCores = CurrentCores,
-            Bonuses = Bonuses,
+            // Bonuses = Bonuses,
             MachinePrefabName = Machine is MachineBase mbf ? mbf?.PrefabName ?? string.Empty : string.Empty,
-            MachinePosition = Machine is MachineBase mbp ? mbp?.Position ?? Vector2Int.zero : Vector2Int.zero,
+            MachinePosition = new V3(Machine is MachineBase mbp ? mbp?.Position ?? Vector3.zero : Vector3.zero),
             MachineSlotName = WorkingSlot is not null ? WorkingSlot.name : string.Empty,
         };
 
@@ -193,12 +193,23 @@ namespace Script.HumanResource.Worker {
             Name = data.Name;
             _description = data.Description;
             Portrait = GameController.Instance.WorkerController.PortraitSprites.Count >= data.PortraitIndex
-                ? GameController.Instance.WorkerController.PortraitSprites[data.PortraitIndex] : default;
-            transform.position = data.Position;
+                ? GameController.Instance.WorkerController.PortraitSprites.ElementAtOrDefault(data.PortraitIndex - 1) : default;
+            //NavMesh
+            if (TryGetComponent<NavMeshAgent>(out var agent)) {
+                agent.enabled = false;
+                var temp = transform.position;
+                // transform.position = data.Position;
+                // if (NavMesh.SamplePosition(data.Position, out var hit, Single.MaxValue,
+                //         NavMesh.AllAreas)) {
+                //     transform.position = hit.position;
+                // }
+                // else transform.position = temp;
+                agent.enabled = true;
+            }
             _maximumCores = new SerializedDictionary<CoreType, float>(data.MaximumCores);
             _startingCores = new SerializedDictionary<CoreType, float>(data.StartingCores);
             _currentCores = new (data.CurrentCores);
-            _bonuses = data.Bonuses;
+            // _bonuses = data.Bonuses;
 
             if (data.MachinePrefabName != string.Empty) {
                 var machine = GameController.Instance.MachineController.Machines.FirstOrDefault(m =>
@@ -218,13 +229,13 @@ namespace Script.HumanResource.Worker {
             public string Name;
             public string Description;
             public int PortraitIndex;
-            public Vector3 Position;
+            public V3 Position;
             public Dictionary<CoreType, float> MaximumCores;
             public Dictionary<CoreType, float> StartingCores;
             public Dictionary<CoreType, float> CurrentCores;
-            public List<Bonus> Bonuses;
+            // public List<Bonus> Bonuses;
             public string MachinePrefabName;
-            public Vector2Int MachinePosition;
+            public V3 MachinePosition;
             public string MachineSlotName;
         }
     }

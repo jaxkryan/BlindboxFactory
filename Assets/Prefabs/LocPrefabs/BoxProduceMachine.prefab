@@ -1293,7 +1293,7 @@ Animator:
   m_Enabled: 1
   m_Avatar: {fileID: 0}
   m_Controller: {fileID: 6618606420365350604, guid: 1ce2ebc03641be94eaa0db4a913e9643, type: 3}
-  m_CullingMode: 0
+  m_CullingMode: 2
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
@@ -1316,6 +1316,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b5c8a04908cde243b4b42004e5d134e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _position: {x: 0, y: 0, z: 0}
   _powerUse: 0
   _isClosed: 0
   _slots:
@@ -1352,6 +1353,7 @@ MonoBehaviour:
     - rid: 7910668519338934399
     BoxTypeName: 2
   maxAmount: 20
+  lastBox: 0
   references:
     version: 2
     RefIds:

@@ -38,7 +38,7 @@ namespace Script.Machine.Products {
             //Spawn into parent pos + offset
             var tilemap = GameController.Instance.ConstructionLayer;
             if (tilemap.TryGetComponent<ConstructionLayer>(out var ctl)) {
-                var worldPos = tilemap.CellToWorld((pos + _offsetFromParent).ToVector3Int());
+                var worldPos = tilemap.CellToWorld((pos + _offsetFromParent.ToVector2().ToVector3()).ToVector3Int());
                 ctl.Build(worldPos, _building);
             }
             

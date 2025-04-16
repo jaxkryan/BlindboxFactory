@@ -384,7 +384,7 @@ Animator:
   m_Enabled: 1
   m_Avatar: {fileID: 0}
   m_Controller: {fileID: 9100000, guid: 3639095a427a82c4985a9aeb5969b5ed, type: 2}
-  m_CullingMode: 0
+  m_CullingMode: 2
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
@@ -407,7 +407,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e48132fd73da99e45988824ec43ee501, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  foodStorage: {fileID: 0}
+  foodStorage: {fileID: 618267843674244637}
   mealText: {fileID: 1437723567533986805}
 --- !u!114 &618267843674244637
 MonoBehaviour:
@@ -586,6 +586,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d39b5dd84e4f46bb84cd68fcd34d27a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _position: {x: 0, y: 0, z: 0}
   _powerUse: 0
   _isClosed: 0
   _slots:
@@ -996,6 +997,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c85d95be271b4914bb5ef4bb5829ef0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _position: {x: 0, y: 0, z: 0}
   _powerUse: 0
   _isClosed: 0
   _slots: []
@@ -1013,12 +1015,12 @@ MonoBehaviour:
       type: {class: IncreaseProgressWorkDetail, ns: Script.Machine.WorkDetails, asm: Assembly-CSharp}
       data:
         Slot: 0
-        ProgressionPerInterval: 10
+        ProgressionPerInterval: 1
         IntervalSeconds: 1
     - rid: 7910668975323218214
       type: {class: KitchenMealProduct, ns: Script.Machine.Products, asm: Assembly-CSharp}
       data:
-        _maxProgress: 10
+        _maxProgress: 1
         _resourceUse: []
         _amount: 10
 --- !u!1 &8534500081448538090

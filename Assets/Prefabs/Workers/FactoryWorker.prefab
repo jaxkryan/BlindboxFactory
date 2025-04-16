@@ -48,6 +48,7 @@ MonoBehaviour:
   _detectionRadius: 2
   _timerInterval: 0.5
   _target: {fileID: 0}
+  _currentTarget: {fileID: 0}
 --- !u!58 &546976629933463146
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -234,9 +235,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _current: 
-  _log: 1
+  _log: 0
   WorkMachineSensor: {fileID: 5459140429585887110}
   MachineLocation: {fileID: 0}
+  _slot: {fileID: 0}
 --- !u!114 &8431995696745897092
 MonoBehaviour:
   m_ObjectHideFlags: 0

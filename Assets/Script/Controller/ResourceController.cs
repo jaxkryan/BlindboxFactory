@@ -127,7 +127,6 @@ namespace Script.Controller {
                 _resourceConversion = new(data.ResourceConversion);
                 _resourceData = new(data.ResourceData);
                 _resourceAmount = new(data.ResourceAmount);
-                UnityMainThreadDispatcher.Instance.Enqueue(() => {
                     try {
                         _resourceAmount.ForEach(r => onResourceAmountChanged?.Invoke(r.Key, 0, r.Value));
                         _resourceData.ForEach(r => onResourceDataChanged?.Invoke(r.Key, r.Value));
@@ -138,7 +137,6 @@ namespace Script.Controller {
 
                         return;
                     }
-                });
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot load {GetType()}");
@@ -158,13 +156,15 @@ namespace Script.Controller {
             
             
             try {
-                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                    || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
-                    saveManager.SaveData.TryAdd(this.GetType().Name,
-                        SaveManager.Serialize(newSave));
-                else
-                    saveManager.SaveData[this.GetType().Name]
-                        = SaveManager.Serialize(newSave);
+                var serialized = SaveManager.Serialize(newSave);
+                saveManager.SaveData.AddOrUpdate(this.GetType().Name, serialized, (key, oldValue) => serialized);
+                // if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                //     || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
+                //     saveManager.SaveData.TryAdd(this.GetType().Name,
+                //         SaveManager.Serialize(newSave));
+                // else
+                //     saveManager.SaveData[this.GetType().Name]
+                //         = SaveManager.Serialize(newSave);
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");

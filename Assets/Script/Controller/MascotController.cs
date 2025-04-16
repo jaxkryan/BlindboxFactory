@@ -348,13 +348,15 @@ namespace Script.HumanResource.Administrator {
             }
 
             try {
-                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                    || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
-                    saveManager.SaveData.TryAdd(this.GetType().Name,
-                        SaveManager.Serialize(newSave));
-                else
-                    saveManager.SaveData[this.GetType().Name]
-                        = SaveManager.Serialize(newSave);
+                var serialized = SaveManager.Serialize(newSave);
+                saveManager.SaveData.AddOrUpdate(this.GetType().Name, serialized, (key, oldValue) => serialized);
+                // if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                //     || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
+                //     saveManager.SaveData.TryAdd(this.GetType().Name,
+                //         SaveManager.Serialize(newSave));
+                // else
+                //     saveManager.SaveData[this.GetType().Name]
+                //         = SaveManager.Serialize(newSave);
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");

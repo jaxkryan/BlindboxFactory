@@ -58,7 +58,7 @@ namespace BuildingSystem {
                 // Add data to building
                 var machine = itemObject.GetComponent<MachineBase>();
                 if (machine is not null) {
-                    machine.Position = coords.ToVector2Int();
+                    machine.Position = worldCoords;
                     machine.PrefabName = item.Name;
                     GameController.Instance.MachineController.AddMachine(machine);
                 }
