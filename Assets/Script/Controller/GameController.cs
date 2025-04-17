@@ -89,6 +89,7 @@ namespace Script.Controller {
         }
         
         public void BuildNavMesh() {
+            if (!Application.isPlaying) return;
             if (Log) Debug.Log("Rebuilding NavMesh");
             Physics2D.SyncTransforms();
             NavMeshSurface.BuildNavMesh();
@@ -96,7 +97,7 @@ namespace Script.Controller {
 
         public void FinishTutorial() {
             CompletedTutorial = true;
-            if (!SaveManager.SaveData.TryGetValue(nameof(CompletedTutorial), out string completedTutorialString)
+            if (!SaveManager.TryGetValue(nameof(CompletedTutorial), out string completedTutorialString)
                 || completedTutorialString == bool.FalseString) {
                 onTutorialCompleted?.Invoke();
             }
@@ -189,7 +190,7 @@ namespace Script.Controller {
             }
 
             async Task OnSaveTimerOnTimerStop(SaveManager saveManager) {
-                await Save(saveManager);
+                InitiateSave();
                 _saveTimer.Start();
             }
         }
@@ -221,7 +222,7 @@ namespace Script.Controller {
             _isSaving = true;
 
             if (Log) Debug.Log("Saving game...");
-            yield return Save(SaveManager).AsCoroutine();
+            yield return StartCoroutine(Save(SaveManager).AsCoroutine());
 
             if (Log) Debug.Log("Save complete. Quitting app.");
             _isSaving = false;
@@ -253,8 +254,11 @@ namespace Script.Controller {
 
         private void OnValidate() => _controllers.ForEach(c => c.OnValidate());
 
+        private bool _isLoading = false;
+        private bool _queueingSave = false;
+        
         private async Task Load(SaveManager saveManager) {
-            if (Log) Debug.Log($"Loading game on {Thread.CurrentThread} thread");
+            _isLoading = true;
             await SaveManager.LoadFromCloud();
             await SaveManager.LoadFromLocal();
 
@@ -262,29 +266,29 @@ namespace Script.Controller {
             try {
                 #region Game Controller's own save
 
-                if (saveManager.SaveData.TryGetValue(nameof(SessionCount), out string sessionCountString)) {
+                if (saveManager.TryGetValue(nameof(SessionCount), out string sessionCountString)) {
                     if (int.TryParse(sessionCountString, out var sessionCount)) SessionCount = sessionCount;
                 }
-                if (saveManager.SaveData.TryGetValue(nameof(CompletedTutorial), out string completedTutorialString)) {
+                if (saveManager.TryGetValue(nameof(CompletedTutorial), out string completedTutorialString)) {
                     CompletedTutorial = completedTutorialString == bool.TrueString;
                 }
-                if (saveManager.SaveData.TryGetValue(nameof(TotalPlaytime), out string totalPlaytimeString)) {
+                if (saveManager.TryGetValue(nameof(TotalPlaytime), out string totalPlaytimeString)) {
                     if (long.TryParse(totalPlaytimeString, out var totalPlaytime)) {
-                        if (!saveManager.SaveData.TryGetValue(nameof(SessionId), out var saveSessionId)) TotalPlaytime += totalPlaytime;
+                        if (!saveManager.TryGetValue(nameof(SessionId), out var saveSessionId)) TotalPlaytime += totalPlaytime;
                         TotalPlaytime = saveSessionId == SessionId ? TotalPlaytime : totalPlaytime + TotalPlaytime;
                     }
                 }
 
-                if (saveManager.SaveData.TryGetValue(nameof(HasSaveTimer), out string hasSaveTimerString)) {
+                if (saveManager.TryGetValue(nameof(HasSaveTimer), out string hasSaveTimerString)) {
                     HasSaveTimer = hasSaveTimerString == bool.TrueString;
                 }
 
-                if (saveManager.SaveData.TryGetValue(nameof(MinutesBetweenSave), out string minutesBetweenSaveString)) {
+                if (saveManager.TryGetValue(nameof(MinutesBetweenSave), out string minutesBetweenSaveString)) {
                     if (float.TryParse(minutesBetweenSaveString, out var minutesBetweenSave))
                         MinutesBetweenSave = minutesBetweenSave;
                 }
 
-                if (saveManager.SaveData.TryGetValue(nameof(GroundAddedTiles), out string groundAddedTilesString)) {
+                if (saveManager.TryGetValue(nameof(GroundAddedTiles), out string groundAddedTilesString)) {
                     var list = SaveManager.Deserialize<List<V2Int>>(groundAddedTilesString);
 
                     list.Select(v => (Vector2Int)v).ForEach(v => Ground.SetTile(v.ToVector3Int(), GroundTile));
@@ -302,10 +306,19 @@ namespace Script.Controller {
                 Debug.LogError(ex);
                 ex.RaiseException();
             }
+
+            _isLoading = false;
+            if (_queueingSave) InitiateSave();
         }
 
         private async Task Save(SaveManager saveManager) {
-            if (Log) Debug.Log($"Saving game on {Thread.CurrentThread} thread");
+            if (_isLoading) {
+                _queueingSave = true;
+                if (_log) Debug.Log("Loading in progress.");
+                return;
+            }
+
+            _queueingSave = false;
             try {
                 _controllers.ForEach(c => {
                     if (Log) Debug.Log($"Saving {c.GetType().Name}");
@@ -314,16 +327,15 @@ namespace Script.Controller {
 
 
                 #region Game Controller's own save
-                saveManager.SaveData.AddOrUpdate(nameof(SessionCount), SessionCount.ToString(), (s, s1) => SessionCount.ToString());
-                saveManager.SaveData.AddOrUpdate(nameof(TotalPlaytime), TotalPlaytime.ToString(), (s, s1) => TotalPlaytime.ToString());
-                saveManager.SaveData.AddOrUpdate(nameof(SessionPlaytime), SessionPlaytime.ToString(), (s, s1) => SessionPlaytime.ToString());
-                saveManager.SaveData.AddOrUpdate(nameof(SessionId), SessionId, (s, s1) => SessionId);
-                saveManager.SaveData.AddOrUpdate(nameof(SessionStartTime), SessionStartTime.Ticks.ToString(), (s, s1) => SessionStartTime.Ticks.ToString());
-                saveManager.SaveData.AddOrUpdate(nameof(CompletedTutorial), CompletedTutorial ? bool.TrueString : bool.FalseString, (s, s1) => CompletedTutorial ? bool.TrueString : bool.FalseString);
-                saveManager.SaveData.AddOrUpdate(nameof(HasSaveTimer), HasSaveTimer ? bool.TrueString : bool.FalseString, (s, s1) => HasSaveTimer ? bool.TrueString : bool.FalseString);
-                saveManager.SaveData.AddOrUpdate(nameof(MinutesBetweenSave), MinutesBetweenSave.ToString(CultureInfo.InvariantCulture),
-                    (s, s1) => MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
-                saveManager.SaveData.AddOrUpdate(nameof(GroundAddedTiles), SaveManager.Serialize(GroundAddedTiles.Select(t => new V2Int(t)).ToList()), (s, s1) => SaveManager.Serialize(GroundAddedTiles.Select(t => new V2Int(t)).ToList()));
+                saveManager.AddOrUpdate(nameof(SessionCount), SessionCount.ToString());
+                saveManager.AddOrUpdate(nameof(TotalPlaytime), TotalPlaytime.ToString());
+                saveManager.AddOrUpdate(nameof(SessionPlaytime), SessionPlaytime.ToString());
+                saveManager.AddOrUpdate(nameof(SessionId), SessionId);
+                saveManager.AddOrUpdate(nameof(SessionStartTime), SessionStartTime.Ticks.ToString());
+                saveManager.AddOrUpdate(nameof(CompletedTutorial), CompletedTutorial ? bool.TrueString : bool.FalseString);
+                saveManager.AddOrUpdate(nameof(HasSaveTimer), HasSaveTimer ? bool.TrueString : bool.FalseString);
+                saveManager.AddOrUpdate(nameof(MinutesBetweenSave), MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
+                saveManager.AddOrUpdate(nameof(GroundAddedTiles), SaveManager.Serialize(GroundAddedTiles.Select(t => new V2Int(t)).ToList()));
                 #endregion
             }
             catch (System.Exception e) {

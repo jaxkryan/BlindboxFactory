@@ -80,7 +80,7 @@ namespace Script.Controller {
         public event Action<Quest.Quest> onQuestStateChanged = delegate { };
         public override void Load(SaveManager saveManager) {
             try {
-                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                       || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
 
                 _quests.ForEach(q => q.State = QuestState.Locked);
@@ -113,8 +113,8 @@ namespace Script.Controller {
             
             try {
                 var serialized = SaveManager.Serialize(newSave);
-                saveManager.SaveData.AddOrUpdate(this.GetType().Name, serialized, (key, oldValue) => serialized);
-                // if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                saveManager.AddOrUpdate(this.GetType().Name, serialized);
+                // if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                 //     || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
                 //     saveManager.SaveData.TryAdd(this.GetType().Name,
                 //         SaveManager.Serialize(newSave));
