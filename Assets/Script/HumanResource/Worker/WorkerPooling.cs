@@ -101,6 +101,7 @@ namespace Script.HumanResource.Worker {
             if (NavMesh.SamplePosition(position, out var hit, float.MaxValue, NavMesh.AllAreas)) {
                 worker.transform.position = hit.position;
                 worker.Agent.enabled = true;
+                worker.Agent.Warp(hit.position);
             }
             else {
                 Debug.LogWarning("Worker placed off NavMesh — cannot enable NavMeshAgent!");

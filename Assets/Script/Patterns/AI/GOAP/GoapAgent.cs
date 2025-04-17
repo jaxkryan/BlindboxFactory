@@ -77,12 +77,12 @@ public abstract class GoapAgent : MonoBehaviour {
                                 NavMesh.AllAreas)) {
                             Debug.LogWarning($"Warping agent to {hit.position}");
                             _navMeshAgent.transform.position = hit.position;
+                            _navMeshAgent.Warp(hit.position);
                         }
 
                         _navMeshAgent.enabled = true;
                     }
-
-                    _navMeshAgent.ResetPath();
+                    if (_navMeshAgent.hasPath) _navMeshAgent.ResetPath();
 
                     CurrentGoal = ActionPlan.AgentGoal;
                     if (_log)

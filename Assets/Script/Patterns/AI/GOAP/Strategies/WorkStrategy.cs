@@ -39,7 +39,7 @@ public class WorkStrategy : IActionStrategy {
         }
 
         _worker.Agent.enabled = false;
-        _worker.transform.position = _slot.transform.position;
+        _worker.transform.position = _slot.transform.position.ToVector2().ToVector3(_worker.transform.position.z);
         _worker.onCoreChanged += ConsiderStopWorking;
         _slot.Machine.onCreateProduct += ConsiderStopWorking;
         _slot.Machine.onMachineCloseStatusChanged += ConsiderStopWorkingOnCloseStatusChanged;
@@ -58,7 +58,10 @@ public class WorkStrategy : IActionStrategy {
     }
 
     public void Update(float deltaTime) {
-        if (!Complete && (_slot?.Machine is null || _slot.CurrentWorker != _worker)) StopWorking();
+        if (!Complete &&
+            (_slot?.Machine is null
+             || _slot.CurrentWorker != _worker
+             || !GameController.Instance.MachineController.Machines.Contains(_slot.Machine))) ConsiderStopWorking();
     }
 
     private void ConsiderStopWorkingOnCloseStatusChanged(bool value) => ConsiderStopWorking(false);
@@ -67,7 +70,7 @@ public class WorkStrategy : IActionStrategy {
     private void ConsiderStopWorking() => ConsiderStopWorking(false);
 
     private void ConsiderStopWorking(bool isProductCreate) {
-        var min = new Dictionary<CoreType, float>();
+        // var min = new Dictionary<CoreType, float>();
         // Enum.GetValues(typeof(CoreType)).Cast<CoreType>()
         //     .ForEach(c => min[c] = MinimumCoreValue);
         // if (isProductCreate && !WorkerDirector
@@ -81,32 +84,50 @@ public class WorkStrategy : IActionStrategy {
         //     return;
         // }
 
-        if (_slot?.Machine is null || !_slot.Machine.IsWorkable) {
+        if (_slot?.Machine is null) {
             StopWorking();
             return;
         }
+        else Debug.LogWarning("Machine is not null");
+
+        if (!_slot.Machine.IsWorkable || !_slot.Machine.gameObject.activeInHierarchy ||
+            !GameController.Instance.MachineController.Machines.Contains(_slot.Machine)) {
+            StopWorking();
+            return;
+        }
+        else Debug.LogWarning("Machine is workable and active ");
 
         //For bb machines
         if (_slot.Machine is BlindBoxMachine bbMachine && bbMachine.amount <= 0) {
             StopWorking();
             return;
         }
+        else Debug.LogWarning("Machine is not bb machine");
 
         var controller = GameController.Instance.MachineController;
-        if (!controller.IsRecoveryMachine(_slot.Machine, out var forWorkers, out var recovery) && !forWorkers.Contains(_worker.ToWorkerType())) {
+        var workerNeeds
+            = GameController.Instance.WorkerController.WorkerNeedsList.GetValueOrDefault(_worker.ToWorkerType()) ??
+              new();
+        if (!controller.IsRecoveryMachine(_slot.Machine, out var forWorkers, out var recovery) &&
+            !forWorkers.Contains(_worker.ToWorkerType())) {
+            Debug.LogWarning("Machine is normal machine");
             //For normal machines
-            if (_worker.CurrentCores.Any(c => c.Value <= 0f)) {
+            if (_worker.CurrentCores.Any(c => c.Value <= workerNeeds.GetValueOrDefault(c.Key))) {
                 StopWorking();
                 return;
             }
+            else Debug.LogWarning("Worker core not depleted");
         }
         else {
+            Debug.LogWarning("Machine is recovering machine");
             //For recovering machines
             var recoveringCore = recovery.Select(r => r.Core);
-            if (_worker.CurrentCores.All(c => recoveringCore.Contains(c.Key) && c.Value >= _worker.MaximumCore[c.Key])) {
+            if (_worker.CurrentCores.All(c =>
+                    recoveringCore.Contains(c.Key) && c.Value >= _worker.MaximumCore[c.Key])) {
                 StopWorking();
                 return;
             }
+            else Debug.LogWarning("Worker core not filled");
         }
     }
 
@@ -115,19 +136,17 @@ public class WorkStrategy : IActionStrategy {
     }
 
     public void Stop() {
-        if (_slot is null) {
-            Debug.LogError("Cannot find worked slot!");
-            return;
-        }
-
-        var outPos = _worker.transform.position +
-                     Vector3.Normalize(_slot.Machine.transform.position - _worker.transform.position) *
-                     (Vector3.Distance(_slot.Machine.transform.position, _worker.transform.position));
-        if (NavMesh.SamplePosition(outPos, out var hit, float.MaxValue, NavMesh.AllAreas))
-            _worker.Agent.Warp(hit.position);
-        _slot.Machine.RemoveWorker(_worker);
-
         _worker.Director.TargetSlot = null;
         _worker.Agent.enabled = true;
+        var outPos = _worker.transform.position;
+        if (_slot?.Machine != null) {
+            outPos = _worker.transform.position +
+                     Vector3.Normalize(_slot.Machine.transform.position - _worker.transform.position) *
+                     (Vector3.Distance(_slot.Machine.transform.position, _worker.transform.position));
+            _slot.Machine.RemoveWorker(_worker);
+        }
+
+        if (NavMesh.SamplePosition(outPos, out var hit, float.MaxValue, NavMesh.AllAreas))
+            _worker.Agent.Warp(hit.position);
     }
 }
