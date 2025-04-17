@@ -117,7 +117,12 @@ public class AdminSelectionUI : MonoBehaviour
         {
             _portrait.sprite = admin.Portrait;
             _nameText.text = admin.Name.ToString(); // Display full name (FirstName LastName)
-            var policies = admin.Policies.Aggregate("", (current, p) => current + $"• {p.Description}\n").TrimEnd('\n');
+            string policies = "";
+            foreach (var p in admin.Policies)
+            {
+                policies += $"• {p.Description}\n";
+            }
+            policies = policies.TrimEnd('\n');
             _policies.text = policies;
             _policies.color = _gradeColors[admin.Grade];
             if (_gradeBorder != null)
