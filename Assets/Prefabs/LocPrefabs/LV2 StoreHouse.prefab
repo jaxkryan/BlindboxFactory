@@ -50,7 +50,7 @@ Animation:
   m_PlayAutomatically: 1
   m_AnimatePhysics: 0
   m_UpdateMode: 0
-  m_CullingType: 0
+  m_CullingType: 1
 --- !u!114 &-4390113061857229255
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63,9 +63,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a032d91bd0875bf4d93c7c8485d23779, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _position: {x: 0, y: 0, z: 0}
   _powerUse: 0
   _isClosed: 0
   _slots: []
+  _currentProgress: 0
   _spawnWorkers: 0
   _spawnWorkerType: 0
   _workDetails: []
