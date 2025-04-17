@@ -90,7 +90,7 @@ namespace Script.HumanResource.Administrator
                 }
             }
 
-            Debug.Log($"Generated {policies.Count} policies for {grade} mascot: [{string.Join(", ", policies.Select(p => $"{p.GetType().Name} ({p.Grade})"))}]");
+            //Debug.Log($"Generated {policies.Count} policies for {grade} mascot: [{string.Join(", ", policies.Select(p => $"{p.GetType().Name} ({p.Grade})"))}]");
             return policies;
         }
 
@@ -138,12 +138,14 @@ namespace Script.HumanResource.Administrator
                         mp.SetField("_forAllMachines", false);
                         var machineTypeList = new CollectionWrapperList<MachineBase> { Value = new List<MachineBase> { machineInstance } };
                         mp.SetField("_machineType", machineTypeList);
-                        mp.SetField("_description", $"Increase {machineType.Name} Progression Speed by {percentString}%");
+                        mp.SetField("_descriptionKey", "IncreaseMachineProgressionSpeed");
+                        mp.SetField("_descriptionArgs", new string[] { machineType.Name, percentString });
                     }
                     else
                     {
                         mp.SetField("_forAllMachines", true);
-                        mp.SetField("_description", $"Increase All Machines Progression Speed by {percentString}%");
+                        mp.SetField("_descriptionKey", "IncreaseAllMachinesProgressionSpeed");
+                        mp.SetField("_descriptionArgs", new string[] { percentString });
                     }
                     break;
 
@@ -155,11 +157,13 @@ namespace Script.HumanResource.Administrator
                     cc.SetField("_forAllWorkers", true);
                     if (randomCoreType == CoreType.Hunger)
                     {
-                        cc.SetField("_description", $"Decrease All Workers Hunger by {percentString}%");
+                        cc.SetField("_descriptionKey", "DecreaseAllWorkersHunger");
+                        cc.SetField("_descriptionArgs", new string[] { percentString });
                     }
                     else
                     {
-                        cc.SetField("_description", $"Increase All Workers {randomCoreType} by {percentString}%");
+                        cc.SetField("_descriptionKey", "IncreaseAllWorkersCore");
+                        cc.SetField("_descriptionArgs", new string[] { randomCoreType.ToString(), percentString });
                     }
                     break;
 
@@ -171,27 +175,29 @@ namespace Script.HumanResource.Administrator
                         if (resource == Resource.Gold || resource == Resource.Gem) continue;
                         im.Multiplier.Add(resource, new Vector2(coefficient, coefficient));
                     }
-                    im.SetField("_description", $"Increase all resources gain for Resource Extractor Machines by {percentString}%");
+                    im.SetField("_descriptionKey", "IncreaseAllResourcesGain");
+                    im.SetField("_descriptionArgs", new string[] { percentString });
                     break;
 
                 case StorageModificationPolicy sm:
                     sm.Multiplier = new Vector2(coefficient, coefficient);
                     sm.Additives = Vector2.zero;
                     sm.SetField("_forAllStorages", true);
-                    sm.SetField("_description", $"Increase All Storages Capacity by {percentString}%");
+                    sm.SetField("_descriptionKey", "IncreaseAllStoragesCapacity");
+                    sm.SetField("_descriptionArgs", new string[] { percentString });
                     break;
 
                 case IncreaseGeneratorPowerPolicy gp:
                     gp.Multiplier = new Vector2(coefficient, coefficient);
                     gp.Additives = Vector2.zero;
                     gp.SetField("_forAllGenerators", true);
-                    gp.SetField("_description", $"Increase All Generator Capacity by {percentString}%");
+                    gp.SetField("_descriptionKey", "IncreaseAllGeneratorCapacity");
+                    gp.SetField("_descriptionArgs", new string[] { percentString });
                     break;
             }
 
             return policy;
         }
-
         private (float coefficient, float probability, Grade grade, int storageAmount, string percentString) PickRandomCoefficient()
         {
             float roll = UnityEngine.Random.value;

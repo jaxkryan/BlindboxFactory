@@ -22,8 +22,10 @@ namespace BuildingSystem
             buildable.IterateCollisionSpace(tileCoords => list.Add(tileCoords));
             list = list.Select(v => v.ToVector2Int().ToVector3Int()).ToList();
             foreach (var v3 in list) {
-                if (IsInnerTile(v3)) _tilemap.SetTile(v3, _foundationTileBase);
-                else _tilemap.SetTile(v3, _collisionTileBase);
+                if (!value) _tilemap.SetTile(v3, null);
+                else {
+                    _tilemap.SetTile(v3, IsInnerTile(v3) ? _foundationTileBase : _collisionTileBase);
+                }
             }
 
             bool IsInnerTile(Vector3Int pos) {
@@ -32,9 +34,20 @@ namespace BuildingSystem
                     Math.Abs(v.x - pos.x) <= 1 && Math.Abs(v.y - pos.y) <= 1
                     && v != pos).ToList();
                 //If all neighbors are in the list then true
-                return neighbors.Count == 8 && neighbors.All(v => list.Contains(v));
+
+                if (neighbors.Count == 8)
+                {
+                    foreach (var v in neighbors)
+                    {
+                        if (!list.Contains(v))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+                return false;
             }
         }
-
     }
 }

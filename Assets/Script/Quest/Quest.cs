@@ -12,8 +12,7 @@ namespace Script.Quest {
         [TextArea]
         [SerializeField] public string Description;
         
-        [HideInInspector]public QuestState State;
-
+        [NonSerialized]public QuestState State = QuestState.Locked;
 
         public bool TryGetQuestData<T>(string keyName, out T data) {
             var controller = GameController.Instance.QuestController;
@@ -36,18 +35,23 @@ namespace Script.Quest {
         private string Key(string keyName) => $"{Name}: {keyName}";
         
         public void Evaluate() {
+            var log = GameController.Instance.Log;
+            if (log) Debug.Log($"Evaluating quest {Name}. State {State}");
             QuestState oriState;
             do {
                 oriState = State;
                 switch (oriState) {
                     case QuestState.Locked:
-                        if (Preconditions.All(c => c.Evaluate(this)))
+                        if (Preconditions.All(c => c?.Evaluate(this) ?? true))
                             State = QuestState.InProgress;
+                        if (State == QuestState.InProgress) if (log) Debug.Log($"State of quest {Name} change to {State}");
                         break;
                     case QuestState.InProgress:
-                        if (Objectives.All(o => o.Evaluate(this)))
+                        if (Objectives.All(o => o.Evaluate(this))) {
                             State = QuestState.Complete;
-                        OnComplete();
+                            OnComplete();
+                        }
+                        if (State == QuestState.Complete) if (log) Debug.Log($"State of quest {Name} change to {State}");
                         break;
                     case QuestState.Complete:
                         break;
@@ -57,13 +61,14 @@ namespace Script.Quest {
                 if (oriState != State) onQuestStateChanged?.Invoke(this, State); 
             }
             while (oriState != State);
-            
+
+            if (log) Debug.Log($"Complete evaluation of quest {Name}. Final state {State}");
         }
 
         public event Action<Quest, QuestState> onQuestStateChanged = delegate { };
         
-        [SerializeField] public List<QuestCondition> Preconditions;
-        [SerializeField] public List<QuestCondition> Objectives;
+        [SerializeField] public List<QuestCondition> Preconditions = new();
+        [SerializeField] public List<QuestCondition> Objectives = new();
 
         [SerializeReference, SubclassSelector] public List<QuestReward> Rewards; 
         

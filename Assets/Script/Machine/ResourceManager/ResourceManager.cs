@@ -118,7 +118,7 @@ namespace Script.Machine.ResourceManager
                     return false;
                 }
 
-                count = count > lockedAmount / resourceUse.Amount ? lockedAmount / resourceUse.Amount : count;
+                if (resourceUse.Amount > 0) count = count > lockedAmount / resourceUse.Amount ? lockedAmount / resourceUse.Amount : count;
             }
 
             return count > 0;
@@ -138,7 +138,7 @@ namespace Script.Machine.ResourceManager
             foreach (var resource in resources)
             {
                 var storage = ResourceStorageInterface.Get(resource, _machine);
-                Debug.LogWarning($"Resource {resource}, Unlock: {newAmount(resource)}");
+                
                 if (newAmount(resource) > 0) storage.TrySetAmount(newAmount(resource));
                 _lockedResources.Remove(resource);
             }

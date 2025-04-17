@@ -10,12 +10,14 @@ using UnityEngine.Serialization;
 namespace Script.Machine {
     [DisallowMultipleComponent]
     public class MachineSlot : MonoBehaviour {
-        [CanBeNull] public Worker CurrentWorker {get => _currentWorker; private set => _currentWorker = value;}
+        [CanBeNull] public Worker CurrentWorker { get => _currentWorker; }
         [SerializeField] [CanBeNull] private Worker _currentWorker;
-        [CanBeNull] public Worker WishListWorker  {get; private set;}
+        [CanBeNull] public Worker WishListWorker  {get => _wishListWorker; private set => _wishListWorker = value; }
+        [SerializeField] [CanBeNull] private Worker _wishListWorker;
+        
         private CountdownTimer _wishlistTimer;
 
-        [SerializeField] private float _wishlistTravelTimer;
+        [SerializeField] private float _wishlistTravelTimer = 3f;
         [SerializeField] public bool _forAll;
         [ConditionalField("_forAll", true)]
         [SerializeField] private CollectionWrapperList<WorkerType> _forWorker;
@@ -26,23 +28,24 @@ namespace Script.Machine {
             if (worker is not null) {
                 if (CurrentWorker == worker) return true;
                 if (CurrentWorker is not null) {
-                    Debug.LogError($"{this.name} slot is occupied!");
+                    Debug.LogWarning($"{this.name} slot is occupied!");
                     return false;
                 }
                 if (!CanAddWorker(worker)) {
                     var type = worker is Worker monoWorker ? $"({monoWorker.name})" : "";
-                    Debug.LogError($"{worker.Name}{type} cannot be added to this slot!");
+                    Debug.LogWarning($"{worker.Name}{type} cannot be added to this slot!");
                     return false;
                 }
 
                 if (WishListWorker != worker && WishListWorker is not null) {
-                    Debug.LogError($"{this.name} slot is wish listed by {((Worker)WishListWorker).name}!");
+                    Debug.LogWarning($"{this.name} slot is wish listed by {((Worker)WishListWorker).name}!");
                     return false;
                 }
             }
-            CurrentWorker?.StopWorking();
-            CurrentWorker = worker;
-            CurrentWorker?.StartWorking(this);
+            _currentWorker?.StopWorking();
+            _currentWorker = worker;
+            if (worker is null) _currentWorker = null;
+            _currentWorker?.StartWorking(this);
             if (worker is not null) {
                 if (WishListWorker is not null) WishListWorker = null;
             }
@@ -57,6 +60,9 @@ namespace Script.Machine {
         }
         
         public bool SetWishlist([CanBeNull] Worker worker = null) {
+            if (WishListWorker is not null) {
+                WishListWorker.Director.TargetSlot = null;
+            }
             if (worker != null) {
                 if (WishListWorker != null) {
                     Debug.LogError($"{this.name} slot is wish listed!");
@@ -69,8 +75,8 @@ namespace Script.Machine {
                     return false;
                 }
             }
+            
 
-            Debug.LogWarning("Add worker to wishlist");
             WishListWorker = worker;
             if (WishListWorker != null) {
                 _wishlistTimer.Start();

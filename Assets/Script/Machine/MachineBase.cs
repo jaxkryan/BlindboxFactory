@@ -13,7 +13,8 @@ namespace Script.Machine {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(PolygonCollider2D))]
     public abstract class MachineBase : MonoBehaviour, IMachine, IBuilding {
-        public virtual Vector2Int Position { get; set; }
+        public virtual Vector3 Position { get => _position; set => _position = value; }
+        [SerializeField] private Vector3 _position;
         public virtual string PrefabName { get; set; }
 
         public int PowerUse {
@@ -28,13 +29,23 @@ namespace Script.Machine {
         }
 
         private ResourceManager.ResourceManager _resourceManager;
-        public virtual bool HasResourceForWork => _resourceManager.HasResourcesForWork(out _);
+        public virtual bool HasResourceForWork {
+            get {
+                if (_resourceManager == null) return false;
+                if (!_resourceManager.HasResourcesForWork(out _)) {
+                    _resourceManager.UnlockResource();
+                    _resourceManager.TryPullResource(1, out _);
+                }
+                
+                return _resourceManager.HasResourcesForWork(out _);
+            }
+        }
 
-        public bool CanCreateProduct {
+            public bool CanCreateProduct {
             get => _product.CanCreateProduct;
         }
 
-        public bool IsWorkable {
+        public virtual bool IsWorkable {
             get => !_isClosed && HasResourceForWork && HasEnergyForWork && CanCreateProduct;
         }
 
@@ -82,14 +93,14 @@ namespace Script.Machine {
             get => _currentProgress;
             set {
                 _currentProgress = value;
-                if (!(CurrentProgress >= MaxProgress)) return;
+                if (!(CurrentProgress >= MaxProgress && MaxProgress > 0f)) return;
                 CurrentProgress -= MaxProgress;
                 CreateProduct();
             }
         }
 
         private float _lastProgress = 0f;
-        private float _currentProgress;
+        [SerializeField]private float _currentProgress;
 
         public float MaxProgress {
             get => Product.MaxProgress;
@@ -110,7 +121,7 @@ namespace Script.Machine {
         [SerializeField] WorkerType _spawnWorkerType;
 
         public IEnumerable<Worker> Workers {
-            get => _slots.Select(s => s.CurrentWorker).Where(w => w != null);
+            get => _slots.Select(s => s.CurrentWorker).Where(w => w is not null);
         }
 
         public virtual void AddWorker(Worker worker, MachineSlot slot) {
@@ -183,7 +194,6 @@ namespace Script.Machine {
         public void SetMachinePlacedTime(DateTimeOffset time) => _placedTime = time;
 
         public virtual ProductBase CreateProduct() {
-            Debug.Log("creating");
             _product?.OnProductCreated();
             onCreateProduct?.Invoke(_product);
             return _product;
@@ -219,12 +229,14 @@ namespace Script.Machine {
 
         private void UpdateWorkDetails(ProductBase value) => UpdateWorkDetails();
         private void UpdateWorkDetails(bool value) => UpdateWorkDetails();
+        private void UpdateWorkDetails(float value) => UpdateWorkDetails();
 
         private void SubscribeWorkDetails() {
             this.onWorkerChanged += UpdateWorkDetails;
             this.onProductChanged += UpdateWorkDetails;
             this.onCreateProduct += UpdateWorkDetails;
             this.onMachineCloseStatusChanged += UpdateWorkDetails;
+            onProgress += UpdateWorkDetails;
         }
 
         private void UnsubscribeWorkDetails() {
@@ -232,6 +244,7 @@ namespace Script.Machine {
             this.onProductChanged -= UpdateWorkDetails;
             this.onCreateProduct -= UpdateWorkDetails;
             this.onMachineCloseStatusChanged -= UpdateWorkDetails;
+            onProgress -= UpdateWorkDetails;
         }
 
         protected virtual void Awake() {
@@ -302,12 +315,12 @@ namespace Script.Machine {
         protected virtual void Update() {
             _progressPerSecTimer?.Tick(Time.deltaTime);
             WorkDetails.ForEach(d => d.Update(Time.deltaTime));
+            UpdateWorkDetails();
         }
 
-        public virtual MachineBaseData Save() =>
-            new MachineBaseData() {
+        public virtual MachineBaseData Save() => new MachineBaseData() {
                 PrefabName = PrefabName,
-                Position = Position,
+                Position = new(Position),
                 PowerUse = _powerUse,
                 ResourceManager = _resourceManager.ToSaveData(),
                 HasEnergyForWork = HasEnergyForWork,
@@ -371,7 +384,7 @@ namespace Script.Machine {
 
         public class MachineBaseData {
             public string PrefabName;
-            public Vector2Int Position;
+            public V3 Position;
             public int PowerUse;
             public ResourceManager.ResourceManager.SaveData ResourceManager;
             public bool HasEnergyForWork;

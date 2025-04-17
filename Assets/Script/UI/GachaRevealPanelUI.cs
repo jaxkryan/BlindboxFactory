@@ -18,36 +18,40 @@ public class GachaRevealPanelUI : MonoBehaviour
     [SerializeField] private Button _nextButton;
     [SerializeField] private Button _confirmButton;
     [SerializeField] private CanvasGroup _backgroundCanvasGroup;
+    [SerializeField] private Button _skipAllButton; // New "Skip All" button
+    [SerializeField] private GameObject _summaryPanel; // New summary panel for 10-pull
+    [SerializeField] private MascotDetailUI _mascotDetailPanel; // New info panel for mascot details
+
+    [SerializeField] private List<MascotSummarySlot> _mascotSlots = new List<MascotSummarySlot>(); // 10 slots
+    [SerializeField] private Button _summaryExitButton; // Exit button for summary screen
+
+    // Gradient colors for the background (one per grade)
+    [SerializeField] private List<Gradient> _gradeBackgroundGradients = new List<Gradient>(); // 5 gradients for Common, Rare, Special, Epic, Legendary
+
+    // Sprites for the grade border (one per grade)
+    [SerializeField] private List<Sprite> _gradeBorderSprites = new List<Sprite>(); // 5 sprites for Common, Rare, Special, Epic, Legendary
 
     private List<Mascot> _mascotsToReveal;
     private int _currentMascotIndex;
     private Sequence _animationSequence;
     private Action _onComplete;
 
-    private readonly Dictionary<Grade, Color> _gradeColors = new()
-    {
-        { Grade.Common, Color.green },
-        { Grade.Rare, Color.blue },
-        { Grade.Special, new Color(0.5f, 0f, 1f) },
-        { Grade.Epic, new Color(1f, 0.5f, 0f) },
-        { Grade.Legendary, Color.yellow }
-    };
-
     private void Awake()
     {
         _nextButton.gameObject.SetActive(false);
         _confirmButton.gameObject.SetActive(false);
+        _skipAllButton.gameObject.SetActive(false);
+        _summaryPanel.SetActive(false);
+        _mascotDetailPanel.gameObject.SetActive(false);
 
         _nextButton.onClick.AddListener(OnNextClicked);
         _confirmButton.onClick.AddListener(OnConfirmClicked);
+        _skipAllButton.onClick.AddListener(OnSkipAllClicked);
+        _summaryExitButton.onClick.AddListener(OnSummaryExitClicked);
 
         // Set up tap-to-skip using the existing Canvas
         var button = gameObject.GetComponent<Button>() ?? gameObject.AddComponent<Button>();
         button.onClick.AddListener(SkipAnimation);
-
-        // Ensure the background is black
-        _backgroundCanvasGroup.alpha = 1f;
-        _backgroundCanvasGroup.GetComponent<Image>().color = Color.black;
 
         // Hide UI elements initially
         _portraitImage.gameObject.SetActive(false);
@@ -60,27 +64,70 @@ public class GachaRevealPanelUI : MonoBehaviour
     {
         _nextButton.onClick.RemoveAllListeners();
         _confirmButton.onClick.RemoveAllListeners();
+        _skipAllButton.onClick.RemoveAllListeners();
+        _summaryExitButton.onClick.RemoveAllListeners();
         _animationSequence?.Kill();
     }
 
     public void RevealMascots(List<Mascot> mascots, Action onComplete)
     {
+        // Reset the UI state before starting a new reveal
+        ResetUIState();
+
         _mascotsToReveal = mascots;
         _currentMascotIndex = 0;
         _onComplete = onComplete;
 
+        // Show "Skip All" button only for 10-pulls
+        _skipAllButton.gameObject.SetActive(mascots.Count > 1);
+
         RevealNextMascot();
+    }
+
+    private void ResetUIState()
+    {
+        // Hide summary panel and mascot detail panel
+        _summaryPanel.SetActive(false);
+        _mascotDetailPanel.gameObject.SetActive(false);
+
+        // Show reveal UI elements
+        _cardImage.gameObject.SetActive(true);
+        _portraitImage.gameObject.SetActive(false); // Will be shown during animation
+        _gradeBorder.gameObject.SetActive(false); // Will be shown during animation
+        _nameText.gameObject.SetActive(true);
+        _policiesText.gameObject.SetActive(true);
+
+        // Reset text
+        _nameText.text = "";
+        _policiesText.text = "";
+
+        // Hide buttons until needed
+        _nextButton.gameObject.SetActive(false);
+        _confirmButton.gameObject.SetActive(false);
+        _skipAllButton.gameObject.SetActive(false);
+
+        // Stop any ongoing animations
+        _animationSequence?.Kill();
     }
 
     private void RevealNextMascot()
     {
         if (_currentMascotIndex >= _mascotsToReveal.Count)
         {
-            _confirmButton.gameObject.SetActive(true);
+            if (_mascotsToReveal.Count == 1)
+            {
+                // For single pull, show the confirm button to exit
+                _confirmButton.gameObject.SetActive(true);
+            }
+            else
+            {
+                // For 10-pull, show the summary screen
+                ShowSummaryScreen();
+            }
             return;
         }
 
-        // Reset UI elements
+        // Reset UI elements for the next mascot
         _cardImage.color = Color.white;
         _portraitImage.gameObject.SetActive(false);
         _gradeBorder.gameObject.SetActive(false);
@@ -100,20 +147,29 @@ public class GachaRevealPanelUI : MonoBehaviour
             .SetLoops(3, LoopType.Restart)
             .SetEase(Ease.InOutQuad));
 
-        // Step 2: Change the card color to the grade color
-        var gradeColor = _gradeColors[mascot.Grade];
-        _animationSequence.Append(_cardImage.DOColor(gradeColor, 0.5f));
+        // Step 2: Apply the grade background gradient to the card
+        int gradeIndex = (int)mascot.Grade;
+        if (gradeIndex >= 0 && gradeIndex < _gradeBackgroundGradients.Count)
+        {
+            Gradient gradient = _gradeBackgroundGradients[gradeIndex];
+            _animationSequence.Append(_cardImage.DOGradientColor(gradient, 0.5f));
+        }
 
         // Step 3: Update the UI (portrait, name, policies, buttons)
-        _animationSequence.AppendCallback(() => UpdateUI(mascot, gradeColor));
+        _animationSequence.AppendCallback(() => UpdateUI(mascot));
     }
 
-    private void UpdateUI(Mascot mascot, Color gradeColor)
+    private void UpdateUI(Mascot mascot)
     {
         // Show the portrait and grade border
         _portraitImage.sprite = mascot.Portrait;
         _portraitImage.gameObject.SetActive(true);
-        _gradeBorder.color = gradeColor;
+
+        int gradeIndex = (int)mascot.Grade;
+        if (gradeIndex >= 0 && gradeIndex < _gradeBorderSprites.Count)
+        {
+            _gradeBorder.sprite = _gradeBorderSprites[gradeIndex];
+        }
         _gradeBorder.gameObject.SetActive(true);
 
         // Display the name and policies
@@ -123,7 +179,14 @@ public class GachaRevealPanelUI : MonoBehaviour
         // Show the appropriate button
         if (_currentMascotIndex == _mascotsToReveal.Count - 1)
         {
-            _confirmButton.gameObject.SetActive(true);
+            if (_mascotsToReveal.Count == 1)
+            {
+                _confirmButton.gameObject.SetActive(true);
+            }
+            else
+            {
+                _nextButton.gameObject.SetActive(true);
+            }
         }
         else
         {
@@ -140,20 +203,91 @@ public class GachaRevealPanelUI : MonoBehaviour
     private void OnConfirmClicked()
     {
         _onComplete?.Invoke();
-        Destroy(gameObject);
+    }
+
+    private void OnSkipAllClicked()
+    {
+        // Skip all remaining animations and go to the final display
+        _animationSequence?.Kill();
+        _currentMascotIndex = _mascotsToReveal.Count;
+        RevealNextMascot();
     }
 
     private void SkipAnimation()
     {
         if (_animationSequence != null && _animationSequence.IsPlaying())
         {
-            // Complete the animation sequence (finishes tweens like card movement)
+            // Complete the animation sequence for the current mascot
             _animationSequence.Complete();
 
-            // Ensure the UI is updated to its final state
+            // Update the UI to its final state for the current mascot
             var mascot = _mascotsToReveal[_currentMascotIndex];
-            var gradeColor = _gradeColors[mascot.Grade];
-            UpdateUI(mascot, gradeColor);
+            UpdateUI(mascot);
+
+            // Do NOT move to the next mascot; let the "Next" button handle that
         }
+    }
+
+    private void ShowSummaryScreen()
+    {
+        // Hide reveal UI elements
+        _cardImage.gameObject.SetActive(false);
+        _portraitImage.gameObject.SetActive(false);
+        _gradeBorder.gameObject.SetActive(false);
+        _nameText.gameObject.SetActive(false);
+        _policiesText.gameObject.SetActive(false);
+        _nextButton.gameObject.SetActive(false);
+        _confirmButton.gameObject.SetActive(false);
+        _skipAllButton.gameObject.SetActive(false);
+
+        // Show the summary panel
+        _summaryPanel.SetActive(true);
+
+        // Populate the summary slots
+        for (int i = 0; i < _mascotSlots.Count && i < _mascotsToReveal.Count; i++)
+        {
+            var mascot = _mascotsToReveal[i];
+            var slot = _mascotSlots[i];
+            int gradeIndex = (int)mascot.Grade;
+            Gradient backgroundGradient = gradeIndex >= 0 && gradeIndex < _gradeBackgroundGradients.Count ? _gradeBackgroundGradients[gradeIndex] : null;
+            Sprite borderSprite = gradeIndex >= 0 && gradeIndex < _gradeBorderSprites.Count ? _gradeBorderSprites[gradeIndex] : null;
+            slot.Setup(mascot, backgroundGradient, borderSprite, () =>
+            {
+                // Show the mascot details when the portrait is clicked
+                _mascotDetailPanel.gameObject.SetActive(true);
+                _mascotDetailPanel.DisplayDetails(mascot);
+            });
+        }
+    }
+
+    private void OnSummaryExitClicked()
+    {
+        _onComplete?.Invoke();
+    }
+}
+
+// Helper class for summary screen slots
+[System.Serializable]
+public class MascotSummarySlot
+{
+    [SerializeField] private Image _portraitImage;
+    [SerializeField] private Image _backgroundImage; // New background image for gradient
+    [SerializeField] private Image _gradeBorder;
+    [SerializeField] private Button _portraitButton;
+
+    public void Setup(Mascot mascot, Gradient backgroundGradient, Sprite borderSprite, Action onClick)
+    {
+        _portraitImage.sprite = mascot.Portrait;
+        if (backgroundGradient != null)
+        {
+            _backgroundImage.material = new Material(Shader.Find("UI/Default"));
+            _backgroundImage.material.SetColor("_Color", backgroundGradient.Evaluate(0.5f)); // Use a midpoint color for simplicity
+        }
+        if (borderSprite != null)
+        {
+            _gradeBorder.sprite = borderSprite;
+        }
+        _portraitButton.onClick.RemoveAllListeners();
+        _portraitButton.onClick.AddListener(() => onClick?.Invoke());
     }
 }

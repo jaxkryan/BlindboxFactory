@@ -1,3 +1,4 @@
+﻿using Script.Utils;
 using System;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -13,7 +14,15 @@ namespace Script.HumanResource.Administrator {
         [SerializeField] protected string _name;
         public string Description {get => FormatDescription();}
 
-        protected virtual string FormatDescription() => _description;
+        [SerializeField] protected string _descriptionKey;
+        [SerializeField] protected string[] _descriptionArgs;
+
+        protected virtual string FormatDescription()
+        {
+            if (string.IsNullOrEmpty(_descriptionKey))
+                return _description; // Fallback nếu không có key
+            return LocalizationExtension.GetTranslation(_descriptionKey, _descriptionArgs);
+        }
 
         [TextArea]
         [SerializeField] protected string _description;
@@ -23,20 +32,30 @@ namespace Script.HumanResource.Administrator {
         protected abstract void ResetValues();
 
         public virtual SaveData Save() =>
-            new SaveData() {
-                Type = this.GetType().Name,
-                Name = _name,
-                Description = _description
-            };
+             new SaveData()
+             {
+                 Type = this.GetType().Name,
+                 Name = _name,
+                 Description = _description,
+                 DescriptionKey = _descriptionKey,
+                 DescriptionArgs = _descriptionArgs
+             };
 
-        public virtual void Load(SaveData data) {
+        public virtual void Load(SaveData data)
+        {
             _name = data.Name;
             _description = data.Description;
+            _descriptionKey = data.DescriptionKey;
+            _descriptionArgs = data.DescriptionArgs;
         }
-        public class SaveData {
+
+        public class SaveData
+        {
             public string Type;
             public string Name;
             public string Description;
+            public string DescriptionKey;
+            public string[] DescriptionArgs;
         }
     }
 }

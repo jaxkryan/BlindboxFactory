@@ -15,15 +15,8 @@ public class AudioManager : PersistentSingleton<AudioManager>
 
     private void Start()
     {
-        PlayMusic("Freefire");
+        PlayMusic("Adventure");
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
 
     //Example AudioManager.Instance.PlayMusic("Freefire");
     public void PlayMusic(string name)

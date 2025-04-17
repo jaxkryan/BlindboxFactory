@@ -17,8 +17,8 @@ namespace Script.Quest {
                 if (!GameController.Instance.ResourceController.TryGetAmount(pair.Key, out var value)) value = 0;
 
                 if (value > pair.Value) value = pair.Value;
-                var str = $"{value}/{pair.Value}";
-                if (Resources.Count > 1) str = $"{pair.Key} {str}";
+                var str = $"{ResourceController.FormatNumber(value)}/{ResourceController.FormatNumber(pair.Value)}";
+                str = $"{pair.Key} {str}";
                 list.Add(str);
             }
             

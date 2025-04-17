@@ -8,7 +8,7 @@ public class MoveStrategy : IActionStrategy {
     readonly Func<Vector3> _destination;
 
     public bool CanPerform => !Complete;
-    public bool Complete => _agent.remainingDistance <= 2f && !_agent.pathPending;
+    public bool Complete => _agent.remainingDistance <= 0.2f && !_agent.pathPending;
 
     public MoveStrategy(NavMeshAgent agent, Func<Vector3> destination) {
         this._agent = agent;
@@ -24,7 +24,7 @@ public class MoveToSlotStrategy : IActionStrategy {
     readonly Worker _worker;
 
     public bool CanPerform => !Complete;
-    public bool Complete => _agent.remainingDistance <= 0.01f && !_agent.pathPending;
+    public bool Complete => _agent.remainingDistance <= 1f && !_agent.pathPending;
 
     public MoveToSlotStrategy(Worker worker) {
         this._agent = worker.Agent;
@@ -32,16 +32,19 @@ public class MoveToSlotStrategy : IActionStrategy {
     }
 
     public void Start() {
-        if (_worker.Director.TargetSlot is null) _agent.SetDestination(_worker.transform.position);
+        if (_worker.Director.TargetSlot is null) {
+            Debug.LogWarning("Worker has no target slot!");
+            _agent.SetDestination(_worker.transform.position);
+        }
         else {
-            if (NavMesh.SamplePosition(_worker.Director.TargetSlot.transform.position, out var hit, Single.MaxValue,
-                    1)) {
+            if (NavMesh.SamplePosition(_worker.Director.TargetSlot.Machine.transform.position, out var hit, Single.MaxValue,
+                    NavMesh.AllAreas)) {
                 var newPath = new NavMeshPath();
                 if (_agent.CalculatePath(hit.position, newPath)) _agent.SetPath(newPath);
                 else _agent.SetDestination(_worker.transform.position);
             }
         }
-        Debug.LogWarning($"Slot position is: {_worker.Director.TargetSlot?.transform.position ?? Vector3.zero}.Pathing from: {_agent.transform.position} to {_agent.destination}");
+        Debug.Log($"Slot position is: {_worker.Director.TargetSlot?.transform.position ?? Vector3.zero}.Pathing from: {_agent.transform.position} to {_agent.destination}");
     }
     public void Stop() => _agent.ResetPath();
 }

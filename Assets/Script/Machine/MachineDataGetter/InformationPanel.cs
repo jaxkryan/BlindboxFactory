@@ -1,6 +1,6 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 namespace Script.Machine.MachineDataGetter {
     public class InformationPanel : MonoBehaviour {

@@ -30,6 +30,11 @@ namespace Script.Patterns.AI.GOAP.Strategies {
         }
 
         public void Start() {
+            Complete = false;
+            //Clear wishlist
+            GameController.Instance.MachineController.Machines
+                .ForEach(m => m.Slots
+                    .Where(s => s.WishListWorker == _worker).ForEach(s => s.SetWishlist()));
             if (TryWishlistMachine() || _retryAttempts <= 0) {
                 Debug.Log($"Wishlisted: {_worker.Director?.TargetSlot?.name ?? "Empty"}");
                 return;
@@ -48,21 +53,20 @@ namespace Script.Patterns.AI.GOAP.Strategies {
 
         private bool TryWishlistMachine() {
             var slots = new Dictionary<MachineSlot, (int Weight, NavMeshPath Path, MachineBase Machine)>();
-            
             foreach (var machine in _machines(_worker.Director)) {
                 foreach (var slot in machine.Slots) {
                     var path = new NavMeshPath();
                     if (!slot.CanAddWorker(_worker)) continue;
+                    if (slot.CurrentWorker != null) continue;
                     if (slot.WishListWorker != null) continue;
                     
                     NavMeshHit hit;
 
-                    if (!NavMesh.SamplePosition(machine.transform.position, out hit, Single.MaxValue, 1)) continue;
+                    if (!NavMesh.SamplePosition(machine.transform.position, out hit, Single.MaxValue, NavMesh.AllAreas)) continue;
                     if (!_agent.CalculatePath(hit.position, path)) {
-                        Debug.LogWarning($"Cannot calculate path to machine. From {_agent.transform.position} to {hit.position}");
+                        Debug.Log($"Cannot calculate path to machine. From {_agent.transform.position} to {hit.position}");
                         continue;
                     }
-                        Debug.LogWarning($"Found path to machine. From {_agent.transform.position} to {hit.position}" );
                     
                     slots.Add(slot, (CalculateWeight(slot, _agent, path), path, machine));
                 }
@@ -77,6 +81,7 @@ namespace Script.Patterns.AI.GOAP.Strategies {
             //     .ToHashSet();
             var weighted = slots.OrderBy(s => s.Value.Weight);
             
+
             //Evaluate options
             foreach (var w in weighted) {
                 //Move down the weighted list until a machine is wish listed

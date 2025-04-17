@@ -46,9 +46,9 @@ public class RecipeButton : MonoBehaviour
 
     private int caculateMaxAmount()
     {
-        var maxAmount = 0;
+        BlindBoxMachine thismachine = (BlindBoxMachine)BlindBoxInformationDisplay.Instance.currentMachine;
         GameController.Instance.ResourceController.TryGetAllResourceAmounts(out var resourceAmount);
-        var machineLimited = BlindBoxInformationDisplay.Instance.currentBlindBoxMachine.maxAmount;
+        var machineLimited = thismachine.maxAmount;
         var resouceLimited = CalculateMinResouce(resourceAmount, currentBlindBox.ResourceUse);
         return Math.Min(machineLimited,resouceLimited);
     }
@@ -140,11 +140,8 @@ public class RecipeButton : MonoBehaviour
     }
     public void CraftingAdd()
     {
-        Debug.Log("[CraftingAdd] Function was called.");
-
         if (BlindBoxQueueDisplay.Instance == null)
         {
-            Debug.LogError("[CraftingAdd] BlindBoxQueueDisplay.Instance is NULL!");
             return;
         }
 
@@ -154,10 +151,12 @@ public class RecipeButton : MonoBehaviour
         int maxAmount = machine.maxAmount;
         int selectedAmount = Mathf.Min((int)numberSlider.value, maxAmount);
 
-        if (machine.amount == 0)
+        if (machine.amount <= 0)
         {
             machine.Product = currentBlindBox;
+            machine.lastBox = currentBlindBox.BoxTypeName;
             machine.amount = selectedAmount;
+            machine.CurrentProgress = 0;
         }
         else if (machine.Product == currentBlindBox)
         {

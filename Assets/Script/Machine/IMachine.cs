@@ -31,6 +31,6 @@ namespace Script.Machine {
         event Action onWorkerChanged;
         event Action<ProductBase> onCreateProduct;
         DateTimeOffset PlacedTime { get; } 
-        Vector2Int Position { get; }
+        Vector3 Position { get; }
     }
 }

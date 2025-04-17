@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
+using BuildingSystem;
 using JetBrains.Annotations;
 using MyBox;
 using Script.Controller;
@@ -30,7 +31,7 @@ namespace Script.HumanResource.Worker {
         [SerializeField] private SerializedDictionary<CoreType, float> _maximumCores;
         [SerializeField] private SerializedDictionary<CoreType, float> _startingCores;
         public Dictionary<CoreType, float> CurrentCores { get => _currentCores; }
-        private Dictionary<CoreType, float> _currentCores;
+        [SerializeField]private SerializedDictionary<CoreType, float> _currentCores;
         public event Action<CoreType, float> onCoreChanged = delegate { };
 
         [Header("Work")] 
@@ -45,6 +46,10 @@ namespace Script.HumanResource.Worker {
         [SerializeField] private RuntimeAnimatorController _runtimeAnimator;
         private static readonly int VerticalMovement = Animator.StringToHash("VerticalMovement");
         private static readonly int HorizontalMovement = Animator.StringToHash("HorizontalMovement");
+        private static readonly int IsWorking = Animator.StringToHash("IsWorking");
+        private static readonly int IsResting = Animator.StringToHash("IsResting");
+        private static readonly int IsDining = Animator.StringToHash("IsDining");
+
         public Animator Animator {
             get => GetComponent<Animator>();
         }
@@ -77,10 +82,28 @@ namespace Script.HumanResource.Worker {
                 return;
             }
             
+            Animator.SetBool(IsWorking, true);
+            var controller = GameController.Instance.MachineController;
+            //Get prefab name of the working machine
+            var prefabName = slot.Machine.PrefabName;
+            //Get the prefab
+            var prefab = controller.Buildables.Find(prefab => prefab.Name == prefabName)?.gameObject;
+            if (prefab != null && prefab.TryGetComponent<MachineBase>(out var recoveryMachine)) {
+                //Check if prefab is a resting machine prefab
+                var recovery = controller.RecoveryMachines.Any(m => m.Key.GetType() == recoveryMachine.GetType()) 
+                    ? controller.RecoveryMachines.FirstOrDefault(m => m.Key.GetType() == recoveryMachine.GetType()).Value : new ();
+                if (recovery is not null && recovery.Any(r => r.Worker == IWorker.ToWorkerType(this))) {
+                    var r = recovery.Where(r => r.Worker == IWorker.ToWorkerType(this)).ToList();
+                    //Check which core the prefab recover 
+                    if (r.Any(re => re.Core == CoreType.Happiness)) Animator.SetBool(IsResting, true);
+                    if (r.Any(re => re.Core == CoreType.Hunger)) Animator.SetBool(IsDining, true);
+                }
+
+            }
+            
+            
             WorkingSlot = slot;
             Machine = slot.Machine;
-            Agent.enabled = false;
-            transform.position = WorkingSlot.transform.position;
             onWorking?.Invoke();
         }
         public virtual void StopWorking() {
@@ -93,12 +116,13 @@ namespace Script.HumanResource.Worker {
                 Debug.LogError($"Machine slot ({WorkingSlot.Machine}) is being worked by {Name}");
                 return;
             }
-
+            
+            Animator.SetBool(IsWorking, false);
+            Animator.SetBool(IsDining, false);
+            Animator.SetBool(IsResting, false);
+            
             WorkingSlot = null;
             Machine = null;
-            Agent.enabled = true;
-            if (NavMesh.SamplePosition(transform.position, out var hit, Single.MaxValue, 1))
-                transform.position = hit.position;
             onStopWorking?.Invoke();
         }
         public void AddBonus(Bonus bonus) {
@@ -141,6 +165,12 @@ namespace Script.HumanResource.Worker {
             
             Animator.SetFloat(HorizontalMovement, Agent.velocity.x);
             Animator.SetFloat(VerticalMovement, Agent.velocity.y);
+            
+            SetOrderInLayer();
+        }
+
+        protected virtual void SetOrderInLayer() {
+            GetComponent<SpriteRenderer>().sortingOrder = ConstructionLayer.SortingOrder(new Vector3(transform.position.x, transform.position.y - 1f));
         }
 
         public virtual SaveData Save() => new SaveData() {
@@ -149,13 +179,13 @@ namespace Script.HumanResource.Worker {
             PortraitIndex = GameController.Instance.WorkerController.PortraitSprites.Any(p => p == Portrait)
             ? GameController.Instance.WorkerController.PortraitSprites.FirstIndex(p => p == Portrait)
             : 0,
-            Position = transform.position,
+            Position = new V3(transform.position),
             MaximumCores = MaximumCore,
             StartingCores = _startingCores,
             CurrentCores = CurrentCores,
-            Bonuses = Bonuses,
+            // Bonuses = Bonuses,
             MachinePrefabName = Machine is MachineBase mbf ? mbf?.PrefabName ?? string.Empty : string.Empty,
-            MachinePosition = Machine is MachineBase mbp ? mbp?.Position ?? Vector2Int.zero : Vector2Int.zero,
+            MachinePosition = new V3(Machine is MachineBase mbp ? mbp?.Position ?? Vector3.zero : Vector3.zero),
             MachineSlotName = WorkingSlot is not null ? WorkingSlot.name : string.Empty,
         };
 
@@ -163,12 +193,23 @@ namespace Script.HumanResource.Worker {
             Name = data.Name;
             _description = data.Description;
             Portrait = GameController.Instance.WorkerController.PortraitSprites.Count >= data.PortraitIndex
-                ? GameController.Instance.WorkerController.PortraitSprites[data.PortraitIndex] : default;
-            transform.position = data.Position;
+                ? GameController.Instance.WorkerController.PortraitSprites.ElementAtOrDefault(data.PortraitIndex - 1) : default;
+            //NavMesh
+            if (TryGetComponent<NavMeshAgent>(out var agent)) {
+                agent.enabled = false;
+                var temp = transform.position;
+                // transform.position = data.Position;
+                // if (NavMesh.SamplePosition(data.Position, out var hit, Single.MaxValue,
+                //         NavMesh.AllAreas)) {
+                //     transform.position = hit.position;
+                // }
+                // else transform.position = temp;
+                agent.enabled = true;
+            }
             _maximumCores = new SerializedDictionary<CoreType, float>(data.MaximumCores);
             _startingCores = new SerializedDictionary<CoreType, float>(data.StartingCores);
-            _currentCores = data.CurrentCores;
-            _bonuses = data.Bonuses;
+            _currentCores = new (data.CurrentCores);
+            // _bonuses = data.Bonuses;
 
             if (data.MachinePrefabName != string.Empty) {
                 var machine = GameController.Instance.MachineController.Machines.FirstOrDefault(m =>
@@ -188,13 +229,13 @@ namespace Script.HumanResource.Worker {
             public string Name;
             public string Description;
             public int PortraitIndex;
-            public Vector3 Position;
+            public V3 Position;
             public Dictionary<CoreType, float> MaximumCores;
             public Dictionary<CoreType, float> StartingCores;
             public Dictionary<CoreType, float> CurrentCores;
-            public List<Bonus> Bonuses;
+            // public List<Bonus> Bonuses;
             public string MachinePrefabName;
-            public Vector2Int MachinePosition;
+            public V3 MachinePosition;
             public string MachineSlotName;
         }
     }

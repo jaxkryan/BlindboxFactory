@@ -39,12 +39,7 @@ public class MinigameLevelMove : MinigameLevel
         //UpdateMovesText();
     }
 
-    void Update()
-    {
-        // Optionally update moves text UI continuously.
-        //UpdateMovesText();
-    }
-
+    
     public override void OnMove()
     {
         if (energySystem != null && energySystem.SpendEnergy(1)) // Try using 1 energy per move

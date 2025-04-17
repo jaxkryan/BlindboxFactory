@@ -71,7 +71,7 @@ public class MinigameLevel : MonoBehaviour
             if (amount <= 0) continue;
             if (_nonCraftingResources.Contains(resource)) continue;
 
-            Debug.Log($"Converted to CraftingMaterial: {resource} ({(int)resource})");
+            
             if (GameController.Instance.ResourceController.TryGetAmount(resource, out var value))
                 GameController.Instance.ResourceController.TrySetAmount(resource, amount + value);
         }
@@ -115,7 +115,7 @@ public class MinigameLevel : MonoBehaviour
             if (resourceText.textComponent != null)
             {
                 int amount = ResourceManager.Instance.GetResourceAmount(resourceText.resourceType);
-                resourceText.textComponent.text = $"{amount}";
+                resourceText.textComponent.text = amount.ToString();
             }
         }
     }

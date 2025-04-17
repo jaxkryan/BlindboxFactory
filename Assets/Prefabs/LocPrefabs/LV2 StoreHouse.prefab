@@ -12,9 +12,10 @@ GameObject:
   - component: {fileID: 8578813517459701503}
   - component: {fileID: -4390113061857229255}
   - component: {fileID: 466119499461686248}
+  - component: {fileID: 1307045455548688254}
   m_Layer: 0
   m_Name: LV2 StoreHouse
-  m_TagString: Untagged
+  m_TagString: StoreHouse
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -49,7 +50,7 @@ Animation:
   m_PlayAutomatically: 1
   m_AnimatePhysics: 0
   m_UpdateMode: 0
-  m_CullingType: 0
+  m_CullingType: 1
 --- !u!114 &-4390113061857229255
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,9 +63,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a032d91bd0875bf4d93c7c8485d23779, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _position: {x: 0, y: 0, z: 0}
   _powerUse: 0
   _isClosed: 0
   _slots: []
+  _currentProgress: 0
   _spawnWorkers: 0
   _spawnWorkerType: 0
   _workDetails: []
@@ -80,7 +83,7 @@ MonoBehaviour:
       data:
         _maxProgress: 100
         _resourceUse: []
-        boxTypeName: 3
+        BoxTypeName: 3
 --- !u!212 &466119499461686248
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -136,3 +139,170 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!60 &1307045455548688254
+PolygonCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 556174007415281592}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5555, y: 0}
+    oldSize: {x: 4.37, y: 2.85}
+    newSize: {x: 6.04, y: 4.65}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Points:
+    m_Paths:
+    - - {x: 0.34246504, y: 0.17999999}
+      - {x: 0.40246505, y: 0.205}
+      - {x: 0.44246504, y: 0.22999999}
+      - {x: 0.58746505, y: 0.295}
+      - {x: 0.65246505, y: 0.32999998}
+      - {x: 0.71746504, y: 0.35999998}
+      - {x: 0.75246507, y: 0.385}
+      - {x: 0.82246506, y: 0.41}
+      - {x: 0.872465, y: 0.42999998}
+      - {x: 0.922465, y: 0.45999998}
+      - {x: 0.982465, y: 0.48499998}
+      - {x: 1.0674651, y: 0.53}
+      - {x: 1.212465, y: 0.59999996}
+      - {x: 1.337465, y: 0.65999997}
+      - {x: 1.4324651, y: 0.705}
+      - {x: 1.547465, y: 0.75}
+      - {x: 1.5624651, y: 0.78}
+      - {x: 1.602465, y: 0.79499996}
+      - {x: 1.707465, y: 0.83}
+      - {x: 1.747465, y: 0.82}
+      - {x: 1.767465, y: 0.825}
+      - {x: 1.912465, y: 0.9}
+      - {x: 1.9424651, y: 0.91999996}
+      - {x: 1.9424651, y: 1.03}
+      - {x: 1.932465, y: 1.095}
+      - {x: 1.902465, y: 1.12}
+      - {x: 1.897465, y: 1.755}
+      - {x: 1.917465, y: 1.755}
+      - {x: 1.9424651, y: 1.78}
+      - {x: 1.9424651, y: 1.9399999}
+      - {x: 1.932465, y: 1.9549999}
+      - {x: 1.877465, y: 1.985}
+      - {x: 1.837465, y: 1.9799999}
+      - {x: 1.727465, y: 2.03}
+      - {x: 1.6874651, y: 2.01}
+      - {x: 1.647465, y: 2.03}
+      - {x: 1.397465, y: 2.1299999}
+      - {x: 1.217465, y: 2.21}
+      - {x: 1.1674651, y: 2.225}
+      - {x: 1.162465, y: 2.2549999}
+      - {x: 1.082465, y: 2.2949998}
+      - {x: 0.997465, y: 2.33}
+      - {x: 0.97246504, y: 2.33}
+      - {x: 0.872465, y: 2.2849998}
+      - {x: 0.82246506, y: 2.2549999}
+      - {x: 0.797465, y: 2.2}
+      - {x: 0.70746505, y: 2.1599998}
+      - {x: 0.62746507, y: 2.125}
+      - {x: 0.547465, y: 2.085}
+      - {x: 0.547465, y: 2.28}
+      - {x: 0.56746507, y: 2.28}
+      - {x: 0.60246503, y: 2.315}
+      - {x: 0.607465, y: 2.45}
+      - {x: 0.57246506, y: 2.485}
+      - {x: 0.52746505, y: 2.51}
+      - {x: 0.48746505, y: 2.5049999}
+      - {x: 0.39246505, y: 2.5549998}
+      - {x: 0.32246506, y: 2.5449998}
+      - {x: 0.022465058, y: 2.665}
+      - {x: -0.19753493, y: 2.7549999}
+      - {x: -0.19253494, y: 2.78}
+      - {x: -0.22753493, y: 2.8049998}
+      - {x: -0.24253494, y: 2.8}
+      - {x: -0.33753493, y: 2.85}
+      - {x: -0.40253493, y: 2.85}
+      - {x: -0.53253496, y: 2.7849998}
+      - {x: -0.55253494, y: 2.725}
+      - {x: -0.6425349, y: 2.685}
+      - {x: -0.72253495, y: 2.6499999}
+      - {x: -0.9025349, y: 2.57}
+      - {x: -1.027535, y: 2.5149999}
+      - {x: -1.2075349, y: 2.435}
+      - {x: -1.287535, y: 2.3999999}
+      - {x: -1.5025349, y: 2.305}
+      - {x: -1.5925349, y: 2.2649999}
+      - {x: -1.8075349, y: 2.1699998}
+      - {x: -1.8975348, y: 2.1299999}
+      - {x: -2.112535, y: 2.0349998}
+      - {x: -2.1975348, y: 2}
+      - {x: -2.267535, y: 2.0349998}
+      - {x: -2.422535, y: 1.9649999}
+      - {x: -2.4275348, y: 1.9549999}
+      - {x: -2.4275348, y: 1.795}
+      - {x: -2.4075348, y: 1.78}
+      - {x: -2.372535, y: 1.77}
+      - {x: -2.372535, y: 1.11}
+      - {x: -2.4175348, y: 1.1}
+      - {x: -2.4275348, y: 1.09}
+      - {x: -2.4275348, y: 0.93}
+      - {x: -2.422535, y: 0.92499995}
+      - {x: -2.2625349, y: 0.84}
+      - {x: -2.1475348, y: 0.83}
+      - {x: -2.0925348, y: 0.82}
+      - {x: -2.007535, y: 0.775}
+      - {x: -1.8575349, y: 0.715}
+      - {x: -1.5875349, y: 0.60499996}
+      - {x: -1.5125349, y: 0.565}
+      - {x: -1.3575349, y: 0.505}
+      - {x: -1.3375349, y: 0.5}
+      - {x: -1.292535, y: 0.525}
+      - {x: -1.1975349, y: 0.585}
+      - {x: -1.0625349, y: 0.68}
+      - {x: -1.022535, y: 0.585}
+      - {x: -1.0675349, y: 0.575}
+      - {x: -1.0825349, y: 0.56}
+      - {x: -1.0825349, y: 0.41}
+      - {x: -1.0725349, y: 0.39999998}
+      - {x: -1.0075349, y: 0.35999998}
+      - {x: -0.9125349, y: 0.32}
+      - {x: -0.7775349, y: 0.31}
+      - {x: -0.55753493, y: 0.21499999}
+      - {x: -0.48753494, y: 0.17999999}
+      - {x: -0.40253493, y: 0.145}
+      - {x: -0.31253493, y: 0.11}
+      - {x: -0.22753493, y: 0.07}
+      - {x: -0.05253494, y: 0}
+      - {x: 0.032465056, y: 0}
+      - {x: 0.06746506, y: 0.015}
+      - {x: 0.15246506, y: 0.06}
+      - {x: 0.29246506, y: 0.145}
+  m_UseDelaunayMesh: 0

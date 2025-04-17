@@ -8,6 +8,7 @@ using UnityEngine;
 namespace Script.HumanResource.Worker {
     public interface IWorker {
         Dictionary<CoreType, float> CurrentCores { get; }
+
         // float CurrentHunger { get; }
         // float CurrentHappiness { get; }
         // Dictionary<CoreType, CoreDrain> CoreDrains { get; }
@@ -19,10 +20,12 @@ namespace Script.HumanResource.Worker {
         // void RefillHappiness(float amount);
         Dictionary<CoreType, float> MaximumCore { get; }
         void UpdateCore(CoreType core, float amount, bool trigger = true);
+
         event Action<CoreType, float> onCoreChanged;
+
         // event Action<float> onHungerChanged;
         // event Action<float> onHappinessChanged;
-        IMachine Machine{ get; }
+        IMachine Machine { get; }
         MachineSlot WorkingSlot { get; }
         void StartWorking(MachineSlot slot);
         void StopWorking();
@@ -36,19 +39,12 @@ namespace Script.HumanResource.Worker {
         Sprite Portrait { get; }
         WorkerDirector Director { get; }
 
-
-        public static WorkerType ToWorkerType<TWorker>(TWorker worker) where TWorker : Worker => ToWorkerType<TWorker>();
-
-        public static WorkerType ToWorkerType<TWorker>() where TWorker : Worker { 
-            switch (typeof(TWorker))
-            {
-                case Type @base when @base == typeof(Worker):
-                    return WorkerType.Worker;
-                case Type @base when @base == typeof(FactoryWorker):
-                    return WorkerType.FactoryWorker;
-                default:
-                    throw new ArgumentOutOfRangeException(typeof(TWorker).Name);
-            }
+        public static WorkerType ToWorkerType<TWorker>(TWorker worker) where TWorker : Worker {
+            return worker switch {
+                FactoryWorker factoryWorker => WorkerType.FactoryWorker,
+                Worker _worker => WorkerType.Worker,
+                _ => throw new ArgumentOutOfRangeException(nameof(worker), worker, null)
+            };
         }
     }
 }

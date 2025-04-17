@@ -6,6 +6,7 @@ using MyBox;
 using Script.Controller;
 using Script.HumanResource.Worker;
 using Script.Machine;
+using Script.Utils;
 using UnityEngine;
 
 namespace Script.HumanResource.Administrator.Policies
@@ -71,7 +72,8 @@ namespace Script.HumanResource.Administrator.Policies
 
         public override SaveData Save()
         {
-            var data = (ProgressionData)base.Save();
+            var data = base.Save().CastToSubclass<ProgressionData, SaveData>();
+            if (data is null) return base.Save();
 
             data.Additives = Additives;
             data.Multiplier = Multiplier;

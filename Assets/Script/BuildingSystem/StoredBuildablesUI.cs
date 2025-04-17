@@ -31,7 +31,6 @@ public class StoredBuildablesUI : MonoBehaviour
     {
         bool newMode = !_buildingPlacer.GetStoreMode();
         _buildingPlacer.SetStoreMode(newMode);
-        StoreModeButton.GetComponentInChildren<TMP_Text>().text = $"Store Mode: {(newMode ? "ON" : "OFF")}";
         _buildingPlacer.SetActiveBuildable(null);
         _buildingPlacer.ClearPreview();
     }
@@ -61,8 +60,6 @@ public class StoredBuildablesUI : MonoBehaviour
 
         if(StoreModeButton != null)
         {
-            StoreModeButton.GetComponentInChildren<TMP_Text>().text =
-                $"Store Mode: {(_buildingPlacer.GetStoreMode() ? "ON" : "OFF")}";
 
             StoreModeButton.onClick.AddListener(ToggleStoreMode);
         }
@@ -131,6 +128,5 @@ public class StoredBuildablesUI : MonoBehaviour
         Debug.Log("Selected Buildable: " + buildable.name);
         _buildingPlacer.SetBuildableFromInventory(buildable);
         _buildingPlacer.SetStoreMode(false);
-        StoreModeButton.GetComponentInChildren<TMP_Text>().text = "Store Mode: OFF";
     }
 }

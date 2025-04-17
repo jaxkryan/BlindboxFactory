@@ -1,6 +1,7 @@
 using Script.Controller;
 using Script.Machine;
 using Script.Resources;
+using Script.Utils;
 using UnityEngine;
 
 public class StoreHouse : MachineBase
@@ -11,8 +12,10 @@ public class StoreHouse : MachineBase
     BoxController _boxController => GameController.Instance.BoxController;
     ResourceController _resoruceController => GameController.Instance.ResourceController;
 
-    private void Start() 
+    protected override void Start() 
     {
+        base.Start();
+        
         _resoruceController.TryGetAllResourceAmounts(out var materials);
 
         foreach (var res in materials)
@@ -44,7 +47,8 @@ public class StoreHouse : MachineBase
     }
 
     public override MachineBaseData Save() {
-        if (base.Save() is not StoreHouseData data) return base.Save();
+        var data = base.Save().CastToSubclass<StoreHouseData, MachineBaseData>();
+        if (data is null) return base.Save();
 
         data.ResourceAmount = resorceamount;
         data.BoxAmount = boxamount;

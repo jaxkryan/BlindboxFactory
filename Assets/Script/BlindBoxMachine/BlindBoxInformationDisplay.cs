@@ -1,4 +1,7 @@
 using BuildingSystem;
+using Script.Machine;
+using Script.Machine.Machines.Canteen;
+using Script.Machine.Machines.Generator;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -6,8 +9,9 @@ public class BlindBoxInformationDisplay : MonoBehaviour
 {
     [SerializeField]
     public static BlindBoxInformationDisplay Instance { get; private set; }
-    public GameObject ChosePanel;
-    public BlindBoxMachine currentBlindBoxMachine;
+    public GameObject ChosePanelAll;
+    public GameObject ChosePanelBB;
+    public MachineBase currentMachine;
     public Vector3 currentCoordinate;
     public ConstructionLayer _constructionLayer;
 
@@ -24,29 +28,19 @@ public class BlindBoxInformationDisplay : MonoBehaviour
         }
     }
 
-    public BlindBoxMachine GetCurrentDisplayedObject()
-    {
-        return currentBlindBoxMachine;
-    }
-
-    public void SetCurrentDisplayedObject(BlindBoxMachine current)
-    {
-        currentBlindBoxMachine = current;
-    }
-
-    public Vector3 GetCurrentCoordinate()
-    {
-        return currentCoordinate;
-    }
-
-    public void SetCurrentCoordinate(Vector3 current)
-    {
-        currentCoordinate = current;
-    }
-
     public void SellThis()
     {
-        _constructionLayer.Stored(currentCoordinate,true);
-        ChosePanel.SetActive(false);
+        _constructionLayer.Sell(currentCoordinate);
+        ChosePanelAll.SetActive(false);
+        ChosePanelBB.SetActive(false);
+        gameObject.SetActive(false);
+    }
+
+    public void StoreThis()
+    {
+        _constructionLayer.Stored(currentCoordinate);
+        ChosePanelAll.SetActive(false);
+        ChosePanelBB.SetActive(false);
+        gameObject.SetActive(false);
     }
 }

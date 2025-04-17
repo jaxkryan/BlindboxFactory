@@ -1,74 +1,48 @@
+using System.Linq;
+using Script.Machine;
 using UnityEngine;
 
-public class StructureUIToggles : MonoBehaviour
+public class StructureUIToggles : PersistentSingleton<StructureUIToggles> 
 {
-    [SerializeField] private GameObject ChosePanel;
+    [SerializeField] private GameObject ChosePanelAll;
+    [SerializeField] private GameObject ChosePanelBB;
     [SerializeField] private GameObject CraftPanel;
     [SerializeField] private GameObject InformationPanel;
     [SerializeField] private GameObject ExitPanel;
 
-    public StructureUIToggles Instance;
-
-    private void Awake()
-    {
-        Instance = this;
+    public void turnOnCraftPanel() {
+        ExitsAllPanel(ExitPanel);
+        CraftPanel.SetActive(true);
     }
 
-    public void turnOnCraftPanel()
-    {
-        try
-        {
-
-            CraftPanel.SetActive(true);
-            ChosePanel.SetActive(false);
-        }
-        catch
-        {
-
-        }
+    public void turnOnInformationPanel() {
+        ExitsAllPanel(ExitPanel);
+        InformationPanel.SetActive(true);
     }
 
-    public void turnOnInformationPanel()
-    {
-        try
-        {
+    public void exitsAllPanel() => ExitsAllPanel();
 
-            InformationPanel.SetActive(true);
-            ChosePanel.SetActive(false);
-        }
-        catch
-        {
-
-        }
+    private void ExitsAllPanel(params GameObject[] excepts) {
+        var panels = new[] { CraftPanel, ChosePanelAll, ChosePanelBB, InformationPanel, ExitPanel };
+        var ex = panels.Where(excepts.Contains);
+        try { panels.Except(ex).ForEach(p => p?.SetActive(false)); }
+        catch (System.Exception e) { Debug.LogError(e); }
     }
 
-    public void exitsAllPanel() 
-    {
-        try
-        {
-            CraftPanel.SetActive(false);
-            ChosePanel.SetActive(false);
-            InformationPanel.SetActive(false);
-            ExitPanel.SetActive(false);
-        }
-        catch
-        {
-
-        }
+    public void backToChosePanelGeneral() {
+        ExitsAllPanel(ExitPanel);
+        if (BlindBoxInformationDisplay.Instance.currentMachine is BlindBoxMachine) { backToChosePanelBB(); }
+        else { backToChosePanelAll(); }
     }
 
-    public void backToChosePanel()
-    {
-        try
-        {
-            CraftPanel.SetActive(false);
-            ChosePanel.SetActive(true);
-            InformationPanel.SetActive(false);
-            ExitPanel.SetActive(true);
-        }
-        catch
-        {
 
-        }
+    public void backToChosePanelAll() {
+        ExitsAllPanel(ExitPanel);
+        ChosePanelAll.SetActive(true);
+    }
+
+    public void backToChosePanelBB() {
+        ExitsAllPanel(ExitPanel);
+        ChosePanelBB.SetActive(true);
     }
 }

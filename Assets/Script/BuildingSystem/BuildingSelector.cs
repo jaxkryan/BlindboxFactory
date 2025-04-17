@@ -37,7 +37,7 @@ public class BuildingSelector : MonoBehaviour
     {
         bool newMode = !_buildingPlacer.GetStoreMode();
         _buildingPlacer.SetStoreMode(newMode);
-        StoreModeButton.GetComponentInChildren<TMP_Text>().text = $"Store Mode: {(newMode ? "ON" : "OFF")}";
+        //StoreModeButton.GetComponentInChildren<TMP_Text>().text = $"Store Mode: {(newMode ? "ON" : "OFF")}";
         _buildingPlacer.SetActiveBuildable(null);
         _buildingPlacer.ClearPreview();
     }
@@ -66,8 +66,8 @@ public class BuildingSelector : MonoBehaviour
 
         if (StoreModeButton != null)
         {
-            StoreModeButton.GetComponentInChildren<TMP_Text>().text =
-                $"Store Mode: {(_buildingPlacer.GetStoreMode() ? "ON" : "OFF")}";
+            //StoreModeButton.GetComponentInChildren<TMP_Text>().text =
+            //    $"Store Mode: {(_buildingPlacer.GetStoreMode() ? "ON" : "OFF")}";
 
             StoreModeButton.onClick.AddListener(ToggleStoreMode);
         }
@@ -87,7 +87,7 @@ public class BuildingSelector : MonoBehaviour
     {
         _buildingPlacer.IsbuildMode = false;
         Debug.Log("clear ActiveBuildable");
-        buildingSelectionUI.SetActive(false);
+        //buildingSelectionUI.SetActive(false);
         _buildingPlacer.SetActiveBuildable(null);
         _buildingPlacer.ClearPreview();
     }
@@ -133,20 +133,17 @@ public class BuildingSelector : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-
         foreach (var buildable in Categories[categoryIndex].buildables)
         {
             GameController.Instance.MachineController.UnlockMachines.TryGetValue(buildable.Name, out bool lockstatus);
-            Debug.Log(lockstatus);
-            if(!lockstatus) continue;
             Debug.Log("Creating button for: " + buildable.name);
 
             Button newButton = Instantiate(_buttonPrefab, _contentParent);
             newButton.name = "Button_" + buildable.name;
 
-            TMP_Text goldText = newButton.transform.Find("Gold")?.GetComponentInChildren<TMP_Text>();
-            TMP_Text buttonText = newButton.transform.Find("Name")?.GetComponentInChildren<TMP_Text>();
-            Image goldImg = newButton.transform.Find("GoldImg")?.GetComponentInChildren<Image>();
+            TMP_Text goldText = newButton.transform.Find("Image/Gold")?.GetComponentInChildren<TMP_Text>();
+            TMP_Text buttonText = newButton.transform.Find("Image (1)/Name")?.GetComponentInChildren<TMP_Text>();
+            Image goldImg = newButton.transform.Find("Image/Gold/GoldImg")?.GetComponentInChildren<Image>();
             if (buttonText != null)
             {
                 buttonText.text = buildable.Name;
@@ -156,7 +153,7 @@ public class BuildingSelector : MonoBehaviour
             {
                 if (buildable.Cost == null || buildable.Cost == 0)
                 {
-                    goldText.text = "Free   ";
+                    goldText.text = "Free";
                     goldImg.gameObject.SetActive(false);
                 }
                 else 
@@ -174,7 +171,16 @@ public class BuildingSelector : MonoBehaviour
                 buttonImage.sprite = spriteRenderer.sprite;
             }
 
-            newButton.onClick.AddListener(() => SelectBuildable(buildable));
+            if (lockstatus)
+            {
+                newButton.transform.Find("LockImg")?.gameObject.SetActive(false);
+                newButton.onClick.AddListener(() => SelectBuildable(buildable));
+            }
+            else
+            {
+                newButton.onClick.AddListener(() => SelectBuildable(null));
+                newButton.onClick.AddListener(() => _buildingPlacer.ClearPreview());
+            }
         }
     }
 

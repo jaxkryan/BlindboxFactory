@@ -25,12 +25,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1608921360962575210}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.28, y: 2.49, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.27999997, y: 2.49, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2898585061431501436}
+  m_Father: {fileID: 7594353930342926442}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6875869628378271895
 MonoBehaviour:
@@ -44,6 +44,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currentWorker: {fileID: 0}
+  _wishListWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -73,12 +75,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2154713926636789935}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.94, y: 1.86, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.93999994, y: 1.86, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2898585061431501436}
+  m_Father: {fileID: 7594353930342926442}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6826973199861649429
 MonoBehaviour:
@@ -92,6 +94,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currentWorker: {fileID: 0}
+  _wishListWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -121,12 +125,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4396717510552881757}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.5, y: 1.54, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1.4999999, y: 1.54, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2898585061431501436}
+  m_Father: {fileID: 7594353930342926442}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2282207177503725550
 MonoBehaviour:
@@ -140,6 +144,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currentWorker: {fileID: 0}
+  _wishListWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -169,12 +175,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7553373862792825100}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.15, y: 0.81, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.14999998, y: 0.8099999, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2898585061431501436}
+  m_Father: {fileID: 7594353930342926442}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6087458483599561336
 MonoBehaviour:
@@ -188,10 +194,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currentWorker: {fileID: 0}
+  _wishListWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
     Value: 
+--- !u!1 &8098469449291592810
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7594353930342926442}
+  m_Layer: 0
+  m_Name: Slots
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7594353930342926442
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8098469449291592810}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4427688281004993490}
+  - {fileID: 895696836650890743}
+  - {fileID: 6586773269311607828}
+  - {fileID: 9128579329273803959}
+  - {fileID: 1520447513296838674}
+  - {fileID: 2885328532737543735}
+  - {fileID: 3437370796134857187}
+  m_Father: {fileID: 2898585061431501436}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8108999158206018635
 GameObject:
   m_ObjectHideFlags: 0
@@ -217,12 +263,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8108999158206018635}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.33, y: 2.14, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.33000004, y: 2.14, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2898585061431501436}
+  m_Father: {fileID: 7594353930342926442}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3103605170199203921
 MonoBehaviour:
@@ -236,6 +282,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currentWorker: {fileID: 0}
+  _wishListWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -265,12 +313,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8637098510836418849}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.96, y: 1.48, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.96, y: 1.4799998, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2898585061431501436}
+  m_Father: {fileID: 7594353930342926442}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3400130306316095044
 MonoBehaviour:
@@ -284,6 +332,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currentWorker: {fileID: 0}
+  _wishListWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -313,12 +363,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8957380332087159184}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.38, y: 1.17, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.38, y: 1.1700001, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2898585061431501436}
+  m_Father: {fileID: 7594353930342926442}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8264375899617054497
 MonoBehaviour:
@@ -332,6 +382,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e27459b1a14973aa2aaa31e214c3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currentWorker: {fileID: 0}
+  _wishListWorker: {fileID: 0}
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -351,7 +403,7 @@ GameObject:
   - component: {fileID: 5599312238717637534}
   m_Layer: 0
   m_Name: RestRoom Lv2
-  m_TagString: Untagged
+  m_TagString: RestRoom
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -369,13 +421,7 @@ Transform:
   m_LocalScale: {x: 1, y: 0.85, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 4427688281004993490}
-  - {fileID: 895696836650890743}
-  - {fileID: 6586773269311607828}
-  - {fileID: 9128579329273803959}
-  - {fileID: 1520447513296838674}
-  - {fileID: 2885328532737543735}
-  - {fileID: 3437370796134857187}
+  - {fileID: 7594353930342926442}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &4831313323168847746
@@ -444,7 +490,7 @@ Animator:
   m_Enabled: 1
   m_Avatar: {fileID: 0}
   m_Controller: {fileID: -2595235622228274126, guid: 0dc6198494d79e744a3ed8e82ecc1986, type: 3}
-  m_CullingMode: 0
+  m_CullingMode: 2
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
@@ -625,6 +671,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3501de20c53ab724a8b7cc32c93fd8dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _position: {x: 0, y: 0, z: 0}
   _powerUse: 0
   _isClosed: 0
   _slots:
@@ -635,6 +682,7 @@ MonoBehaviour:
   - {fileID: 6087458483599561336}
   - {fileID: 8264375899617054497}
   - {fileID: 3400130306316095044}
+  _currentProgress: 0
   _spawnWorkers: 0
   _spawnWorkerType: 0
   _workDetails:
@@ -655,6 +703,5 @@ MonoBehaviour:
       data:
         _maxProgress: 100
         _resourceUse: []
-        _machine: {fileID: 5599312238717637534}
         _core: 0
         _amount: 5

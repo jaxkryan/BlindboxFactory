@@ -25,7 +25,7 @@ public abstract class GoapAgent : MonoBehaviour {
     }
 
     [SerializeField] private string _current;
-    public AgentAction _currentAction;
+    private AgentAction _currentAction;
     
     public Dictionary<string, AgentBelief> Beliefs;
     public HashSet<AgentAction> Actions;
@@ -62,10 +62,17 @@ public abstract class GoapAgent : MonoBehaviour {
         
         // Update the plan and current action if there is one
         if (CurrentAction == null) {
-            Debug.Log("Calculating any potential new plan");
+            if (_log) Debug.Log("Calculating any potential new plan");
             CalculatePlan();
 
             if (ActionPlan != null && ActionPlan.Actions.Count > 0) {
+                if (!_navMeshAgent.isOnNavMesh) {
+                    if (NavMesh.SamplePosition(_navMeshAgent.transform.position, out var hit, Single.MaxValue, NavMesh.AllAreas)) {
+                        Debug.LogWarning($"Warping agent to {hit.position}");
+                        _navMeshAgent.transform.position = hit.position;
+                    }
+                    _navMeshAgent.enabled = true;
+                }
                 _navMeshAgent.ResetPath();
 
                 CurrentGoal = ActionPlan.AgentGoal;
@@ -111,6 +118,8 @@ public abstract class GoapAgent : MonoBehaviour {
             if (_log) Debug.Log("Current goal exists, checking goals with higher priority");
             goalsToCheck = new HashSet<AgentGoal>(Goals.Where(g => g.Priority > priorityLevel));
         }
+
+        if (_log) Debug.Log($"Checking goals: {string.Join(", ", goalsToCheck.Select(a => a.Name))}");
         
         var potentialPlan = _planner.Plan(this, goalsToCheck, _lastGoal);
         if (potentialPlan != null) {

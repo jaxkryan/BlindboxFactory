@@ -1,6 +1,8 @@
 using System.Linq;
 using Script.Machine.MachineDataGetter;
+using Script.Utils;
 using UnityEngine;
+using static Script.Machine.Machines.Canteen.Canteen.CanteenData;
 
 namespace Script.Machine.Machines.Canteen {
     [RequireComponent(typeof(CanteenFoodStorage))]
@@ -54,10 +56,11 @@ namespace Script.Machine.Machines.Canteen {
         }
 
         public override MachineBaseData Save() {
-            if (base.Save() is not CanteenData data) return base.Save();
+            var data = base.Save().CastToSubclass<CanteenData, MachineBaseData>();
+            if (data is null) return base.Save();
             
             data.Storage = _storage.Save();
-            data.Kitchen = (CanteenData.KitchenData) _kitchen.Save();
+            data.Kitchen = _kitchen.Save().CastToSubclass<KitchenData, MachineBase.MachineBaseData>();
             return data;
         }
 
@@ -73,6 +76,16 @@ namespace Script.Machine.Machines.Canteen {
             public class KitchenData : MachineBase.MachineBaseData {
                 
             }
+        }
+
+        public Canteen.CanteenData GetCanteenData()
+        {
+            var data = new Canteen.CanteenData
+            {
+                Storage = _storage.Save(),
+                Kitchen = new CanteenData.KitchenData()
+        };
+            return data;
         }
     }
 }

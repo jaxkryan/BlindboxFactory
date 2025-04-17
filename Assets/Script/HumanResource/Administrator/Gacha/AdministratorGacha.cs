@@ -56,7 +56,40 @@ namespace Script.HumanResource.Administrator
             GameController.Instance.MascotController.AddMascot(admin);
             return admin;
         }
+        [CanBeNull]
+        public Mascot PullMascotByGrade(Grade grade)
+        {
+            Debug.Log($"Pulling mascot with grade: {grade}");
+            var setting = grade switch
+            {
+                Grade.Common => CommonSettings,
+                Grade.Rare => RareSettings,
+                Grade.Special => SpecialSettings,
+                Grade.Epic => EpicSettings,
+                Grade.Legendary => LegendarySettings,
+                _ => throw new ArgumentOutOfRangeException(nameof(grade), grade, null)
+            };
 
+            Mascot admin = ScriptableObject.CreateInstance<CommonMascot>();
+            admin.SetGrade(grade);
+
+            // Randomize name
+            if (NameRandomizer.UseGachaRequirements) NameRandomizer.SetRequirement(setting.nameRequirements.Compose());
+            admin.Name = NameRandomizer.Pull() ?? new EmployeeName { FirstName = "Unnamed", LastName = "" };
+
+            // Randomize portrait
+            if (PortraitRandomizer.UseGachaRequirements) PortraitRandomizer.SetRequirement(setting.portraitRequirements.Compose());
+            admin.Portrait = PortraitRandomizer.Pull();
+
+            // Assign buffs using PolicyGacha
+            admin.Policies = PolicyGacha.GeneratePoliciesForMascot(grade);
+            Debug.Log($"Assigned {admin.Policies.Count()} policies to {grade} mascot");
+
+            Pulls++;
+            PullHistory.Add(admin);
+            GameController.Instance.MascotController.AddMascot(admin);
+            return admin;
+        }
         public IEnumerable<Mascot> PullMultiple(int times)
         {
             var pulledItems = new List<Mascot>();

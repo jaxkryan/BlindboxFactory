@@ -4,8 +4,10 @@ using System.Linq;
 using AYellowpaper.SerializedCollections;
 using MyBox;
 using Newtonsoft.Json;
+using Script.Alert;
 using Script.Controller.SaveLoad;
 using Script.Resources;
+using Script.Utils;
 using UnityEngine;
 
 namespace Script.Controller {
@@ -31,6 +33,12 @@ namespace Script.Controller {
             }
             catch {
                 Debug.LogError($"Failed to update resource data: {resource}");
+
+                new GameAlert.Builder(AlertType.Warning)
+                    .WithHeader(nameof(ResourceController))
+                    .WithMessage($"Failed to update resource data: {resource}")
+                    .WithCloseButton()
+                    .Build().Raise();
             }
 
             return false;
@@ -119,10 +127,22 @@ namespace Script.Controller {
                 _resourceConversion = new(data.ResourceConversion);
                 _resourceData = new(data.ResourceData);
                 _resourceAmount = new(data.ResourceAmount);
+                    try {
+                        _resourceAmount.ForEach(r => onResourceAmountChanged?.Invoke(r.Key, 0, r.Value));
+                        _resourceData.ForEach(r => onResourceDataChanged?.Invoke(r.Key, r.Value));
+                    }
+                    catch (System.Exception e) {
+                        Debug.LogException(e);
+                        e.RaiseException();
+
+                        return;
+                    }
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot load {GetType()}");
                 Debug.LogException(ex);
+                ex.RaiseException();
+
                 return;
             }
         }
@@ -136,18 +156,74 @@ namespace Script.Controller {
             
             
             try {
-                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                    || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
-                    saveManager.SaveData.TryAdd(this.GetType().Name,
-                        SaveManager.Serialize(newSave));
-                else
-                    saveManager.SaveData[this.GetType().Name]
-                        = SaveManager.Serialize(newSave);
+                var serialized = SaveManager.Serialize(newSave);
+                saveManager.SaveData.AddOrUpdate(this.GetType().Name, serialized, (key, oldValue) => serialized);
+                // if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                //     || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
+                //     saveManager.SaveData.TryAdd(this.GetType().Name,
+                //         SaveManager.Serialize(newSave));
+                // else
+                //     saveManager.SaveData[this.GetType().Name]
+                //         = SaveManager.Serialize(newSave);
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
                 Debug.LogException(ex);
+                ex.RaiseException();
+
             }
+        }
+        
+
+        public static string FormatNumber(long number) {
+            Dictionary<long, string> numberIndex = new();
+            numberIndex.Add(1, "");
+            numberIndex.Add(1000, "k");
+            numberIndex.Add(1000_000, "M");
+            numberIndex.Add(1000_000_000, "B");
+            numberIndex.Add(1000_000_000_000, "T");
+            
+            long cutoff = Int64.MaxValue; //Cutoff switch to using ABC system (Unimplemented)
+            if (number >= cutoff) {
+                //Implement the ABC system
+                return number.ToString();
+            }
+            else {
+                long index = 1;
+                string abbreviation = "";
+                while (number / index >= 1000) index *= 1000;
+                var i = index;
+                while (i > 1) {
+                    var max = numberIndex.Keys.Max();
+                    if (i > max) {
+                        i /= max;
+                        abbreviation = numberIndex[max] += abbreviation;
+                    }
+                    else {
+                        var key = numberIndex.First().Key;
+                        var x = key;
+                        do {
+                            x *= 10;
+                            i /= 10;
+                            if (numberIndex.ContainsKey(x)) key = x;
+                        } while (i > 1);
+                        abbreviation = numberIndex[key] + abbreviation;
+                    }
+                }
+                
+                return (number / float.Parse(index.ToString())).ToString("###.##") + abbreviation;
+            }
+            
+            // if (number >= 1_000_000_000_000)
+            //     return (number / 1_000_000_000_000f).ToString("0.##") + "T";
+            // else if (number >= 1_000_000_000)
+            //     return (number / 1_000_000_000f).ToString("0.##") + "B";
+            // else if (number >= 1_000_000)
+            //     return (number / 1_000_000f).ToString("0.##") + "M";
+            // else if (number >= 1_000)
+            //     return (number / 1_000f).ToString("0.##") + "k";
+            // else
+            //     return number.ToString(); // normal number
         }
         
         public class SaveData{

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MyBox;
 using Script.Controller;
 using Script.Gacha.Base;
 using Script.HumanResource.Administrator;
@@ -18,7 +19,8 @@ public class AdminDepartmentManagerUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _policies;
     [SerializeField] public MascotType Position;
     [SerializeField] private AdministratorManagerUI _manager;
-    //[SerializeField] private TextMeshProUGUI _ability;
+    [SerializeField] private Button _viewDetailsButton;
+    [SerializeField] private MascotDetailUI _mascotDetailUI; // Reference to the existing MascotDetailUI GameObject
 
     private MascotController _adminController;
     private Mascot? _mascot;
@@ -37,6 +39,18 @@ public class AdminDepartmentManagerUI : MonoBehaviour
     {
         _manager = GetComponentInParent<AdministratorManagerUI>();
         _adminController = GameController.Instance.MascotController;
+
+        // Set up the view details button listener
+        if (_viewDetailsButton != null)
+        {
+            _viewDetailsButton.onClick.AddListener(OnClickViewDetails);
+        }
+
+        // Ensure the MascotDetailUI is initially inactive
+        if (_mascotDetailUI != null)
+        {
+            _mascotDetailUI.gameObject.SetActive(false);
+        }
     }
 
     private void OnEnable()
@@ -47,6 +61,15 @@ public class AdminDepartmentManagerUI : MonoBehaviour
     private void OnDisable()
     {
         _adminController.OnMascotChanged -= OnMascotChangedHandler;
+    }
+
+    private void OnDestroy()
+    {
+        // Clean up the button listener
+        if (_viewDetailsButton != null)
+        {
+            _viewDetailsButton.onClick.RemoveAllListeners();
+        }
     }
 
     private void OnMascotChangedHandler(MascotType department, Mascot? mascot)
@@ -75,22 +98,31 @@ public class AdminDepartmentManagerUI : MonoBehaviour
 
     private void SetUpAdmin()
     {
-        //_ability.color = Mascot != null ? Color.grey : Color.green;
-        _position.text = Enum.GetName(typeof(MascotType), Position);
+        //_position.text = Enum.GetName(typeof(MascotType), Position);
         _portrait.sprite = Mascot?.Portrait ?? _defaultPortrait;
         _name.text = Mascot?.Name.ToString() ?? string.Empty;
+       
 
         // Format policies as a bullet list with grade color
         if (Mascot != null)
         {
-            var policies = Mascot.Policies.Aggregate("", (current, p) => current + $"• {p.Description}\n").TrimEnd('\n');
+            var policies = Mascot.Policies.Aggregate("", (current, p) => current + $"â€¢ {p.Description}\n").TrimEnd('\n');
             _policies.text = policies;
             _policies.color = _gradeColors[Mascot.Grade];
+            _name.color = _gradeColors[Mascot.Grade];
+
         }
         else
         {
             _policies.text = "";
             _policies.color = Color.white; // Default color when no mascot
+        }
+
+        // Enable the view details button only if a mascot is assigned
+        if (_viewDetailsButton != null)
+        {
+            _viewDetailsButton.interactable = Mascot != null;
+            _viewDetailsButton.gameObject.SetActive(Mascot != null);
         }
     }
 
@@ -110,6 +142,25 @@ public class AdminDepartmentManagerUI : MonoBehaviour
             Destroy(selectionUI.gameObject);
             SetControllerMascot(administrator);
         };
+    }
+
+    private void OnClickViewDetails()
+    {
+        if (Mascot == null)
+        {
+            Debug.LogWarning("Cannot view details: No mascot assigned to this department.");
+            return;
+        }
+
+        if (_mascotDetailUI == null)
+        {
+            Debug.LogError("MascotDetailUI is not assigned in AdminDepartmentManagerUI!");
+            return;
+        }
+
+        // Activate the MascotDetailUI and display the mascot's details
+        _mascotDetailUI.gameObject.SetActive(true);
+        _mascotDetailUI.DisplayDetails(Mascot);
     }
 
     private void SetControllerMascot(Mascot? mascot)
@@ -142,7 +193,6 @@ public class AdminDepartmentManagerUI : MonoBehaviour
     private void OnValidate()
     {
         SetUpAdmin();
-        //SetDimensionsToEmpty(_ability);
         SetDimensionsToEmpty(_policies);
     }
 
@@ -169,7 +219,6 @@ public class AdminDepartmentManagerUI : MonoBehaviour
     private void OnGUI()
     {
         SetUpAdmin();
-        //SetDimensionsToEmpty(_ability);
         SetDimensionsToEmpty(_policies);
     }
 }

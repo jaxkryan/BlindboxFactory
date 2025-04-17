@@ -5,9 +5,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Script.Alert;
 using Script.Controller;
 using Script.Controller.SaveLoad;
 using Script.Gacha.Base;
+using Script.Resources;
+using Script.Utils;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
@@ -167,39 +170,72 @@ namespace Script.HumanResource.Administrator {
             _mascotsList.Add(mascot);
         }
 
-        public void RemoveMascot(Mascot mascot) {
+        public void RemoveMascot(Mascot mascot)
+        {
             if (!_mascotsList.Remove(mascot)) return;
+
             // If the mascot was assigned, unassign it
-            if (GeneratorMascot == mascot) {
+            if (GeneratorMascot == mascot)
+            {
                 GeneratorMascot = null;
                 mascot.OnDismiss(); // Call dismiss if it was assigned
             }
 
-            if (CanteenMascot == mascot) {
+            if (CanteenMascot == mascot)
+            {
                 CanteenMascot = null;
                 mascot.OnDismiss(); // Call dismiss if it was assigned
             }
 
-            if (RestroomMascot == mascot) {
+            if (RestroomMascot == mascot)
+            {
                 RestroomMascot = null;
                 mascot.OnDismiss(); // Call dismiss if it was assigned
             }
 
-            if (MiningMascot == mascot) {
+            if (MiningMascot == mascot)
+            {
                 MiningMascot = null;
                 mascot.OnDismiss(); // Call dismiss if it was assigned
             }
 
-            if (FactoryMascot == mascot) {
+            if (FactoryMascot == mascot)
+            {
                 FactoryMascot = null;
                 mascot.OnDismiss(); // Call dismiss if it was assigned
             }
 
-            if (StorageMascot == mascot) {
+            if (StorageMascot == mascot)
+            {
                 StorageMascot = null;
                 mascot.OnDismiss(); // Call dismiss if it was assigned
             }
 
+            // Add 500 Gold to the player's resources when remove a mascot
+            var resourceController = GameController.Instance?.ResourceController;
+            if (resourceController != null)
+            {
+                if (resourceController.TryGetAmount(Resource.Gold, out long currentGold))
+                {
+                    long newGold = currentGold + 500;
+                    if (resourceController.TrySetAmount(Resource.Gold, newGold))
+                    {
+                        //Debug.Log($"Added 500 Gold for removing mascot: {mascot.Name}. New Gold amount: {newGold}");
+                    }
+                    else
+                    {
+                        //Debug.LogWarning($"Failed to set new Gold amount ({newGold}) after removing mascot: {mascot.Name}");
+                    }
+                }
+                else
+                {
+                    //Debug.LogWarning($"Failed to get current Gold amount for adding 500 Gold after removing mascot: {mascot.Name}");
+                }
+            }
+            else
+            {
+                Debug.LogError("ResourceController is null in MascotController.RemoveMascot. Cannot add 500 Gold.");
+            }
 
             Debug.Log($"Removed mascot: {mascot.Name} from collection.");
         }
@@ -277,6 +313,8 @@ namespace Script.HumanResource.Administrator {
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot load {GetType()}");
                 Debug.LogException(ex);
+                ex.RaiseException();
+
                 return;
             }
             void ClearData() {
@@ -310,17 +348,21 @@ namespace Script.HumanResource.Administrator {
             }
 
             try {
-                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                    || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
-                    saveManager.SaveData.TryAdd(this.GetType().Name,
-                        SaveManager.Serialize(newSave));
-                else
-                    saveManager.SaveData[this.GetType().Name]
-                        = SaveManager.Serialize(newSave);
+                var serialized = SaveManager.Serialize(newSave);
+                saveManager.SaveData.AddOrUpdate(this.GetType().Name, serialized, (key, oldValue) => serialized);
+                // if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                //     || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
+                //     saveManager.SaveData.TryAdd(this.GetType().Name,
+                //         SaveManager.Serialize(newSave));
+                // else
+                //     saveManager.SaveData[this.GetType().Name]
+                //         = SaveManager.Serialize(newSave);
             }
             catch (System.Exception ex) {
                 Debug.LogError($"Cannot save {GetType()}");
                 Debug.LogException(ex);
+                ex.RaiseException();
+
             }
         }
         public class SaveData {
