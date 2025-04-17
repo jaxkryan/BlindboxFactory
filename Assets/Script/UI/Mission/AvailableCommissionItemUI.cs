@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using Script.Controller;
 using Script.Controller.Commission;
 using Script.Quest;
 using Script.Resources;
@@ -92,6 +93,24 @@ namespace Script.UI.Mission
                 int seconds = (int)(_remainingSeconds % 60);
                 _expired.text = $"{minutes:D2}m {seconds:D2}s";
                 _accept.interactable = true;
+            }
+        }
+
+        public void OnAcceptButtonClicked()
+        {
+            if (_commission != null)
+            {
+                GameController.Instance.CommissionController.TryAddCommission(_commission);
+                Debug.Log($"Commission accepted: {_commission}");
+                _accept.interactable = false;
+            }
+        }
+
+        private void Start()
+        {
+            if (_accept != null)
+            {
+                _accept.onClick.AddListener(OnAcceptButtonClicked);
             }
         }
     }
