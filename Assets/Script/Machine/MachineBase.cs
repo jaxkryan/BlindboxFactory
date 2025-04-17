@@ -264,9 +264,11 @@ namespace Script.Machine {
             UpdateWorkDetails();
             SubscribeWorkDetails();
             WorkDetails.ForEach(d => d.Start());
+
+            GameController.Instance.BuildNavMesh();
         }
 
-        private void OnValidate() { WorkDetails.ForEach(d => d.Machine = this); }
+        protected virtual void OnValidate() { WorkDetails.ForEach(d => d.Machine = this); }
 
         protected virtual void OnDisable() {
             GameController.Instance.PowerGridController.UnregisterMachine(this);
@@ -275,8 +277,13 @@ namespace Script.Machine {
             UnsubscribeWorkDetails();
             WorkDetails.ForEach(d => d.Stop());
             onMachineDisabled?.Invoke();
+
+            if (!_isQuiting)GameController.Instance.BuildNavMesh();
         }
 
+        protected bool _isQuiting { get; private set; } = false;
+
+        protected virtual void OnApplicationQuit() => _isQuiting = true;
 
         protected virtual void Start() {
             #region Progression

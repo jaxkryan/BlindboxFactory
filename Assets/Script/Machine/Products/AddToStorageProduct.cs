@@ -41,7 +41,7 @@ namespace Script.Machine.Products {
                 Debug.LogError($"Cannot find food storage: {_machine.name}");
                 return;
             }
-            _storage.TryChangeMealAmount(Amount);
+            _storage.TryAddMealAmount(Amount);
         }
     }
 }

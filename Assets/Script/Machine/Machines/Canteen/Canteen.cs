@@ -88,8 +88,8 @@ namespace Script.Machine.Machines.Canteen {
             public FoodStorageData Storage;
 
             public class FoodStorageData {
-                public int MaxCapacity;
-                public int AvailableMeals;
+                public long MaxCapacity;
+                public long AvailableMeals;
             }
         }
 

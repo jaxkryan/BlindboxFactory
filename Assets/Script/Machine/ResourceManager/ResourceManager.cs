@@ -195,7 +195,7 @@ namespace Script.Machine.ResourceManager
                 else throw new NullReferenceException(nameof(CanteenFoodStorage));
             }
 
-            public override bool TrySetAmount(long amount) => _foodStorage.TryChangeMealAmount((int)amount);
+            public override bool TrySetAmount(long amount) => _foodStorage.TryAddMealAmount(amount);
 
             public override bool TryGetAmount(out long amount)
             {
