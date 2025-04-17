@@ -32,6 +32,10 @@ public class StoredBuildablesUI : MonoBehaviour
         _buildingPlacer.SetStoreMode(newMode);
         _buildingPlacer.SetActiveBuildable(null);
         _buildingPlacer.ClearPreview();
+        ColorBlock cb = StoreModeButton.colors;
+        cb.normalColor = newMode ? Color.green : Color.white;
+        cb.selectedColor = newMode ? Color.green : Color.white;
+        StoreModeButton.colors = cb;
     }
 
     private Dictionary<BuildableItem, Button> _buttons = new();
