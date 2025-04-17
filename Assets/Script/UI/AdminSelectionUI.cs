@@ -123,6 +123,7 @@ public class AdminSelectionUI : MonoBehaviour
                 policies += $"• {p.Description}\n";
             }
             policies = policies.TrimEnd('\n');
+
             _policies.text = policies;
             _policies.color = _gradeColors[admin.Grade];
             if (_gradeBorder != null)
