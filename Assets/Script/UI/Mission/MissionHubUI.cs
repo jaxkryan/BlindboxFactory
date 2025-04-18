@@ -65,19 +65,21 @@ namespace Script.UI.Mission {
             var controller = GameController.Instance.CommissionController;
             var commissions = controller.CreateCommissions();
             Debug.Log($"Generated commissions(Count {commissions.Count}): " + string.Join("\t", commissions.Select(c => $"Commission: {c.Items.FirstOrDefault().Key} Price: {c.Price}")));
-            // var list = controller.Commissions.Select(c => {
-            //     var commission = Instantiate(_commissionPanel.ItemPrefab.gameObject, _contentHolder.transform);
-            //     if (commission.TryGetComponent<CommissionItemUI>(out var item)) {
-            //         //Here
-            //     }
-            //     else {
-            //         Destroy(commission);
-            //         Debug.LogWarning(
-            //             $"{_commissionPanel.ItemPrefab.gameObject.name} is missing component {nameof(CommissionItemUI)}");
-            //     }
-            //
-            //     return null;
-            // }).Where(c => c != null).ToList();
+            var list = controller.Commissions.Select(c => {
+                var commission = Instantiate(_commissionPanel.ItemPrefab.gameObject, _contentHolder.transform);
+                if (commission.TryGetComponent<CommissionItemUI>(out var item)) {
+                    item.Commission = c;
+                    item.UpdateCommissionData();
+                    return commission;
+                }
+                else {
+                    Destroy(commission);
+                    Debug.LogWarning(
+                        $"{_commissionPanel.ItemPrefab.gameObject.name} is missing component {nameof(CommissionItemUI)}");
+                }
+            
+                return null;
+            }).Where(c => c != null).ToList();
         }
 
         public void OpenAvailableCommissionsPanel()

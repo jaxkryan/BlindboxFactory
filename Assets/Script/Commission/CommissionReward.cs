@@ -6,10 +6,16 @@ namespace Script.Controller.Commission {
         private Commission _commission;
         public void SetCommission(Commission commission) => _commission = commission;
         public override void Grant() {
-            var controller = GameController.Instance.ResourceController;
-            if (controller.TryGetAmount(Resource.Gold, out var amount)) {
-                controller.TrySetAmount(Resource.Gold, amount + _commission.Price);
+            var boxController = GameController.Instance.BoxController;
+            var resourceController = GameController.Instance.ResourceController;
+            if (resourceController.TryGetAmount(Resource.Gold, out var amount)) {
+                resourceController.TrySetAmount(Resource.Gold, amount + _commission.Price);
             }
+            _commission.Items.ForEach(i => {
+                if (boxController.TryGetAmount(i.Key, out var amount)) {
+                    boxController.TrySetAmount(i.Key, amount - i.Value);
+                }
+            });
         }
     }
 }

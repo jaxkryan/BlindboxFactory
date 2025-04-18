@@ -8,13 +8,14 @@ using UnityEngine;
 
 namespace Script.Controller.Commission {
     public class Commission {
-        public ReadOnlyDictionary<BoxTypeName, int> Items { get; private set; }
+        public ReadOnlyDictionary<BoxTypeName, int> Items;
         public QuestReward Reward { get; private set; }
         private long _basePrice => CalculateBasePrice();
+        public long BonusPrice => _bonusPrice;
         private long _bonusPrice = 0;
         public long Price => _basePrice + _bonusPrice;
-        
-        public DateTime ExpireDate { get; private set; }
+
+        public DateTime ExpireDate;
 
         private long CalculateBasePrice() {
             long basePrice = 0;
