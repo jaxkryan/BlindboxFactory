@@ -31,15 +31,18 @@ namespace Script.Alert {
             button.Text.text = Text;
             button.Text.color = TextColor;
             
-            if (OnClick is not null)button.gameObject.GetComponent<Button>().onClick.AddListener(() => OnClick?.Invoke());
             if (IsCloseButton) {
+                    Debug.LogWarning("Button is close button");
+                
                 UnityAction listener = null;
                 listener = () => {
+                    Debug.LogWarning("Closing alert via button");
                     alert.Close();
-                    button.Button.onClick.RemoveListener(listener);
+                    // button.gameObject.GetComponent<Button>().onClick.RemoveListener(listener);
                 };
-                button.Button.onClick.AddListener(listener);
+                button.gameObject.GetComponent<Button>().onClick.AddListener(listener);
             }
+            if (OnClick is not null)button.gameObject.GetComponent<Button>().onClick.AddListener(() => OnClick?.Invoke());
             button.gameObject.SetActive(true);
         }
         
