@@ -73,7 +73,7 @@ namespace Script.Controller {
         }
 
         private void Unsubscribe() {
-            if (!Application.isPlaying) return;
+            if (_isQuiting) return;
             try {
                 if (GameController.Instance.ConstructionLayer is not null
                     && GameController.Instance.ConstructionLayer
@@ -86,6 +86,9 @@ namespace Script.Controller {
                 e.RaiseException();
             }
         }
+
+        private bool _isQuiting = false;
+        public override void OnApplicationQuit() => _isQuiting = true;
 
         private void OnMachineOnItemBuilt(GameObject obj) {
             if (!obj.TryGetComponent<MachineBase>(out var machine)) return;
