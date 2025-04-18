@@ -137,6 +137,7 @@ namespace Script.Machine.ResourceManager
             };
             foreach (var resource in resources)
             {
+                if (!_lockedResources.ContainsKey(resource) || _lockedResources[resource] <= 0) continue;
                 var storage = ResourceStorageInterface.Get(resource, _machine);
                 
                 if (newAmount(resource) > 0) storage.TrySetAmount(newAmount(resource));
@@ -194,7 +195,7 @@ namespace Script.Machine.ResourceManager
                 else throw new NullReferenceException(nameof(CanteenFoodStorage));
             }
 
-            public override bool TrySetAmount(long amount) => _foodStorage.TryChangeMealAmount((int)amount);
+            public override bool TrySetAmount(long amount) => _foodStorage.TryAddMealAmount(amount);
 
             public override bool TryGetAmount(out long amount)
             {

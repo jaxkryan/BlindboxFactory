@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Script.Controller.SaveLoad;
@@ -7,52 +8,33 @@ using Script.Resources;
 using UnityEngine;
 
 namespace Script.Controller {
-    public class PowerGridController : ControllerBase{
+    [Serializable]
+    public class PowerGridController : ControllerBase {
+        [SerializeField]private List<MachineBase> _registeredMachines = new();
 
-        public override void OnStart() {
-            base.OnStart();
-            
-            if (GameController.Instance.MachineController == null) return;
-            GameController.Instance.MachineController.onMachineAdded += onMachineAdded;
-            GameController.Instance.MachineController.onMachineRemoved += onMachineRemoved;
-        }
-        public override void OnEnable() {
-            base.OnStart();
-            
-            if (GameController.Instance.MachineController == null) return;
-            GameController.Instance.MachineController.onMachineAdded += onMachineAdded;
-            GameController.Instance.MachineController.onMachineRemoved += onMachineRemoved;
+        public void RegisterMachine(MachineBase machine) {
+            if (_registeredMachines.Contains(machine)) return;
+            _registeredMachines.Add(machine);
+            ResetMachineEnergyUsage();
         }
 
-        public override void OnDisable() {
-            base.OnDisable();
-            
-            if (GameController.Instance.MachineController == null) return;
-            GameController.Instance.MachineController.onMachineAdded -= onMachineAdded;
-            GameController.Instance.MachineController.onMachineRemoved -= onMachineRemoved;
+        public void UnregisterMachine(MachineBase machine) {
+            if (!_registeredMachines.Contains(machine)) return;
+            _registeredMachines.Remove(machine);
+            ResetMachineEnergyUsage();
         }
 
         private IEnumerable<Generator> _generators =>
-            GameController.Instance.MachineController.FindMachinesOfType(typeof(Generator)).Cast<Generator>();
-
+            _registeredMachines.FindMachinesOfType(typeof(Generator)).Cast<Generator>();
+        
         public int GridCapacity => _generators.Select(g => g.Power).Sum();
 
         public int EnergyUsage =>
-            GameController.Instance.MachineController
-                .Machines.Select(m => m.PowerUse).Sum();
-        
-        private void onMachineAdded(MachineBase machine) {
-            ResetMachineEnergyUsage();
-        }
-
-        private void onMachineRemoved(MachineBase machine) {
-            ResetMachineEnergyUsage();
-            
-        }
+            _registeredMachines.Select(m => m.PowerUse).Sum();
         
         private void ResetMachineEnergyUsage(){
             var list = new List<MachineBase>();
-            list.AddRange(GameController.Instance.MachineController.Machines.OrderByDescending(m => m.PlacedTime));
+            list.AddRange(_registeredMachines.OrderByDescending(m => m.PlacedTime));
             foreach (var m in list) {
                 m.SetMachineHasEnergyForWork(true);
             }

@@ -10,14 +10,17 @@ public interface IGoapPlanner {
 public class GoapPlanner : IGoapPlanner {
     public bool CanRepeatAction {get; set;} = true;
     public ActionPlan Plan(GoapAgent agent, HashSet<AgentGoal> goals, AgentGoal mostRecentGoal = null) {
+        // Debug.Log($"Checking goals: {string.Join(", ", goals.Select(a => a.Name))}");
         var orderedGoals = goals
             .Where(g => g.DesiredEffects.Any(b => !b.Evaluate()))
             .OrderByDescending(g => g == mostRecentGoal ? g.Priority - 0.01f : g.Priority)
             .ToList();
+        // Debug.Log($"Ordered goals: {string.Join(", ", orderedGoals.Select(a => a.Name))}");
 
         foreach (var goal in orderedGoals) {
             var goalNode = new GoapNode(null, null, goal.DesiredEffects, 0);
 
+            // Debug.LogWarning($"Checking goal: {goal.Name}");
             if (FindPath(goalNode, agent.Actions)) {
                 if (goalNode.IsLeafDead) continue;
                 
@@ -38,6 +41,7 @@ public class GoapPlanner : IGoapPlanner {
     }
 
     private bool FindPath(GoapNode parent, HashSet<AgentAction> agentActions) {
+        // if (parent.Action is not null) Debug.LogWarning($"Action: {parent.Action.Name}");
         foreach (var action in agentActions) {
             var requiredEffects = parent.RequiredEffects;
 
@@ -63,7 +67,8 @@ public class GoapPlanner : IGoapPlanner {
                 if (!newRequiredEffects.Any()) return true;
             }
         }
-        
+
+        // Debug.LogWarning("Path died");
         return false;
     }
 }

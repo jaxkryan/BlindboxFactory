@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Script.Machine.Products {
     [Serializable]
     public abstract class ProductBase : IProduct {
-        public abstract float MaxProgress { get; }
+        [Min(1)]public abstract float MaxProgress { get; }
         public abstract List<ResourceUse> ResourceUse { get; }
         public virtual bool CanCreateProduct { get => true; }
         protected MachineBase _machine;
@@ -24,7 +24,7 @@ namespace Script.Machine.Products {
                 ResourceUse = ResourceUse.Select(r => new IProduct.SaveData.ResourceUseData() {
                     Amount = r.Amount,
                     Resource = r.Resource,
-                    IsResourceUseOnProductCreated = r.GetType().IsSubclassOf(typeof(ResourceUseOnProductCreated)),
+                    IsResourceUseOnProductCreated = r.GetType().IsSubclassOf(typeof(ResourceUseOnProductCreated)) || r.GetType() == typeof(ResourceUseOnProductCreated),
                     CurrentTime = r is ResourceUseOvertime rOvertime1 ? rOvertime1.Timer.Time : 0f,
                     TimeInterval = r is ResourceUseOvertime rOvertime2 ? rOvertime2.TimeInterval : 0f,
                 }).ToList()
@@ -35,8 +35,8 @@ namespace Script.Machine.Products {
 
     [Serializable]
     public abstract class SingleProductBase : ProductBase {
-        public override float MaxProgress { get => _maxProgress; }
-        [SerializeField] protected float _maxProgress = 100f;
+        [Min(1)]public override float MaxProgress { get => _maxProgress; }
+        [Min(1)][SerializeField] protected float _maxProgress = 100f;
         public override List<ResourceUse> ResourceUse { get => _resourceUse; }
         [SerializeReference, SubclassSelector] protected List<ResourceUse> _resourceUse = new();
 

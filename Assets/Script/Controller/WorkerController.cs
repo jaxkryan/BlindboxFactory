@@ -64,6 +64,7 @@ namespace Script.Controller {
         }
 
         private void Subscribe() {
+            if (!Application.isPlaying) return;
             if (GameController.Instance.ConstructionLayer
                 .TryGetComponent<ConstructionLayer>(out var constructionLayer)) {
                 constructionLayer.onItemBuilt += OnMachineOnItemBuilt;
@@ -72,6 +73,7 @@ namespace Script.Controller {
         }
 
         private void Unsubscribe() {
+            if (!Application.isPlaying) return;
             try {
                 if (GameController.Instance.ConstructionLayer is not null
                     && GameController.Instance.ConstructionLayer
@@ -139,22 +141,20 @@ namespace Script.Controller {
 
         public override void Load(SaveManager saveManager) {
             try {
-                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                     || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
 
                 foreach (var key in data.WorkerData.Keys) {
+                    Debug.LogWarning($"Loading worker key: {key}");
                     if (!data.WorkerData.TryGetValue(key, out var list)
-                        || !WorkerPrefabs.TryGetValue(key, out var prefab)) continue;
+                        || !WorkerPrefabs.TryGetValue(key, out _)) continue;
                     if (_workerList.TryGetValue(key, out var workerList) && workerList.Count > 0) {
-                        var count = workerList.Count;
-                        while (list.Count > 0 && count-- > 0) { list.RemoveAt(0); }
-                    }
-
-                    for (var i = 0; i < (data.WorkerData[key]?.Count ?? 0); i++) {
-                        var w = data.WorkerData[key]?.ElementAtOrDefault(i);
-                        var worker = workerList?.ElementAtOrDefault(i);
-                        if (worker is null || w is null) continue;
-                        worker.Load(w);
+                        for (var i = 0; i < (data.WorkerData[key]?.Count ?? 0); i++) {
+                            var w = data.WorkerData[key]?.ElementAtOrDefault(i);
+                            var worker = workerList?.ElementAtOrDefault(i);
+                            if (worker is null || w is null) break;
+                            worker.Load(w);
+                        }
                     }
                 }
             }
@@ -167,37 +167,32 @@ namespace Script.Controller {
         }
 
         public override void Save(SaveManager saveManager) {
-                try {
-                    var newSave = new SaveData() { WorkerData = new() };
-                    foreach (var w in WorkerList) {
-                        if (w.Value.IsNullOrEmpty()) continue;
-                        try {
-                            if (newSave.WorkerData.ContainsKey(w.Key)) {
-                                Debug.LogError("Duplicate worker type: " + w.Key);
-                                continue;
-                            }
+            try {
+                var newSave = new SaveData() { WorkerData = new() };
+                foreach (var w in WorkerList) {
+                    if (w.Value.IsNullOrEmpty()) continue;
+                    try {
+                        if (newSave.WorkerData.ContainsKey(w.Key)) {
+                            Debug.LogError("Duplicate worker type: " + w.Key);
+                            continue;
+                        }
 
-                            var list = w.Value.Select(worker => worker.Save()).ToList();
-                            newSave.WorkerData.Add(w.Key, list);
-                        }
-                        catch (System.Exception e) {
-                            Debug.LogWarning(new System.Exception("Cannot save worker", e).RaiseException());
-                        }
+                        var list = w.Value.Select(worker => worker.Save()).ToList();
+                        newSave.WorkerData.Add(w.Key, list);
                     }
+                    catch (System.Exception e) {
+                        Debug.LogWarning(new System.Exception("Cannot save worker", e).RaiseException());
+                    }
+                }
 
-                    if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
-                        || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
-                        saveManager.SaveData.TryAdd(this.GetType().Name,
-                            SaveManager.Serialize(newSave));
-                    else
-                        saveManager.SaveData[this.GetType().Name]
-                            = SaveManager.Serialize(newSave);
-                }
-                catch (System.Exception ex) {
-                    Debug.LogError($"Cannot save {GetType()}");
-                    Debug.LogException(ex);
-                    ex.RaiseException();
-                }
+                var serialized = SaveManager.Serialize(newSave);
+                saveManager.AddOrUpdate(this.GetType().Name, serialized);
+            }
+            catch (System.Exception ex) {
+                Debug.LogError($"Cannot save {GetType()}");
+                Debug.LogException(ex);
+                ex.RaiseException();
+            }
         }
 
         private class SaveData {

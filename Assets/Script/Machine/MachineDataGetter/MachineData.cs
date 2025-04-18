@@ -92,8 +92,8 @@ namespace Script.Machine.MachineDataGetter {
 
             if (_canteen.GetCanteenData() is not Canteen.CanteenData saveData) return "Failed to retrieve data.";
 
-            int availableMeals = saveData.Storage.AvailableMeals;
-            int maxCapacity = saveData.Storage.MaxCapacity;
+            var availableMeals = saveData.Storage.AvailableMeals;
+            var maxCapacity = saveData.Storage.MaxCapacity;
             float percentage = (maxCapacity > 0) ? (availableMeals / (float)maxCapacity) * 100 : 0;
 
             return $"Canteen Information:\n" +

@@ -9,6 +9,7 @@ using Script.Machine.WorkDetails;
 using Script.Patterns.AI.GOAP.Strategies;
 using Script.Utils;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Serialization;
 
 namespace Script.HumanResource.Worker {
@@ -101,7 +102,7 @@ namespace Script.HumanResource.Worker {
             _worker = GetComponent<Worker>();
             if (_slot) WorkMachineSensor.Target = _slot.gameObject;
         }
-
+        
         protected override void SetupBeliefs() {
             base.SetupBeliefs();
             BeliefFactory bf = new(this, Beliefs);
@@ -111,10 +112,13 @@ namespace Script.HumanResource.Worker {
 
             bf.AddBelief($"{_worker.Name}Idle", () => !_navMeshAgent.hasPath);
             bf.AddBelief($"{_worker.Name}Walking", () => _navMeshAgent.hasPath);
+            bf.AddBelief($"{_worker.Name}IsOnNavMesh", () => _navMeshAgent.isOnNavMesh && _isOnWalkableArea(_navMeshAgent));
+            bf.AddBelief($"{_worker.Name}IsNotOnNavMesh", () => !_navMeshAgent.isOnNavMesh || !_isOnWalkableArea(_navMeshAgent));
             _worker.Bonuses.ForEach(bonus => {
                 var condition = bonus.Condition;
                 bf.AddBelief($"{_worker.Name}HasBonus: {bonus.Name}", () => condition.IsApplicable(_worker));
             });
+            bf.AddBelief($"{_worker.Name}HasWorkingMachine", () => _workMachines(this).Any());
             bf.AddBelief($"{_worker.Name}HasWorkableMachine", () => _workableMachines(this).Any());
             bf.AddBelief($"{_worker.Name}HasNoWorkableMachine", () => !_workableMachines(this).Any());
             bf.AddBelief($"{_worker.Name}WishListedAMachine",
@@ -166,7 +170,7 @@ namespace Script.HumanResource.Worker {
                 bf.AddBelief($"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsDepleted", () =>
                     _worker.CurrentCores[core] < needDict.GetValueOrDefault(core));
                 bf.AddBelief($"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsFulfilled", () =>
-                    _worker.CurrentCores[core] < needDict.GetValueOrDefault(core));
+                    _worker.CurrentCores[core] >= needDict.GetValueOrDefault(core));
                 //Beliefs for machines that improve cores
                 switch (core) {
                     case CoreType.Happiness:
@@ -224,6 +228,10 @@ namespace Script.HumanResource.Worker {
                     .WithDesiredEffects(Beliefs[$"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsFulfilled"])
                     .Build());
             }
+            Goals.Add(new AgentGoal.Builder("WarpOnToNavMesh")
+                .WithPriority(99)
+                .WithDesiredEffects(Beliefs[$"{_worker.Name}IsOnNavMesh"])
+                .Build());
         }
 
         protected override void SetupActions() {
@@ -235,12 +243,14 @@ namespace Script.HumanResource.Worker {
                 .Build());
             Actions.Add(new AgentAction.Builder("Wander")
                 .WithStrategy(new WanderStrategy(_navMeshAgent, 10f))
+                .AddPrecondition(Beliefs[$"{_worker.Name}IsOnNavMesh"])
                 .AddEffect(Beliefs[$"{_worker.Name}Walking"])
                 .Build());
 
             Actions.Add(new AgentAction.Builder("ConsiderWorkMachine")
                 .WithStrategy(new WishlistMachineStrategy(_worker, _workMachines, _navMeshAgent, 3))
-                .AddPrecondition(Beliefs[$"{_worker.Name}HasWorkableMachine"])
+                .AddPrecondition(Beliefs[$"{_worker.Name}HasWorkingMachine"])
+                .AddPrecondition(Beliefs[$"{_worker.Name}IsOnNavMesh"])
                 // .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
                 .AddPrecondition(Beliefs[$"{_worker.Name}IsRested"])
                 .AddEffect(Beliefs[$"{_worker.Name}TargetMachineIsWorkMachine"])
@@ -250,6 +260,7 @@ namespace Script.HumanResource.Worker {
                 .WithCost(2)
                 .WithStrategy(new MoveToSlotStrategy(_worker))
                 .AddPrecondition(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                .AddPrecondition(Beliefs[$"{_worker.Name}IsOnNavMesh"])
                 .AddPrecondition(Beliefs[$"{_worker.Name}TargetMachineIsWorkMachine"])
                 .AddPrecondition(Beliefs[$"{_worker.Name}IsRested"])
                 .AddEffect(Beliefs[$"{_worker.Name}AtMachine"])
@@ -269,8 +280,9 @@ namespace Script.HumanResource.Worker {
                     .WithStrategy(new WishlistMachineStrategy(_worker, _recoveryMachines,
                         _navMeshAgent, 3))
                     .AddPrecondition(Beliefs[$"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsDepleted"])
-                    .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
+                    // .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
                     .AddPrecondition(Beliefs[$"{_worker.Name}Has{core}RecoveryMachine"])
+                    .AddPrecondition(Beliefs[$"{_worker.Name}IsOnNavMesh"])
                     .AddEffect(Beliefs[$"{_worker.Name}TargetMachineIsRecoveryMachine"])
                     .AddEffect(Beliefs[$"{_worker.Name}HasTargetMachine"])
                     .Build());
@@ -278,6 +290,7 @@ namespace Script.HumanResource.Worker {
                     .WithCost(2)
                     .WithStrategy(new MoveToSlotStrategy(_worker))
                     .AddPrecondition(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                    .AddPrecondition(Beliefs[$"{_worker.Name}IsOnNavMesh"])
                     .AddPrecondition(Beliefs[$"{_worker.Name}TargetMachineIsRecoveryMachine"])
                     .AddEffect(Beliefs[$"{_worker.Name}AtMachine"])
                     .Build());
@@ -290,6 +303,13 @@ namespace Script.HumanResource.Worker {
                     .AddEffect(Beliefs[$"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsFulfilled"])
                     .Build());
             }
+
+            Actions.Add(new AgentAction.Builder("WarpOnToNavMesh")
+                .WithCost(0)
+                .WithStrategy(new WarpToNavMeshStrategy(_navMeshAgent))
+                .AddPrecondition(Beliefs[$"{_worker.Name}IsNotOnNavMesh"])
+                .AddEffect(Beliefs[$"{_worker.Name}IsOnNavMesh"])
+                .Build());
         }
 
         Func<WorkerDirector, HashSet<MachineBase>> _workableMachines = (director) =>
@@ -300,6 +320,8 @@ namespace Script.HumanResource.Worker {
             list.AddRange(GameController.Instance.MachineController
                 .FindRecoveryMachine(CoreType.Happiness, director._worker));
 
+            // Debug.LogWarning("Happiness recovery machines: " + string.Join(", ", list.Select(r => r.name)));
+            
             return list.ToHashSet();
         };
 
@@ -308,6 +330,8 @@ namespace Script.HumanResource.Worker {
             list.AddRange(GameController.Instance.MachineController
                 .FindRecoveryMachine(CoreType.Hunger, director._worker));
 
+            // Debug.LogWarning("Hunger recovery machines: " + string.Join(", ", list.Select(r => r.name)));
+            
             return list.ToHashSet();
         };
 
@@ -321,5 +345,14 @@ namespace Script.HumanResource.Worker {
                 .Except(
                     director._recoveryMachines.Invoke(director))
                 .ToHashSet();
+
+        private Func<NavMeshAgent, bool> _isOnWalkableArea = (agent) => {
+            var walkableMask = 1 << NavMesh.GetAreaFromName("Walkable");
+            if (NavMesh.SamplePosition(agent.transform.position, out var hit, 0.5f, NavMesh.AllAreas)) {
+                return hit.mask == walkableMask;
+            }
+
+            return false;
+        };
     }
 }

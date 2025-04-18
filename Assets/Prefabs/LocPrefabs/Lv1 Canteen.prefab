@@ -718,6 +718,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _maxCapacity: 1000
+  AvailableMeals: 0
 --- !u!114 &2315071181552932222
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -758,7 +759,7 @@ MonoBehaviour:
     - rid: 7910668975323218116
       type: {class: IncreaseProgressWorkDetail, ns: Script.Machine.WorkDetails, asm: Assembly-CSharp}
       data:
-        Slot: 0
+        Slot: 1
         ProgressionPerInterval: 10
         IntervalSeconds: 1
     - rid: 7910668975323218137
@@ -766,7 +767,7 @@ MonoBehaviour:
       data:
         _resource: 8
         _amount: 1
-        Machine: {fileID: 0}
+        Machine: {fileID: 2315071181552932222}
 --- !u!1 &5039184034387694424
 GameObject:
   m_ObjectHideFlags: 0

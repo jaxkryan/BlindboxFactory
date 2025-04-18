@@ -44,6 +44,10 @@ namespace Script.HumanResource.Worker {
             var children = _workerPool;
             var list = children.Where(w => w.ToWorkerType() == workerType).ToList();
 
+            for (int i = 0; i < list.Count; i++) {
+                list[i].Director.AgentUpdateOrder = i;
+            }
+
             return list;
         }
 
@@ -92,10 +96,12 @@ namespace Script.HumanResource.Worker {
         public void ActivateWorker(Worker worker, Vector3 position) {
             DeactivateWorker(worker);
 
-            worker.transform.position = position;
+            worker.transform.position = position.ToVector2().ToVector3(GameController.Instance.NavMeshSurface.transform.position.z);
+            
             if (NavMesh.SamplePosition(position, out var hit, float.MaxValue, NavMesh.AllAreas)) {
                 worker.transform.position = hit.position;
                 worker.Agent.enabled = true;
+                worker.Agent.Warp(hit.position);
             }
             else {
                 Debug.LogWarning("Worker placed off NavMesh — cannot enable NavMeshAgent!");
