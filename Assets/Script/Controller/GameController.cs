@@ -43,6 +43,7 @@ namespace Script.Controller {
         public Tilemap CollisionLayer;
         public NavMeshSurface NavMeshSurface;
         public TileBase GroundTile;
+        public PlayerData PlayerData;
 
         [Space] 
         [Header("Save")] 
@@ -294,6 +295,10 @@ namespace Script.Controller {
                     list.Select(v => (Vector2Int)v).ForEach(v => Ground.SetTile(v.ToVector3Int(), GroundTile));
                 }
 
+                if (saveManager.TryGetValue(nameof(PlayerData), out string playerDataString)) {
+                     PlayerData = SaveManager.Deserialize<PlayerData>(playerDataString);
+                }
+
                 #endregion
 
                 _controllers.ForEach(c => {
@@ -336,6 +341,7 @@ namespace Script.Controller {
                 saveManager.AddOrUpdate(nameof(HasSaveTimer), HasSaveTimer ? bool.TrueString : bool.FalseString);
                 saveManager.AddOrUpdate(nameof(MinutesBetweenSave), MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
                 saveManager.AddOrUpdate(nameof(GroundAddedTiles), SaveManager.Serialize(GroundAddedTiles.Select(t => new V2Int(t)).ToList()));
+                saveManager.AddOrUpdate(nameof(PlayerData), SaveManager.Serialize(PlayerData));
                 #endregion
             }
             catch (System.Exception e) {
