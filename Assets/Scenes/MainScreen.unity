@@ -2979,8 +2979,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 200, y: -487}
-  m_SizeDelta: {x: 1399.4077, y: 2463.508}
+  m_AnchoredPosition: {x: 201.15182, y: -487}
+  m_SizeDelta: {x: 1397.1036, y: 2463.508}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &406203020
 MonoBehaviour:
@@ -3182,7 +3182,6 @@ RectTransform:
   m_Children:
   - {fileID: 406203018}
   - {fileID: 1549030330}
-  - {fileID: 1315334400}
   - {fileID: 1061421418}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3207,6 +3206,10 @@ MonoBehaviour:
   - dialogueText: "Oh, ch\xE0o \u0111\u1EB1ng \u1EA5y nh\xE9"
     characterSprite: {fileID: 485100549149554314, guid: 6a21712be5e3d4b46b2f88eb110ddae4, type: 3}
     overlayCenterPosition: {x: 500, y: 500}
+    characterPosition: {x: 0, y: 0}
+    clickOverlay: 1
+    enableOverlayScale: 0
+    overlayScale: {x: 1, y: 1}
     onStepStart:
       m_PersistentCalls:
         m_Calls: []
@@ -3215,7 +3218,11 @@ MonoBehaviour:
         m_Calls: []
   - dialogueText: "Ch\xE0o m\u1EEBng b\u1EA1n \u0111\u1EBFn v\u1EDBi BlindBox Land"
     characterSprite: {fileID: 485100549149554314, guid: 6a21712be5e3d4b46b2f88eb110ddae4, type: 3}
-    overlayCenterPosition: {x: -380.1, y: 195.8}
+    overlayCenterPosition: {x: 500, y: 500}
+    characterPosition: {x: 0, y: 0}
+    clickOverlay: 1
+    enableOverlayScale: 0
+    overlayScale: {x: 1, y: 1}
     onStepStart:
       m_PersistentCalls:
         m_Calls: []
@@ -3225,7 +3232,133 @@ MonoBehaviour:
   - dialogueText: "Ch\xFAng ta h\xE3y c\xF9ng bi\u1EBFn n\u01A1i \u0111\xE2y th\xE0nh
       m\u1ED9t nh\xE0 m\xE1y s\u1EA3n xu\u1EA5t BlindBox nh\xE9"
     characterSprite: {fileID: 485100549149554314, guid: 6a21712be5e3d4b46b2f88eb110ddae4, type: 3}
-    overlayCenterPosition: {x: -380.1, y: 195.8}
+    overlayCenterPosition: {x: 500, y: 500}
+    characterPosition: {x: 0, y: 0}
+    clickOverlay: 1
+    enableOverlayScale: 0
+    overlayScale: {x: 1, y: 1}
+    onStepStart:
+      m_PersistentCalls:
+        m_Calls: []
+    onStepComplete:
+      m_PersistentCalls:
+        m_Calls: []
+  - dialogueText: "\u0110\u01B0\u1EE3c r\u1ED3i, h\xE3y b\u1EAFt \u0111\u1EA7u x\xE2y
+      c\xE1c c\xF4ng tr\xECnh \u0111\u1EA7u ti\xEAn nh\xE9"
+    characterSprite: {fileID: 485100549149554314, guid: 6a21712be5e3d4b46b2f88eb110ddae4, type: 3}
+    overlayCenterPosition: {x: 500, y: 500}
+    characterPosition: {x: 0, y: 0}
+    clickOverlay: 1
+    enableOverlayScale: 0
+    overlayScale: {x: 1, y: 1}
+    onStepStart:
+      m_PersistentCalls:
+        m_Calls: []
+    onStepComplete:
+      m_PersistentCalls:
+        m_Calls: []
+  - dialogueText: "\u1EA4n v\xE0o \u0111\xE2y \u0111\u1EC3 m\u1EDF danh s\xE1ch c\xE1c
+      c\xF4ng tr\xECnh"
+    characterSprite: {fileID: 485100549149554314, guid: 6a21712be5e3d4b46b2f88eb110ddae4, type: 3}
+    overlayCenterPosition: {x: -295, y: -650}
+    characterPosition: {x: 50, y: -400}
+    clickOverlay: 0
+    enableOverlayScale: 0
+    overlayScale: {x: 1, y: 1}
+    onStepStart:
+      m_PersistentCalls:
+        m_Calls: []
+    onStepComplete:
+      m_PersistentCalls:
+        m_Calls: []
+  - dialogueText: "T\u1ED1t l\u1EAFm !!"
+    characterSprite: {fileID: 485100549149554314, guid: 6a21712be5e3d4b46b2f88eb110ddae4, type: 3}
+    overlayCenterPosition: {x: 500, y: 500}
+    characterPosition: {x: 0, y: 0}
+    clickOverlay: 1
+    enableOverlayScale: 0
+    overlayScale: {x: 1, y: 1}
+    onStepStart:
+      m_PersistentCalls:
+        m_Calls: []
+    onStepComplete:
+      m_PersistentCalls:
+        m_Calls: []
+  - dialogueText: "\u0110\u1EC3 c\xE1c c\xF4ng tr\xECnh ho\u1EA1t \u0111\u1ED9ng
+      th\xEC c\u1EA7n \u0111i\u1EC7n"
+    characterSprite: {fileID: 485100549149554314, guid: 6a21712be5e3d4b46b2f88eb110ddae4, type: 3}
+    overlayCenterPosition: {x: 500, y: 500}
+    characterPosition: {x: 0, y: 0}
+    clickOverlay: 1
+    enableOverlayScale: 0
+    overlayScale: {x: 1, y: 1}
+    onStepStart:
+      m_PersistentCalls:
+        m_Calls: []
+    onStepComplete:
+      m_PersistentCalls:
+        m_Calls: []
+  - dialogueText: "V\u1EADy n\xEAn h\xE3y x\xE2y m\xE1y ph\xE1t \u0111i\u1EC7n tr\u01B0\u1EDBc
+      nh\xE9"
+    characterSprite: {fileID: 485100549149554314, guid: 6a21712be5e3d4b46b2f88eb110ddae4, type: 3}
+    overlayCenterPosition: {x: 500, y: 500}
+    characterPosition: {x: 0, y: 0}
+    clickOverlay: 1
+    enableOverlayScale: 0
+    overlayScale: {x: 1, y: 1}
+    onStepStart:
+      m_PersistentCalls:
+        m_Calls: []
+    onStepComplete:
+      m_PersistentCalls:
+        m_Calls: []
+  - dialogueText: "\u1EA4n v\xE0o ph\u1EA7n \u0111i\u1EC7n n\u0103ng"
+    characterSprite: {fileID: 485100549149554314, guid: 6a21712be5e3d4b46b2f88eb110ddae4, type: 3}
+    overlayCenterPosition: {x: -60, y: -650}
+    characterPosition: {x: 0, y: 0}
+    clickOverlay: 0
+    enableOverlayScale: 0
+    overlayScale: {x: 1, y: 1}
+    onStepStart:
+      m_PersistentCalls:
+        m_Calls: []
+    onStepComplete:
+      m_PersistentCalls:
+        m_Calls: []
+  - dialogueText: "Ch\u1ECDn m\xE1y \u0111i\u1EC7n c\u1EA5p 1"
+    characterSprite: {fileID: 485100549149554314, guid: 6a21712be5e3d4b46b2f88eb110ddae4, type: 3}
+    overlayCenterPosition: {x: 270, y: -470}
+    characterPosition: {x: -300, y: -550}
+    clickOverlay: 0
+    enableOverlayScale: 0
+    overlayScale: {x: 1, y: 1}
+    onStepStart:
+      m_PersistentCalls:
+        m_Calls: []
+    onStepComplete:
+      m_PersistentCalls:
+        m_Calls: []
+  - dialogueText: "T\u1ED1t l\u1EAFm !!! Gi\u1EDD h\xE3y \u0111\u1EB7t n\xF3 xu\u1ED1ng
+      \u0111\u1EA5t"
+    characterSprite: {fileID: 485100549149554314, guid: 6a21712be5e3d4b46b2f88eb110ddae4, type: 3}
+    overlayCenterPosition: {x: 0, y: 0}
+    characterPosition: {x: -300, y: -600}
+    clickOverlay: 1
+    enableOverlayScale: 1
+    overlayScale: {x: 100, y: 100}
+    onStepStart:
+      m_PersistentCalls:
+        m_Calls: []
+    onStepComplete:
+      m_PersistentCalls:
+        m_Calls: []
+  - dialogueText: "\u1ED2 b\u1EA1n c\xF3 n\u0103ng khi\u1EBFu \u0111\xF3 !!"
+    characterSprite: {fileID: 485100549149554314, guid: 6a21712be5e3d4b46b2f88eb110ddae4, type: 3}
+    overlayCenterPosition: {x: 500, y: 500}
+    characterPosition: {x: 0, y: 0}
+    clickOverlay: 1
+    enableOverlayScale: 0
+    overlayScale: {x: 100, y: 100}
     onStepStart:
       m_PersistentCalls:
         m_Calls: []
@@ -3234,8 +3367,8 @@ MonoBehaviour:
         m_Calls: []
   overlay: {fileID: 406203018}
   dialogueManager: {fileID: 1315334403}
-  clickOverlay: 1
   clickRadius: 90
+  characterRect: {fileID: 1549030330}
 --- !u!1 &439759679
 GameObject:
   m_ObjectHideFlags: 0
@@ -3705,10 +3838,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1315334400}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 4.6494, y: 24.1768}
-  m_SizeDelta: {x: 365.5188, y: 154.1468}
+  m_AnchorMin: {x: 0.15937519, y: 0.32758945}
+  m_AnchorMax: {x: 0.85377496, y: 0.81200004}
+  m_AnchoredPosition: {x: 1.1494141, y: -1.7006836}
+  m_SizeDelta: {x: 4.518799, y: 3.8309937}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &509968839
 MonoBehaviour:
@@ -3757,15 +3890,15 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 72
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -51124,7 +51257,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 201.48148, y: -415.55554}
+  m_AnchoredPosition: {x: -60, y: -599}
   m_SizeDelta: {x: 152.1032, y: 158.6162}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &1069228140
@@ -53742,18 +53875,18 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1315334399}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 509968838}
-  m_Father: {fileID: 437243813}
+  m_Father: {fileID: 1549030330}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 140.26, y: 321}
-  m_SizeDelta: {x: -280.5102, y: -1074.4094}
+  m_AnchoredPosition: {x: 124, y: 420}
+  m_SizeDelta: {x: 78.65842, y: 51.51776}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1315334401
 MonoBehaviour:
@@ -55680,13 +55813,14 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1315334400}
   m_Father: {fileID: 437243813}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -45, y: 65.12026}
-  m_SizeDelta: {x: 440.8314, y: 470.459}
+  m_AnchorMin: {x: 0.14500001, y: 0.29621878}
+  m_AnchorMax: {x: 0.68750006, y: 0.621625}
+  m_AnchoredPosition: {x: -12.123055, y: 1.9880981}
+  m_SizeDelta: {x: -13.250227, y: 7.459015}
   m_Pivot: {x: 0.5579569, y: 0.7665413}
 --- !u!114 &1549030331
 MonoBehaviour:
