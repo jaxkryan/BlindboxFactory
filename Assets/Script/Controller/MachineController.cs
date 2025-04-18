@@ -30,19 +30,15 @@ namespace Script.Controller {
 
         private List<MachineBase> _machines;
 
-        public ReadOnlyDictionary<RecoveryMachineKey, List<MachineCoreRecovery>> RecoveryMachines =>
+        public ReadOnlyDictionary<RecoveryMachineKey, List<CoreType>> RecoveryMachines =>
             new(_recoverMachines);
 
-        [SerializeField]
-        private SerializedDictionary<RecoveryMachineKey, List<MachineCoreRecovery>> _recoverMachines = new();
+        [SerializeField] private SerializedDictionary<RecoveryMachineKey, List<CoreType>> _recoverMachines = new();
 
         private bool _log => GameController.Instance.Log;
 
-        public List<MachineBase> FindMachinesOfType(Type type) {
-            if (!type.IsSubclassOf(typeof(MachineBase))) return new();
-
-            return Machines.Where(m => m.GetType() == type).ToList();
-        }
+        public IEnumerable<MachineBase> FindMachinesOfType(Type type)
+            => Machines.FindMachinesOfType(type);
 
         public List<BuildableItem> Buildables {
             get {
@@ -79,11 +75,18 @@ namespace Script.Controller {
             onMachineUnlocked?.Invoke(name);
         }
 
+        public bool IsRecoveryMachine(MachineBase machine, WorkerType workerType) => IsRecoveryMachine(machine, out var forWorkers, out _) && forWorkers.Contains(workerType);
         public bool IsRecoveryMachine(MachineBase machine) => IsRecoveryMachine(machine, out _, out _);
 
         public bool IsRecoveryMachine(MachineBase machine, out List<WorkerType> forWorkers) =>
             IsRecoveryMachine(machine, out forWorkers, out _);
 
+        public bool IsRecoveryMachine(MachineBase machine, WorkerType workerType,
+            out List<MachineCoreRecovery> recoveries) {
+            var ret = IsRecoveryMachine(machine, out var forWorkers, out recoveries) && forWorkers.Contains(workerType);
+            if (!ret) recoveries = default;
+            return ret;
+        }
         public bool IsRecoveryMachine(MachineBase machine, out List<WorkerType> forWorkers,
             out List<MachineCoreRecovery> recoveries) {
             forWorkers = default;
@@ -97,7 +100,16 @@ namespace Script.Controller {
 
             recoveries = RecoveryMachines
                 .Where(r => keys.Contains(r.Key))
-                .Select(r => r.Value)
+                .Select(r => {
+                    var list = new List<MachineCoreRecovery>();
+                    foreach (var worker in r.Key.Worker) {
+                        foreach (var core in r.Value) {
+                            list.Add(new MachineCoreRecovery() { Worker = worker, Core = core });
+                        }
+                    }
+
+                    return list;
+                })
                 .Aggregate(new List<MachineCoreRecovery>(), (x, y) => x.Concat(y).ToList());
             forWorkers = RecoveryMachines
                 .Where(r => keys.Contains(r.Key))
@@ -178,7 +190,9 @@ namespace Script.Controller {
             Buildables.Select(b => b.Name)
                 .GroupBy(n => n)
                 .ForEach(g => {
-                    if (g.Count() > 1) { Debug.LogError("Buildable name conflict: " + g.Key); }
+                    if (g.Count() > 1) {
+                        Debug.LogError("Buildable name conflict: " + g.Key);
+                    }
                 });
 
             foreach (var machine in Buildables) {
@@ -192,13 +206,15 @@ namespace Script.Controller {
 
         public override void Load(SaveManager saveManager) {
             try {
-                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                     || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data)
                     return;
 
 
                 _unlockMachines = new(data.UnlockMachines);
-                if (_constructionLayerScript == null || _constructionLayerScript == default) { return; }
+                if (_constructionLayerScript == null || _constructionLayerScript == default) {
+                    return;
+                }
 
                 if (_log) Debug.Log($"Machine count: {data.Machines.Count}");
                 if (_log) Debug.Log($"Buildable prefab list: {string.Join(", ", Buildables.Select(b => b.Name))}");
@@ -262,8 +278,8 @@ namespace Script.Controller {
 
             try {
                 var serialized = SaveManager.Serialize(newSave);
-                saveManager.SaveData.AddOrUpdate(this.GetType().Name, serialized, (key, oldValue) => serialized);
-                // if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                saveManager.AddOrUpdate(this.GetType().Name, serialized);
+                // if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                 //     || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
                 //     saveManager.SaveData.TryAdd(this.GetType().Name,
                 //         SaveManager.Serialize(newSave));

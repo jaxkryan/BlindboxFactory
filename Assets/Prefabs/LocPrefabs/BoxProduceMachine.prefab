@@ -1333,6 +1333,7 @@ MonoBehaviour:
   - rid: 2372929736633221250
   - rid: 2372929736633221256
   - rid: 2372929736633221125
+  - rid: 3352089166961705144
   _product:
     rid: 7910668632747933989
   amount: 0
@@ -1381,6 +1382,12 @@ MonoBehaviour:
         Slot: 4
         ProgressionPerInterval: 4
         IntervalSeconds: 1
+    - rid: 3352089166961705144
+      type: {class: CoreChangeWorkDetail, ns: Script.Machine.WorkDetails, asm: Assembly-CSharp}
+      data:
+        Slot: 0
+        Core: 1
+        IncreaseBy: -0.5
     - rid: 7910668519338934394
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:

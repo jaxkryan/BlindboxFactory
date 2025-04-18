@@ -34,14 +34,14 @@ namespace Script.Machine.Products {
     
     [Serializable]
     public class KitchenMealProduct : AddToStorageProduct {
-        public override bool CanCreateProduct { get => _storage.MaxCapacity > _storage.AvailableMeals; }
+        public override bool CanCreateProduct { get => _storage && _storage.MaxCapacity > _storage.AvailableMeals; }
         CanteenFoodStorage _storage => _machine.GetComponentInParent<CanteenFoodStorage>();
         public override void OnProductCreated() {
             if (_storage is null) {
                 Debug.LogError($"Cannot find food storage: {_machine.name}");
                 return;
             }
-            _storage.TryChangeMealAmount(Amount);
+            _storage.TryAddMealAmount(Amount);
         }
     }
 }

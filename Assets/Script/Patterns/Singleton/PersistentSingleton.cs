@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using UnityEngine;
 
+    [DebuggerStepThrough]
 public class PersistentSingleton<T> : MonoBehaviour where T : Component {
     public bool AutoUnparentOnLoad = true;
     protected static T instance;
