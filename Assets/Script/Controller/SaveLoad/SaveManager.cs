@@ -45,7 +45,7 @@ namespace Script.Controller.SaveLoad {
             Path = path;
             _fileName = fileName;
             MaxSaves = maxSaves;
-            // InitializeFirebase();
+            InitializeFirebase();
         }
 
         private void InitializeFirebase() {

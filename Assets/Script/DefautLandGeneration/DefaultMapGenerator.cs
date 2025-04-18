@@ -10,6 +10,7 @@ public class DefaultMapGenerator : MonoBehaviour
     public Tile portalTile;
 
     public int size = 32;
+    public int portalsize = 4;
 
     void Start()
     {
@@ -31,9 +32,9 @@ public class DefaultMapGenerator : MonoBehaviour
             }
         }
 
-        for (int x = -3; x < 3; x++)
+        for (int x = -portalsize/2; x < portalsize/2; x++)
         {
-            for (int y = -3; y < 3; y++)
+            for (int y = -portalsize/2; y < portalsize/2; y++)
             {
                 tilemap.SetTile(new Vector3Int(x, y, 0), portalTile);
             }
