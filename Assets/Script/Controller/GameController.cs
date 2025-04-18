@@ -345,6 +345,7 @@ namespace Script.Controller {
 
             await SaveManager.SaveToLocal();
             await SaveManager.SaveToCloud();
+            await SaveManager.SaveToFirebase();
         }
     }
 }

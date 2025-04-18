@@ -72,7 +72,10 @@ public class WhackAMoleManager : MonoBehaviour
                 timeRemaining = 0;
                 EndGame();
             }
-            timeText.text = $"{(int)timeRemaining / 60}:{(int)timeRemaining % 60:D2}";
+            int minutes = (int)timeRemaining / 60;
+            int seconds = (int)timeRemaining % 60;
+            string secondsText = seconds < 10 ? "0" + seconds : seconds.ToString();
+            timeText.text = minutes.ToString() + ":" + secondsText;
 
             if (score == 10)
                 maxActiveMoles = 2;

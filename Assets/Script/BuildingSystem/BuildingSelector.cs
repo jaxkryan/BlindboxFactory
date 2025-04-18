@@ -37,9 +37,12 @@ public class BuildingSelector : MonoBehaviour
     {
         bool newMode = !_buildingPlacer.GetStoreMode();
         _buildingPlacer.SetStoreMode(newMode);
-        //StoreModeButton.GetComponentInChildren<TMP_Text>().text = $"Store Mode: {(newMode ? "ON" : "OFF")}";
         _buildingPlacer.SetActiveBuildable(null);
         _buildingPlacer.ClearPreview();
+        ColorBlock cb = StoreModeButton.colors;
+        cb.normalColor = newMode ? Color.green : Color.white;
+        cb.selectedColor = newMode ? Color.green : Color.white;
+        StoreModeButton.colors = cb;
     }
     private void Start()
     {
@@ -133,7 +136,6 @@ public class BuildingSelector : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-
         foreach (var buildable in Categories[categoryIndex].buildables)
         {
             GameController.Instance.MachineController.UnlockMachines.TryGetValue(buildable.Name, out bool lockstatus);
@@ -154,7 +156,7 @@ public class BuildingSelector : MonoBehaviour
             {
                 if (buildable.Cost == null || buildable.Cost == 0)
                 {
-                    goldText.text = "Free   ";
+                    goldText.text = "Free";
                     goldImg.gameObject.SetActive(false);
                 }
                 else 

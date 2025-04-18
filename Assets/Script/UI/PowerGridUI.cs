@@ -13,11 +13,14 @@ public class PowerGridUI : MonoBehaviour
     [SerializeField] private float animationDuration = 0.5f;     // Duration of one left-to-right cycle
     [SerializeField] private float animationDistance = 50f;      // Distance the overlay moves
 
+    [SerializeField] private PlayerAlert alertPanel;
+
     private PowerGridController powerGridController;
     private int lastUsage = -1; // Track the last usage to detect changes
     private RectTransform fillRectTransform; // RectTransform of the fill area
     private RectTransform overlayRectTransform; // RectTransform of the animation overlay
     private Tween animationTween;
+
 
     private void Start()
     {
@@ -63,7 +66,7 @@ public class PowerGridUI : MonoBehaviour
         int maxCapacity = powerGridController.GridCapacity;
 
         // Update the text to show "currentUsage / maxCapacity"
-        powerText.text = $"{currentUsage} / {maxCapacity}";
+        powerText.text = currentUsage.ToString() + " / " + maxCapacity.ToString();
 
         // Update the slider value instantly (normalized between 0 and 1)
         float targetValue = maxCapacity > 0 ? (float)currentUsage / maxCapacity : 0f;
@@ -74,6 +77,15 @@ public class PowerGridUI : MonoBehaviour
         {
             AnimateFillOverlay();
             lastUsage = currentUsage; // Update the tracked value
+        }
+
+        if (currentUsage > maxCapacity)
+        {
+            alertPanel.ShowAlert("Energy usage exceeds available energy!");
+        }
+        else
+        {
+            alertPanel.HideAlert();
         }
     }
 

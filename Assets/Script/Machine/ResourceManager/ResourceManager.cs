@@ -139,7 +139,7 @@ namespace Script.Machine.ResourceManager
             {
                 if (!_lockedResources.ContainsKey(resource) || _lockedResources[resource] <= 0) continue;
                 var storage = ResourceStorageInterface.Get(resource, _machine);
-                Debug.LogWarning($"Resource {resource}, Unlock: {newAmount(resource)}");
+                
                 if (newAmount(resource) > 0) storage.TrySetAmount(newAmount(resource));
                 _lockedResources.Remove(resource);
             }

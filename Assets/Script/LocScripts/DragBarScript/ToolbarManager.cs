@@ -88,10 +88,4 @@ public class ToolbarManager : MonoBehaviour
         Debug.Log($"Selected item: {item.itemName}");
     }
     
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

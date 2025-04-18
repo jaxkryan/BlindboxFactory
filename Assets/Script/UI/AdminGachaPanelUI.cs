@@ -90,23 +90,45 @@ public class AdminGachaPanelUI : MonoBehaviour
             return;
         }
 
-        if (GameController.Instance.ResourceController.TryGetAmount(_pullResource, out long amount) && amount >= _singlePullCost)
+        var resourceController = GameController.Instance.ResourceController;
+        if (resourceController.TryGetData(_pullResource, out var resourceData, out long currentAmount))
         {
-            if (GameController.Instance.ResourceController.TrySetAmount(_pullResource, amount - _singlePullCost))
+            // Update MaxAmount if it's less than the current amount
+            if (resourceData.MaxAmount < currentAmount)
             {
-                var pulled = _adminGacha.Pull();
-                onAdminGacha?.Invoke(pulled);
-                ShowReveal(new List<Mascot> { pulled });
-                Debug.Log($"Performed a single pull using {_singlePullCost} {_pullResource}.");
+                resourceData.MaxAmount = currentAmount;
+                if (!resourceController.TryUpdateData(_pullResource, resourceData))
+                {
+                    Debug.LogWarning($"Failed to update MaxAmount for {_pullResource}. Proceeding with pull anyway.");
+                }
+                else
+                {
+                    Debug.Log($"Updated MaxAmount for {_pullResource} to {currentAmount}");
+                }
+            }
+
+            if (currentAmount >= _singlePullCost)
+            {
+                if (resourceController.TrySetAmount(_pullResource, currentAmount - _singlePullCost))
+                {
+                    var pulled = _adminGacha.Pull();
+                    onAdminGacha?.Invoke(pulled);
+                    ShowReveal(new List<Mascot> { pulled });
+                    Debug.Log($"Performed a single pull using {_singlePullCost} {_pullResource}.");
+                }
+                else
+                {
+                    Debug.LogWarning($"Failed to deduct {_singlePullCost} {_pullResource} for single pull.");
+                }
             }
             else
             {
-                Debug.LogWarning($"Failed to deduct {_singlePullCost} {_pullResource} for single pull.");
+                Debug.LogWarning($"Not enough {_pullResource}! Required: {_singlePullCost}, Available: {currentAmount}");
             }
         }
         else
         {
-            Debug.LogWarning($"Not enough {_pullResource}! Required: {_singlePullCost}, Available: {amount}");
+            Debug.LogWarning($"Failed to get data for {_pullResource}.");
         }
     }
 
@@ -130,26 +152,48 @@ public class AdminGachaPanelUI : MonoBehaviour
             return;
         }
 
-        if (GameController.Instance.ResourceController.TryGetAmount(_pullResource, out long amount) && amount >= _tenPullCost)
+        var resourceController = GameController.Instance.ResourceController;
+        if (resourceController.TryGetData(_pullResource, out var resourceData, out long currentAmount))
         {
-            if (GameController.Instance.ResourceController.TrySetAmount(_pullResource, amount - _tenPullCost))
+            // Update MaxAmount if it's less than the current amount
+            if (resourceData.MaxAmount < currentAmount)
             {
-                var pulled = _adminGacha.PullMultiple(10).ToList();
-                foreach (var item in pulled)
+                resourceData.MaxAmount = currentAmount;
+                if (!resourceController.TryUpdateData(_pullResource, resourceData))
                 {
-                    onAdminGacha?.Invoke(item);
+                    Debug.LogWarning($"Failed to update MaxAmount for {_pullResource}. Proceeding with pull anyway.");
                 }
-                ShowReveal(pulled);
-                Debug.Log($"Performed a 10-pull using {_tenPullCost} {_pullResource}.");
+                else
+                {
+                    Debug.Log($"Updated MaxAmount for {_pullResource} to {currentAmount}");
+                }
+            }
+
+            if (currentAmount >= _tenPullCost)
+            {
+                if (resourceController.TrySetAmount(_pullResource, currentAmount - _tenPullCost))
+                {
+                    var pulled = _adminGacha.PullMultiple(10).ToList();
+                    foreach (var item in pulled)
+                    {
+                        onAdminGacha?.Invoke(item);
+                    }
+                    ShowReveal(pulled);
+                    Debug.Log($"Performed a 10-pull using {_tenPullCost} {_pullResource}.");
+                }
+                else
+                {
+                    Debug.LogWarning($"Failed to deduct {_tenPullCost} {_pullResource} for 10-pull.");
+                }
             }
             else
             {
-                Debug.LogWarning($"Failed to deduct {_tenPullCost} {_pullResource} for 10-pull.");
+                Debug.LogWarning($"Not enough {_pullResource}! Required: {_tenPullCost}, Available: {currentAmount}");
             }
         }
         else
         {
-            Debug.LogWarning($"Not enough {_pullResource}! Required: {_tenPullCost}, Available: {amount}");
+            Debug.LogWarning($"Failed to get data for {_pullResource}.");
         }
     }
 
@@ -169,8 +213,5 @@ public class AdminGachaPanelUI : MonoBehaviour
             _revealPanel.gameObject.SetActive(false);
             Open();
         });
-
-        // Hide the gacha panel during the reveal
-        //Close();
     }
 }

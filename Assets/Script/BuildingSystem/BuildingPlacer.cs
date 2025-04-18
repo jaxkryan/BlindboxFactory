@@ -134,7 +134,7 @@ namespace BuildingSystem
                         && isSpaceEmpty
                         && isValidTile)
                     {
-                        Debug.LogWarning(ActiveBuildable.gameObject.name);
+                        //Debug.LogWarning(ActiveBuildable.gameObject.name);
                         _constructionLayer.Build(position, ActiveBuildable);
                     }
                     isTouching = false;
@@ -204,13 +204,13 @@ namespace BuildingSystem
         {
             if (_backgroundTilemap == null)
             {
-                Debug.LogError("_backgroundTilemap is NULL! Make sure it's assigned in the Inspector.");
+                //Debug.LogError("_backgroundTilemap is NULL! Make sure it's assigned in the Inspector.");
                 return false;
             }
 
             if (_requiredTile == null)
             {
-                Debug.LogError("_requiredTile is NULL! Make sure you assigned the correct tile.");
+                //Debug.LogError("_requiredTile is NULL! Make sure you assigned the correct tile.");
                 return false;
             }
 
@@ -225,7 +225,7 @@ namespace BuildingSystem
 
                         if (tile == null || tile != _requiredTile)
                         {
-                            Debug.LogWarning($"Invalid tile at {offsetPosition}: {tile?.name ?? "NULL"} (Required: {_requiredTile.name})");
+                            //Debug.LogWarning($"Invalid tile at {offsetPosition}: {tile?.name ?? "NULL"} (Required: {_requiredTile.name})");
                             return false;
                         }
                     }

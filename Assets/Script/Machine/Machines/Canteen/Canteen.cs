@@ -2,6 +2,7 @@ using System.Linq;
 using Script.Machine.MachineDataGetter;
 using Script.Utils;
 using UnityEngine;
+using static Script.Machine.Machines.Canteen.Canteen.CanteenData;
 
 namespace Script.Machine.Machines.Canteen {
     [RequireComponent(typeof(CanteenFoodStorage))]

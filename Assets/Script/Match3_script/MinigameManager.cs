@@ -1,5 +1,8 @@
 ﻿using Script.Controller;
 using Script.Machine;
+using Script.Machine.Machines.Canteen;
+using Script.Machine.Machines.Generator;
+using Script.Machine.Machines;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -129,10 +132,38 @@ public class MinigameManager : MonoBehaviour
             {
                 SpawnMinigameForMachine(machine);
                 remainingMinigamesToday--;
-                lastMinigameTime = DateTime.UtcNow; // Cập nhật thời gian để tránh spawn liên tục
+                lastMinigameTime = DateTime.UtcNow;
                 Debug.Log($"Minigame spawned due to machine placement: {machine.name}");
             }
         }
+    }
+
+   
+
+    private List<MachineBase> GetAvailableMachines()
+    {
+        List<MachineBase> available = new();
+        foreach (var machine in machineController.Machines)
+        {
+            if (!activeMinigames.ContainsKey(machine) && IsMinigameEligibleMachine(machine))
+            {
+                available.Add(machine);
+            }
+        }
+        return available;
+    }
+
+    private bool IsMinigameEligibleMachine(MachineBase machine)
+    {
+        return machine is Generator || machine is StorageMachine || machine is Canteen;
+    }
+
+    private string GetMinigameSceneName(MachineBase machine)
+    {
+        if (machine is Generator) return match3SceneName;
+        if (machine is StorageMachine) return whackAMoleSceneName;
+        if (machine is Canteen) return wireConnectionSceneName;
+        return null;
     }
 
     private void SpawnMinigameForMachine(MachineBase selectedMachine)
@@ -162,40 +193,7 @@ public class MinigameManager : MonoBehaviour
             TimeRemaining = maxInactiveTime
         };
 
-        string minigameType = GetMinigameType(sceneName);
-        Debug.Log($"Minigame event spawned at machine: {selectedMachine.name} (Type: {selectedMachine.GetType().Name}, Minigame: {minigameType})");
-    }
-
-    private List<MachineBase> GetAvailableMachines()
-    {
-        List<MachineBase> available = new();
-        foreach (var machine in machineController.Machines)
-        {
-            if (!activeMinigames.ContainsKey(machine) && IsMinigameEligibleMachine(machine))
-            {
-                available.Add(machine);
-            }
         }
-        return available;
-    }
-
-    private bool IsMinigameEligibleMachine(MachineBase machine)
-    {
-        return machine.GetType().Name == "Generator" ||
-               machine.GetType().Name == "StorageMachine" ||
-               machine.GetType().Name == "Canteen";
-    }
-
-    private string GetMinigameSceneName(MachineBase machine)
-    {
-        switch (machine.GetType().Name)
-        {
-            case "Generator": return match3SceneName;
-            case "StorageMachine": return whackAMoleSceneName;
-            case "Canteen": return wireConnectionSceneName;
-            default: return null;
-        }
-    }
 
     private string GetMinigameType(string sceneName)
     {

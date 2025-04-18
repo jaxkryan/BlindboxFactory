@@ -102,7 +102,7 @@ Animator:
   m_Enabled: 1
   m_Avatar: {fileID: 0}
   m_Controller: {fileID: 0}
-  m_CullingMode: 0
+  m_CullingMode: 1
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
@@ -147,9 +147,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c53ba2f967c40cb9e80bbb29dee4b32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _current: 
   _log: 0
-  _workMachineSensor: {fileID: 0}
+  WorkMachineSensor: {fileID: 0}
   MachineLocation: {fileID: 0}
+  _slot: {fileID: 0}
 --- !u!114 &8964571992790687706
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183,6 +185,8 @@ MonoBehaviour:
       Value: 0
     - Key: 2
       Value: 0
+  _currentCores:
+    _serializedList: []
   _bonuses: []
   _runtimeAnimator: {fileID: 0}
   references:
