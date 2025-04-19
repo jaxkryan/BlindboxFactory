@@ -316,13 +316,15 @@ namespace Script.Controller {
             if (_queueingSave) InitiateSave();
         }
 
+        private bool _saveInitialized = false;
         private async Task Save(SaveManager saveManager) {
-            if (_isLoading) {
+            if (_isLoading || _saveInitialized) {
                 _queueingSave = true;
                 if (_log) Debug.Log("Loading in progress.");
                 return;
             }
 
+            _saveInitialized = true;
             _queueingSave = false;
             try {
                 _controllers.ForEach(c => {
@@ -352,6 +354,7 @@ namespace Script.Controller {
             await SaveManager.SaveToLocal();
             await SaveManager.SaveToCloud();
             await SaveManager.SaveToFirebase();
+            _saveInitialized = false;
         }
     }
 }

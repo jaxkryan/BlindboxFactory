@@ -14,6 +14,7 @@ using Script.Utils;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace Script.Controller {
     [Serializable]
@@ -27,7 +28,12 @@ namespace Script.Controller {
         [FormerlySerializedAs("_numberOfCommissions")] [SerializeField] [Min(1)]
         private int _numberOfCommissionsPerItem;
 
-        [SerializeField] [Min(0.01f)] private float _amountModifierForNextProduct = 1f;
+        [FormerlySerializedAs("_amountModifierForNextProduct")][SerializeField] [Min(1f)] private float _baseAmountModifierForNextProduct = 1f;
+        [SerializeField] [Range(0f, 1f)] private float _amountModifierRange;
+
+        private float _amountModifierForNextProduct => Random.Range(
+            _baseAmountModifierForNextProduct - _amountModifierRange,
+            _baseAmountModifierForNextProduct + _amountModifierRange);
         [SerializeField] [Min(0.1f)] private Vector2 _bonusRange;
         [SerializeField] [Min(1)] private int _maximumTotalCommissions;
         [SerializeField] [Min(1)] private int _baseCommission;
@@ -44,7 +50,7 @@ namespace Script.Controller {
         public event Action<Commission.Commission> onCommissionCompleted = delegate { };
 
         public HashSet<Commission.Commission> CreateCommissions() {
-            if (_log) Debug.Log($"Creating commissions");
+            if (_log) Debug.Log("[Commission] Starting commission generation...");
             var bb = _forAllProducts
                 ? Enum.GetValues(typeof(BoxTypeName)).Cast<BoxTypeName>().ToList()
                 : _commissionedProducts;
@@ -54,7 +60,7 @@ namespace Script.Controller {
             List<Commission.Commission> commissions = new();
             foreach (var boxType in bb) {
                 if (boxType == BoxTypeName.Null) continue;
-                if (_log) Debug.Log($"Creating commissions for {boxType}");
+                if (_log) Debug.Log($"[Commission] Generating for {boxType}...");
                 List<Commission.Commission> boxCommissions = new();
                 var data = BoxTypeManager.Instance.GetBoxData(boxType);
 
@@ -67,34 +73,34 @@ namespace Script.Controller {
                 var prevBoxSoldPerCommission = prevBoxSold / (prevSales.Count == 0 ? 1 : prevSales.Count);
                 if (_log)
                     Debug.Log(
-                        $"PrevBoxSold{prevBoxSold}\tPrevSalesCount{prevSales.Count}\tPrevBoxSoldPerCommission: {prevBoxSoldPerCommission}");
+                        $"[Commission] {boxType} | Prev Sold: {prevBoxSold}, Sales Count: {prevSales.Count}, Per Commission: {prevBoxSoldPerCommission}");
 
                 //Use the number of box sold as medium, find upper and lower number of box should be sold based on amount modifier
-                var lowerBound = _numberOfCommissionsPerItem / 2;
-                var upperBound = lowerBound
-                                 + _numberOfCommissionsPerItem
-                                 + (_numberOfCommissionsPerItem % 2 == 0 ? 0 : 1);
-                if (_log) Debug.Log($"Commission per item bounds {lowerBound} - {upperBound}");
+                var lowerBound = Mathf.FloorToInt((float)_numberOfCommissionsPerItem * 1 / 2) ;
+                var upperBound = _numberOfCommissionsPerItem - lowerBound;
+                if (_log) Debug.Log($"[Commission] Commission count: {lowerBound} - {upperBound}");
 
                 List<int> newCommissionsCount = new();
-                for (int i = 0; i < upperBound; i++) {
-                    var modifierNumber = (int)Math.Floor(prevBoxSoldPerCommission * _amountModifierForNextProduct)
-                                         - prevBoxSoldPerCommission;
-                    newCommissionsCount.Add(prevBoxSoldPerCommission + modifierNumber * i);
+                for (int i = 1; i <= upperBound; i++) {
+                    var baseNumber = newCommissionsCount.Any() ? newCommissionsCount.Max() : prevBoxSoldPerCommission;
+                    var amountMod = _amountModifierForNextProduct - 1;
+                    var modifierNumber = Mathf.FloorToInt(baseNumber * amountMod);
+                    
+                    int count = baseNumber + modifierNumber;
+                    newCommissionsCount.Add(count);
 
-                    if (_log)
-                        Debug.Log(
-                            $"Adding upper bound commission to counter. Amount of item: {prevBoxSoldPerCommission + modifierNumber * i}");
+                    if (_log) Debug.Log($"[Commission] Upper-bound #{i}: {count} items (Modifier: {modifierNumber}, Amount: {amountMod}).");
                 }
 
-                for (int i = 0; i < lowerBound; i++) {
-                    var modifierNumber = (int)Math.Floor(prevBoxSoldPerCommission * _amountModifierForNextProduct)
-                                         - prevBoxSoldPerCommission;
-                    newCommissionsCount.Add(prevBoxSoldPerCommission - modifierNumber * i);
+                for (int i = 1; i <= lowerBound; i++) {
+                    var baseNumber = newCommissionsCount.Any() ? newCommissionsCount.Min() : prevBoxSoldPerCommission;
+                    var amountMod = _amountModifierForNextProduct - 1;
+                    var modifierNumber = Mathf.FloorToInt(baseNumber * amountMod);
+                    
+                    int count = baseNumber - modifierNumber;
+                    newCommissionsCount.Add(count);
 
-                    if (_log)
-                        Debug.Log(
-                            $"Adding upper bound commission to counter. Amount of item: {prevBoxSoldPerCommission - modifierNumber * i}");
+                    if (_log) Debug.Log($"[Commission] Lower-bound #{i}: {count} items (Modifier: {modifierNumber}, Amount: {amountMod}).");
                 }
 
                 //Calculate bonus 
@@ -105,10 +111,7 @@ namespace Script.Controller {
                                        * new Unity.Mathematics.Random((uint)System.DateTime.Now.Ticks).NextDouble(
                                            _bonusRange.x, _bonusRange.y));
                     newCommissionPayout.Add((count, basePrice, bonus));
-
-                    if (_log)
-                        Debug.Log(
-                            $"Calculating commission payout for {count} {boxType}: Base: {basePrice}, Bonus: {bonus}");
+                    if (_log) Debug.Log($"[Commission] Payout | {count}x {boxType} -> Base: {basePrice}, Bonus: {bonus}");
                 }
 
                 //Create the commission
@@ -125,12 +128,15 @@ namespace Script.Controller {
 
                     if (_log)
                         Debug.Log(
-                            $"Creating commission: Item: {boxType}, Amount: {payout.CommissionsCount}, Base price: {payout.Base}, Bonus: {payout.Bonus}, Expired by: {DateTime.Now.AddHours(_expireHours)}, Reward: {reward.GetType().Name}");
+                            $"[Commission] Created: {boxType} x{payout.CommissionsCount} | Base: {payout.Base}, Bonus: {payout.Bonus}, Expiry: {commission.ExpireDate}");
                 }
+
+                boxCommissions = boxCommissions.OrderBy(b => b.Items.Select(i => i.Value).Sum()).ToList();
 
                 commissions.AddRange(boxCommissions);
             }
 
+            if (_log) Debug.Log($"[Commission] Completed. Total generated: {commissions.Count}");
             return commissions.ToHashSet();
         }
 
@@ -195,7 +201,7 @@ namespace Script.Controller {
 
             if (Commissions.Count == 0) {
 #warning Notify player that there's no commission
-                Alert.AlertManager.Instance.Raise(new GameAlert.Builder(AlertType.Notification)
+                AlertManager.Instance.Raise(new GameAlert.Builder(AlertType.Notification)
                     .WithHeader("Commissions Fulfilled!")
                     .WithMessage("All of your commissions have been fulfilled!")
                     .WithButton2(new AlertUIButtonDetails() {
@@ -206,7 +212,7 @@ namespace Script.Controller {
                         OnClick = () => {
                             Debug.LogWarning("Button clicked");
                             var ui = Object.FindFirstObjectByType<MissionHubUI>(FindObjectsInactive.Include);
-                            // if (!ui) return;
+                            if (!ui) return;
                             
                             ui.OpenAvailableCommissionsPanel();
                         }
@@ -223,7 +229,8 @@ namespace Script.Controller {
                 _forAllProducts = data.ForAllProducts;
                 _commissionedProducts = data.CommissionedProducts;
                 _numberOfCommissionsPerItem = data.NumberOfCommissionsPerItem;
-                _amountModifierForNextProduct = data.AmountModifierForNextProduct;
+                _baseAmountModifierForNextProduct = data.BaseAmountModifierForNextProduct;
+                _amountModifierRange = data.AmountModifierRange;
                 _bonusRange = new(data.BonusRange.Min, data.BonusRange.Max);
                 _maximumTotalCommissions = data.MaximumTotalCommissions;
                 _baseCommission = data.BaseCommission;
@@ -259,7 +266,8 @@ namespace Script.Controller {
                 ForAllProducts = _forAllProducts,
                 CommissionedProducts = _commissionedProducts,
                 NumberOfCommissionsPerItem = _numberOfCommissionsPerItem,
-                AmountModifierForNextProduct = _amountModifierForNextProduct,
+                BaseAmountModifierForNextProduct = _baseAmountModifierForNextProduct,
+                AmountModifierRange = _amountModifierRange,
                 BonusRange = new() { Min = _bonusRange.x, Max = _bonusRange.y },
                 MaximumTotalCommissions = _maximumTotalCommissions,
                 BaseCommission = _baseCommission,
@@ -290,12 +298,13 @@ namespace Script.Controller {
             public bool ForAllProducts;
             public List<BoxTypeName> CommissionedProducts;
             public int NumberOfCommissionsPerItem;
-            public float AmountModifierForNextProduct;
+            public float BaseAmountModifierForNextProduct;
             public (float Min, float Max) BonusRange;
             public int MaximumTotalCommissions;
             public int BaseCommission;
             public int ExpireHours;
             public List<Commission.Commission> Commissions;
+            public float AmountModifierRange;
         }
     }
 }

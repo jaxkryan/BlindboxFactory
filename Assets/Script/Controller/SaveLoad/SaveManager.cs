@@ -133,7 +133,9 @@ namespace Script.Controller.SaveLoad {
 
                 CurrentSavePath = FilePath;
 
-                using (var file = System.IO.File.Open(CurrentSavePath, FileMode.OpenOrCreate)) { }
+                using (var file = System.IO.File.Open(CurrentSavePath, FileMode.OpenOrCreate)) {
+                    file.Close();
+                }
 
                 if (_log) Debug.Log($"Saving data to: {CurrentSavePath}");
                 var str = Serialize(_saveData);
@@ -142,6 +144,7 @@ namespace Script.Controller.SaveLoad {
                 await using (StreamWriter sw = new StreamWriter(FilePath, false)) {
                     await sw.WriteAsync(Encrypt(str));
                     await sw.FlushAsync();
+                    sw.Close();
                     if (_log) Debug.Log("Data saved successfully.");
                 }
             }
@@ -195,7 +198,9 @@ namespace Script.Controller.SaveLoad {
                     return;
                 }
 
-                using (var file = System.IO.File.Open(CurrentLoadPath, FileMode.OpenOrCreate)) { }
+                using (var file = System.IO.File.Open(CurrentLoadPath, FileMode.OpenOrCreate)) { 
+                    file.Close();
+                }
 
                 using StreamReader sr = new StreamReader(CurrentLoadPath);
                 var str = await sr.ReadToEndAsync();
@@ -211,6 +216,7 @@ namespace Script.Controller.SaveLoad {
                 //     .WithMessage("Loading data successfully")
                 //     .WithCloseButton()
                 //     .Build());
+                sr.Close();
             }
             catch (System.Exception e) {
                 Debug.LogException(new System.Exception($"[Cannot load] Error loading data from local file", e));
