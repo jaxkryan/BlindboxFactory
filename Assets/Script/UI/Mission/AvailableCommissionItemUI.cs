@@ -34,7 +34,7 @@ namespace Script.UI.Mission
                 if (_commission != null)
                 {
                     // Calculate remaining time when commission is set
-                    _remainingSeconds = (_commission.ExpireDate - DateTime.Now).TotalSeconds;
+                    _remainingSeconds = (_commission.ExpireDate - DateTime.Now).TotalSeconds + 1;
                     UpdateCommissionData();
                     _nextUpdateTime = Time.time;
                 }
@@ -44,15 +44,6 @@ namespace Script.UI.Mission
         private void Update()
         {
             if (_commission == null) return;
-
-            // Update timer display only when the interval has passed
-            if (Time.time >= _nextUpdateTime)
-            {
-                // Decrease remaining time based on elapsed game time
-                _remainingSeconds -= (Time.time - _nextUpdateTime);
-                UpdateTimerDisplay();
-                _nextUpdateTime = Time.time + UPDATE_INTERVAL;
-            }
         }
 
         public void UpdateCommissionData()
@@ -71,29 +62,14 @@ namespace Script.UI.Mission
             if (_stringBuilder.Length > 0) _stringBuilder.Length -= 2;
             _description.text = _stringBuilder.ToString();
 
-            _reward.text = _commission.Reward is ResourceQuestReward reward &&
-                          reward.Resources.TryGetValue(Resource.Gold, out var goldAmount)
-                ? $"{goldAmount} Gold"
+            _reward.text = _commission.Price > 0
+                ? $"{_commission.Price} Gold"
                 : "No reward";
 
-            UpdateTimerDisplay();
-        }
-
-        private void UpdateTimerDisplay()
-        {
-            bool isExpired = _remainingSeconds <= 0;
-            if (isExpired)
-            {
-                _expired.text = "Expired";
-                _accept.interactable = false;
-            }
-            else
-            {
-                int minutes = (int)(_remainingSeconds / 60);
-                int seconds = (int)(_remainingSeconds % 60);
-                _expired.text = $"{minutes:D2}m {seconds:D2}s";
-                _accept.interactable = true;
-            }
+            int hours = (int)(_remainingSeconds / 3600);
+            int minutes = (int)((_remainingSeconds % 3600) / 60);
+            int seconds = (int)(_remainingSeconds % 60);
+            _expired.text = $"{hours:D2}h {minutes:D2}m {seconds:D2}s";
         }
 
         public void OnAcceptButtonClicked()
