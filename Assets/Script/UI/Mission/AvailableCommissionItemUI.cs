@@ -34,7 +34,7 @@ namespace Script.UI.Mission
                 if (_commission != null)
                 {
                     // Calculate remaining time when commission is set
-                    _remainingSeconds = (_commission.ExpireDate - DateTime.Now).TotalSeconds + 1;
+                    _remainingSeconds = (_commission.ExpireDate - DateTime.Now).TotalSeconds;
                     UpdateCommissionData();
                     _nextUpdateTime = Time.time;
                 }
@@ -70,24 +70,6 @@ namespace Script.UI.Mission
             int minutes = (int)((_remainingSeconds % 3600) / 60);
             int seconds = (int)(_remainingSeconds % 60);
             _expired.text = $"{hours:D2}h {minutes:D2}m {seconds:D2}s";
-        }
-
-        public void OnAcceptButtonClicked()
-        {
-            if (_commission != null)
-            {
-                GameController.Instance.CommissionController.TryAddCommission(_commission);
-                Debug.Log($"Commission accepted: {_commission}");
-                _accept.interactable = false;
-            }
-        }
-
-        private void Start()
-        {
-            if (_accept != null)
-            {
-                _accept.onClick.AddListener(OnAcceptButtonClicked);
-            }
         }
     }
 }

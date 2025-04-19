@@ -9,6 +9,7 @@ using Script.Controller.Commission;
 using Script.Controller.SaveLoad;
 using Script.Machine;
 using Script.Machine.Products;
+using Script.Resources;
 using Script.UI.Mission;
 using Script.Utils;
 using UnityEngine;
@@ -28,16 +29,20 @@ namespace Script.Controller {
         [FormerlySerializedAs("_numberOfCommissions")] [SerializeField] [Min(1)]
         private int _numberOfCommissionsPerItem;
 
-        [FormerlySerializedAs("_amountModifierForNextProduct")][SerializeField] [Min(1f)] private float _baseAmountModifierForNextProduct = 1f;
+        [FormerlySerializedAs("_amountModifierForNextProduct")] [SerializeField] [Min(1f)]
+        private float _baseAmountModifierForNextProduct = 1f;
+
         [SerializeField] [Range(0f, 1f)] private float _amountModifierRange;
 
         private float _amountModifierForNextProduct => Random.Range(
             _baseAmountModifierForNextProduct - _amountModifierRange,
             _baseAmountModifierForNextProduct + _amountModifierRange);
+
         [SerializeField] [Min(0.1f)] private Vector2 _bonusRange;
         [SerializeField] [Min(1)] private int _maximumTotalCommissions;
         [SerializeField] [Min(1)] private int _baseCommission;
-        [SerializeField] [Min(1)] private int _expireHours;
+        [SerializeField] [Min(1)] private float _expireHours;
+        [SerializeField] [Min(0.017f)] public float AvailableCommissionRefreshHours = 1;
         private bool _log => GameController.Instance.Log;
 
         public ReadOnlyCollection<Commission.Commission> Commissions {
@@ -76,7 +81,7 @@ namespace Script.Controller {
                         $"[Commission] {boxType} | Prev Sold: {prevBoxSold}, Sales Count: {prevSales.Count}, Per Commission: {prevBoxSoldPerCommission}");
 
                 //Use the number of box sold as medium, find upper and lower number of box should be sold based on amount modifier
-                var lowerBound = Mathf.FloorToInt((float)_numberOfCommissionsPerItem * 1 / 2) ;
+                var lowerBound = Mathf.FloorToInt((float)_numberOfCommissionsPerItem * 1 / 2);
                 var upperBound = _numberOfCommissionsPerItem - lowerBound;
                 if (_log) Debug.Log($"[Commission] Commission count: {lowerBound} - {upperBound}");
 
@@ -85,22 +90,26 @@ namespace Script.Controller {
                     var baseNumber = newCommissionsCount.Any() ? newCommissionsCount.Max() : prevBoxSoldPerCommission;
                     var amountMod = _amountModifierForNextProduct - 1;
                     var modifierNumber = Mathf.FloorToInt(baseNumber * amountMod);
-                    
+
                     int count = baseNumber + modifierNumber;
                     newCommissionsCount.Add(count);
 
-                    if (_log) Debug.Log($"[Commission] Upper-bound #{i}: {count} items (Modifier: {modifierNumber}, Amount: {amountMod}).");
+                    if (_log)
+                        Debug.Log(
+                            $"[Commission] Upper-bound #{i}: {count} items (Modifier: {modifierNumber}, Amount: {amountMod}).");
                 }
 
                 for (int i = 1; i <= lowerBound; i++) {
                     var baseNumber = newCommissionsCount.Any() ? newCommissionsCount.Min() : prevBoxSoldPerCommission;
                     var amountMod = _amountModifierForNextProduct - 1;
                     var modifierNumber = Mathf.FloorToInt(baseNumber * amountMod);
-                    
+
                     int count = baseNumber - modifierNumber;
                     newCommissionsCount.Add(count);
 
-                    if (_log) Debug.Log($"[Commission] Lower-bound #{i}: {count} items (Modifier: {modifierNumber}, Amount: {amountMod}).");
+                    if (_log)
+                        Debug.Log(
+                            $"[Commission] Lower-bound #{i}: {count} items (Modifier: {modifierNumber}, Amount: {amountMod}).");
                 }
 
                 //Calculate bonus 
@@ -111,7 +120,8 @@ namespace Script.Controller {
                                        * new Unity.Mathematics.Random((uint)System.DateTime.Now.Ticks).NextDouble(
                                            _bonusRange.x, _bonusRange.y));
                     newCommissionPayout.Add((count, basePrice, bonus));
-                    if (_log) Debug.Log($"[Commission] Payout | {count}x {boxType} -> Base: {basePrice}, Bonus: {bonus}");
+                    if (_log)
+                        Debug.Log($"[Commission] Payout | {count}x {boxType} -> Base: {basePrice}, Bonus: {bonus}");
                 }
 
                 //Create the commission
@@ -120,7 +130,7 @@ namespace Script.Controller {
                     var commission = new Commission.Commission.Builder()
                         .WithItem(boxType, payout.CommissionsCount)
                         .WithBonusPrice(payout.Bonus)
-                        .WithExpiredDate(DateTime.Now.AddHours(_expireHours))
+                        .WithValidTime(TimeSpan.FromHours(_expireHours))
                         .WithReward(reward)
                         .Build();
                     reward.SetCommission(commission);
@@ -145,6 +155,7 @@ namespace Script.Controller {
 
             if (_maximumTotalCommissions == Commissions.Count) return false;
 
+            commission.Start();
             _commissions.Add(commission);
             OnCommissionChanged?.Invoke();
             return true;
@@ -169,28 +180,34 @@ namespace Script.Controller {
         }
 
         private void Subscribe() {
-            var controller = GameController.Instance.MachineController;
-            controller.Machines.ForEach(AddMachine);
+            GameController.Instance.MachineController.Machines.ForEach(AddMachine);
 
-            controller.onMachineAdded += AddMachine;
-            controller.onMachineRemoved += RemoveMachine;
+            GameController.Instance.MachineController.onMachineAdded += AddMachine;
+            GameController.Instance.MachineController.onMachineRemoved += RemoveMachine;
+            GameController.Instance.ResourceController.onResourceAmountChanged += UpdateCommissions;
         }
 
         private void Unsubscribe() {
-            var controller = GameController.Instance.MachineController;
-            controller.Machines.ForEach(RemoveMachine);
+            GameController.Instance.MachineController.Machines.ForEach(RemoveMachine);
 
-            controller.onMachineAdded -= AddMachine;
-            controller.onMachineRemoved -= RemoveMachine;
+            GameController.Instance.MachineController.onMachineAdded -= AddMachine;
+            GameController.Instance.MachineController.onMachineRemoved -= RemoveMachine;
+            GameController.Instance.ResourceController.onResourceAmountChanged -= UpdateCommissions;
         }
 
-        private void AddMachine(MachineBase machine) { machine.onCreateProduct += UpdateCommissions; }
+        private void AddMachine(MachineBase machine) {
+            machine.onCreateProduct += UpdateCommissions;
+        }
 
-        private void RemoveMachine(MachineBase machine) { machine.onCreateProduct -= UpdateCommissions; }
+        private void RemoveMachine(MachineBase machine) {
+            machine.onCreateProduct -= UpdateCommissions;
+        }
 
+        private void UpdateCommissions(Resource resource, long l1, long l2) => UpdateCommissions();
         private void UpdateCommissions(ProductBase product) => UpdateCommissions();
 
         private void UpdateCommissions() {
+            if (_log) Debug.Log("[Commission] Updating commissions...");
             Commissions.Where(c => c.IsFulfilled(out _)).ToList().ForEach(c => {
                 c.Reward.Grant();
                 onCommissionCompleted?.Invoke(c);
@@ -199,25 +216,27 @@ namespace Script.Controller {
 
             _commissions.Where(c => c.ExpireDate <= DateTime.Now).ToList().ForEach(TryRemoveCommission);
 
-            if (Commissions.Count == 0) {
-#warning Notify player that there's no commission
-                AlertManager.Instance.Raise(new GameAlert.Builder(AlertType.Notification)
-                    .WithHeader("Commissions Fulfilled!")
-                    .WithMessage("All of your commissions have been fulfilled!")
-                    .WithButton2(new AlertUIButtonDetails() {
-                        Background = AlertManager.Instance.Green,
-                        IsCloseButton = true,
-                        Text = "Choose New",
-                        TextColor = Color.white,
-                        OnClick = () => {
-                            Debug.LogWarning("Button clicked");
-                            var ui = Object.FindFirstObjectByType<MissionHubUI>(FindObjectsInactive.Include);
-                            if (!ui) return;
-                            
-                            ui.OpenAvailableCommissionsPanel();
-                        }
-                    })
-                    .Build());
+            var ui = Object.FindFirstObjectByType<MissionHubUI>(FindObjectsInactive.Include);
+
+            if (ui) {
+                if (Commissions.Count == 0 && ui.ActivePanelName != nameof(AvailableCommissionPanel)) {
+                    new GameAlert.Builder(AlertType.Notification)
+                        .WithHeader("Commissions Fulfilled!")
+                        .WithMessage("All of your commissions have been fulfilled!")
+                        .WithButton2(new AlertUIButtonDetails() {
+                            Background = AlertManager.Instance.Green,
+                            IsCloseButton = true,
+                            Text = "Choose New",
+                            TextColor = Color.white,
+                            OnClick = () => {
+                                Debug.LogWarning("Button clicked");
+
+
+                                ui.OpenAvailableCommissionsPanel();
+                            }
+                        })
+                        .Build().Raise();
+                }
             }
         }
 
@@ -239,7 +258,8 @@ namespace Script.Controller {
                     var reward = new CommissionReward();
                     var commission = new Commission.Commission.Builder()
                         .WithItems(c.Items.Select(i => (i.Key, i.Value)).ToArray())
-                        .WithExpiredDate(c.ExpireDate)
+                        .WithValidTime(c.ValidTime)
+                        .WithStartTime(c.StartTime)
                         .WithBonusPrice(c.BonusPrice)
                         .WithReward(reward)
                         .Build();
@@ -302,7 +322,7 @@ namespace Script.Controller {
             public (float Min, float Max) BonusRange;
             public int MaximumTotalCommissions;
             public int BaseCommission;
-            public int ExpireHours;
+            public float ExpireHours;
             public List<Commission.Commission> Commissions;
             public float AmountModifierRange;
         }

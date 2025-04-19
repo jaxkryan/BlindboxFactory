@@ -15,6 +15,25 @@ namespace Script.Alert {
         public GameAlert(AlertType type) {
             Type = type;
         }
+        
+        public static bool operator ==(GameAlert a, GameAlert b) {
+            if (a is null || b is null) return false;
+            if (a.Type != b.Type) return false;
+            if (a.Header != b.Header) return false;
+            if (a.Message != b.Message) return false;
+            if (a.HasCloseButton != b.HasCloseButton) return false;
+            if (a.PauseGame != b.PauseGame) return false;
+            if (a.OnClose != b.OnClose) return false;
+            if (a.Button1 != b.Button1) return false;
+            if (a.Button2 != b.Button2) return false;
+            
+            
+            return true;
+        }
+
+        public static bool operator !=(GameAlert a, GameAlert b) {
+            return !(a == b);
+        }
 
         public static GameAlert QuickNotification(string message, string header = null, bool canPause = false, Action onClose = null) => new GameAlert.Builder(AlertType.Notification).WithHeader(header).WithMessage(message).WithCloseButton().CanPauseGame(canPause).OnClose(onClose).Build();
         public static GameAlert QuickWarning(string message, string header = null, bool canPause = true, Action onClose = null) => new GameAlert.Builder(AlertType.Notification).WithHeader(header).WithMessage(message).WithCloseButton().CanPauseGame(canPause).OnClose(onClose).Build();

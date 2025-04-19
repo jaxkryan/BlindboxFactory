@@ -45,9 +45,24 @@ namespace Script.Alert {
             if (OnClick is not null)button.gameObject.GetComponent<Button>().onClick.AddListener(() => OnClick?.Invoke());
             button.gameObject.SetActive(true);
         }
-        
-        
-        
+
+        public static bool operator ==(AlertUIButtonDetails a, AlertUIButtonDetails b) {
+            if (a is null && b is null) return true;
+            if (a is null || b is null) return false;
+            if (a.Text != b.Text) return false;
+            if (a.IsCloseButton != b.IsCloseButton) return false;
+            if (a.Background != b.Background) return false;
+            if (a.TextColor != b.TextColor) return false;
+            // if (a.OnClick != b.OnClick) return false;
+
+            return true;
+        }
+
+        public static bool operator !=(AlertUIButtonDetails a, AlertUIButtonDetails b) {
+            return !(a == b);
+        }
+
+
         public static AlertUIButtonDetails CloseButton = new AlertUIButtonDetails() {
             Text = "Close",
             IsCloseButton = true,

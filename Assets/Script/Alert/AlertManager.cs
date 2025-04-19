@@ -24,7 +24,11 @@ namespace Script.Alert {
         [SerializeField] public Sprite Green;
         [SerializeField] public Sprite Purple;
         [SerializeField] public Sprite Yellow;
+
+        public GameAlert Current { get; private set; } = null;
+        
         [Space] [SerializeField] bool _logs = false;
+
         //Test
         [Space] [SerializeField] private bool _test = false;
         private GameObject _backgroundBlocker;
@@ -73,6 +77,7 @@ namespace Script.Alert {
                     if (rt.offsetMin != Vector2.zero || rt.offsetMax != Vector2.zero) slatedForDestroy.Add(b);
                     if (rt.localScale != Vector3.one) slatedForDestroy.Add(b);
                 }
+
                 if (!b.TryGetComponent<Image>(out var im)) {
                     if (im.color != Color.clear) slatedForDestroy.Add(b);
                     if (!im.raycastTarget) slatedForDestroy.Add(b);
@@ -117,12 +122,17 @@ namespace Script.Alert {
             Raise(alert);
         }
 
-        public void Raise(GameAlert alert) {
+        public void Raise(GameAlert alert, bool raiseAgainIfDuplicated = false) {
             // Raise(alert.Type, alert.Header, alert.Message, alert.HasCloseButton, alert.PauseGame, alert.OnClose, alert.Button1, alert.Button2);
-            if (_alerts.Any(a => a.gameObject.activeInHierarchy))
-                _alertBackLog.Enqueue(alert);
+            if (_alerts.Any(a => a.gameObject.activeInHierarchy)) {
+                if ((_alertBackLog.Any(a => a == alert) || alert == Current) && raiseAgainIfDuplicated) {
+                    _alertBackLog.Enqueue(alert);
+                }
+                return;
+            }
 
             if (_logs) Debug.Log("Raising alert " + alert.Header);
+            Current = alert;
 
             //Type
             var fields = alert.GetType().GetFields().ToList();
@@ -184,7 +194,7 @@ namespace Script.Alert {
                     $"Field(s) not used when creating alert: {string.Join(", ", fields.Select(f => f.Name))}");
 
             _backgroundBlocker.gameObject.SetActive(true);
-            
+
             Action RemoveBlockerOnAlertClosed = null;
             RemoveBlockerOnAlertClosed = () => {
                 _backgroundBlocker.gameObject.SetActive(false);
@@ -200,7 +210,8 @@ namespace Script.Alert {
         public void Raise(AlertType type, string header, string message, bool hasClose = true, bool pauseGame = false,
             Action onClose = null,
             [CanBeNull] AlertUIButtonDetails button1 = null,
-            [CanBeNull] AlertUIButtonDetails button2 = null) {
+            [CanBeNull] AlertUIButtonDetails button2 = null,
+            bool raiseAgainIfDuplicated = false) {
             new GameAlert.Builder(type)
                 .WithHeader(header)
                 .WithMessage(message)
@@ -209,7 +220,7 @@ namespace Script.Alert {
                 .OnClose(onClose)
                 .WithButton1(button1)
                 .WithButton2(button2)
-                .Build().Raise();
+                .Build().Raise(raiseAgainIfDuplicated);
         }
 
         private void OnValidate() {

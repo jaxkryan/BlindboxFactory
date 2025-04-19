@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using Script.Controller;
+using Script.Controller.Commission;
 using Script.Quest;
 using TMPro;
 using UnityEngine;
@@ -19,8 +20,10 @@ namespace Script.UI.Mission {
         [SerializeField] private QuestPanel _questPanel;
         [SerializeField] private CommissionPanel _commissionPanel;
         [SerializeField] private AvailableCommissionPanel _availableCommissionPanel;
+        [SerializeField] private TextMeshProUGUI _timerText;
 
-
+        public string ActivePanelName { get; private set; } = string.Empty;
+        
         public void Open() {
             switch (_defaultPanelIndex) {
                 case 1:
@@ -37,9 +40,14 @@ namespace Script.UI.Mission {
             }
         }
 
+        private void OnDisable() {
+            ActivePanelName = string.Empty;
+        }
+
         public void OpenDailyMissionPanel() {
             Setup(_dailyMissionPanel);
 
+            ActivePanelName = nameof(DailyMissionPanel);
             var controller = GameController.Instance.DailyMissionController;
             var list = controller.DailyMissions.Select(m => {
                 //Instantiate mission from prefab and populate content
@@ -61,10 +69,9 @@ namespace Script.UI.Mission {
 
         public void OpenCommissionPanel() {
             Setup(_commissionPanel);
-            
+
+            ActivePanelName = nameof(CommissionPanel);
             var controller = GameController.Instance.CommissionController;
-            var commissions = controller.CreateCommissions();
-            Debug.Log($"Generated commissions(Count {commissions.Count}): " + string.Join("\t", commissions.Select(c => $"Commission: {c.Items.FirstOrDefault().Key} Price: {c.Price}")));
             var list = controller.Commissions.Select(c => {
                 var commission = Instantiate(_commissionPanel.ItemPrefab.gameObject, _contentHolder.transform);
                 if (commission.TryGetComponent<CommissionItemUI>(out var item)) {
@@ -82,12 +89,25 @@ namespace Script.UI.Mission {
             }).Where(c => c != null).ToList();
         }
 
+        private HashSet<Commission> _availableCommissions = new();
+        DateTime _lastAvailableCommissionUpdate = DateTime.MinValue;
+        private float _availableCommissionRefreshHours = -1;
+        
         public void OpenAvailableCommissionsPanel()
         {
             Setup(_availableCommissionPanel);
-
             var controller = GameController.Instance.CommissionController;
-            foreach (var available in controller.CreateCommissions())
+
+            ActivePanelName = nameof(AvailableCommissionPanel);
+            if (_availableCommissionRefreshHours < 0) _availableCommissionRefreshHours = controller.AvailableCommissionRefreshHours;
+
+            if (!_availableCommissions.Any() || _lastAvailableCommissionUpdate <
+                DateTime.Now.AddHours(-_availableCommissionRefreshHours)) {
+                _availableCommissions = controller.CreateCommissions();
+                _lastAvailableCommissionUpdate = DateTime.Now;
+            }
+            
+            foreach (var available in _availableCommissions)
             {
                 var go = Instantiate(_availableCommissionPanel.ItemPrefab.gameObject, _contentHolder.transform);
                 var ui = go.GetComponent<AvailableCommissionItemUI>();
@@ -104,14 +124,11 @@ namespace Script.UI.Mission {
         }
 
         public void OpenQuestPanel() {
-            Debug.LogWarning("Open quest panel");
             Setup(_questPanel);
 
+            ActivePanelName = nameof(QuestPanel);
             var controller = GameController.Instance.QuestController;
-            Debug.LogWarning("Instantiating quests");
             controller.Quests.ForEach((q => q.Evaluate()));
-            Debug.LogWarning($"List of quests: {string.Join(", ", controller.Quests.Select(q => $"{q.Name}: {q.State}"))}");
-            Debug.LogWarning($"List of active quests: {string.Join(", ", controller.Quests.Where(q => q.State == QuestState.InProgress).Select(q => $"{q.Name}: {q.State}"))}");
             var list = controller.Quests.Where(q => q.State == QuestState.InProgress).Select(q => {
                 //Instantiate mission from prefab and populate content
                 var quest = Instantiate(_questPanel.ItemPrefab.gameObject, _contentHolder.transform);
@@ -154,6 +171,23 @@ namespace Script.UI.Mission {
             while (children.Count > 0) {
                 var child = children.Pop();
                 Destroy(child);
+            }
+        }
+
+        TimeSpan _availableCommissionRemainingTime = new TimeSpan(0);
+        private void Update() {
+            switch (ActivePanelName) {
+                case nameof(AvailableCommissionPanel):
+                    var availableCommissionRemainingTime = _lastAvailableCommissionUpdate.AddHours(_availableCommissionRefreshHours) - DateTime.Now;
+                    if (availableCommissionRemainingTime.TotalSeconds <= 0.0001) OpenAvailableCommissionsPanel();
+                    if ((int)availableCommissionRemainingTime.TotalSeconds != (int)_availableCommissionRemainingTime.TotalSeconds || _timerText.text == String.Empty) {
+                        _timerText.text = $@"Refresh after: {availableCommissionRemainingTime:hh\:mm\:ss}";
+                        _availableCommissionRemainingTime = availableCommissionRemainingTime;
+                    }
+                    break;
+                default:
+                    if (_timerText.text != String.Empty) _timerText.text = string.Empty;
+                    break;
             }
         }
     }

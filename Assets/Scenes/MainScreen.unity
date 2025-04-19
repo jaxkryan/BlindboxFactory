@@ -770,7 +770,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.017581424, y: 0.5167551}
   m_AnchorMax: {x: 0.9911279, y: 0.9036858}
-  m_AnchoredPosition: {x: -5.981659, y: -1.569519}
+  m_AnchoredPosition: {x: -5.9816895, y: -1.569519}
   m_SizeDelta: {x: 6.0788574, y: 11.484314}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &74954759
@@ -6890,6 +6890,62 @@ PrefabInstance:
     - target: {fileID: 4755687038832774411, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
       propertyPath: m_Name
       value: MissionPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 5879520461742962125, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5879520461742962125, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5879520461742962125, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 1436
+      objectReference: {fileID: 0}
+    - target: {fileID: 5879520461742962125, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 768.00024
+      objectReference: {fileID: 0}
+    - target: {fileID: 5879520461742962125, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8022358809079015789, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8022358809079015789, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8022358809079015789, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8022358809079015789, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9085296889657588085, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9085296889657588085, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9085296889657588085, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 1436
+      objectReference: {fileID: 0}
+    - target: {fileID: 9085296889657588085, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 1511.579
+      objectReference: {fileID: 0}
+    - target: {fileID: 9085296889657588085, guid: 2e6c257db30467246bfb48f394f3a3d2, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 50
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -54411,8 +54467,8 @@ MonoBehaviour:
       - {fileID: 11400000, guid: 964efe4fb23f9f549b59b3872074d8a8, type: 2}
     - categoryName: Electric
       buildables:
-      - {fileID: 11400000, guid: fbba7ebfa78406b4aa3d3a487b886bc5, type: 2}
       - {fileID: 11400000, guid: aa59eb1c7d21f1c4aaf3ad083f48a6c2, type: 2}
+      - {fileID: 11400000, guid: 0fd42ac701aa54c4aa756c95cf18dca4, type: 2}
       - {fileID: 11400000, guid: d957a858dfad9074dbe3548da5e6010b, type: 2}
     - categoryName: Ware House
       buildables:
@@ -54552,13 +54608,14 @@ MonoBehaviour:
   CommissionController:
     _forAllProducts: 1
     _commissionedProducts: 
-    _numberOfCommissionsPerItem: 1
-    _amountModifierForNextProduct: 0.01
-    _bonusRange: {x: 1, y: 1}
+    _numberOfCommissionsPerItem: 3
+    _baseAmountModifierForNextProduct: 1.2
+    _amountModifierRange: 0.21
+    _bonusRange: {x: 0.2, y: 0.8}
     _maximumTotalCommissions: 1
     _baseCommission: 1
     _expireHours: 1
-    _log: 1
+    AvailableCommissionRefreshHours: 1
   DailyMissionController:
     _resetTime:
       Hour: 0
@@ -54575,6 +54632,7 @@ MonoBehaviour:
   CollisionLayer: {fileID: 1999813895}
   NavMeshSurface: {fileID: 2045879248}
   GroundTile: {fileID: 0}
+  PlayerData: {fileID: 0}
   HasSaveTimer: 0
   MinutesBetweenSave: 5
   _maxSavesCount: 10

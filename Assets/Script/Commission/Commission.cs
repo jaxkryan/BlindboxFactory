@@ -14,8 +14,9 @@ namespace Script.Controller.Commission {
         public long BonusPrice => _bonusPrice;
         private long _bonusPrice = 0;
         public long Price => _basePrice + _bonusPrice;
-
-        public DateTime ExpireDate;
+        public TimeSpan ValidTime;
+        public DateTime? StartTime;
+        public DateTime ExpireDate {get => StartTime is not null ? ((DateTime)StartTime) + ValidTime : DateTime.Now + ValidTime; }
 
         private long CalculateBasePrice() {
             long basePrice = 0;
@@ -32,6 +33,8 @@ namespace Script.Controller.Commission {
 
             return basePrice;
         }
+        
+        public void Start() => StartTime = DateTime.Now;
 
 
         public bool IsFulfilled(out float progress) {
@@ -79,8 +82,18 @@ namespace Script.Controller.Commission {
                 return this;
             }
 
-            public Builder WithExpiredDate(DateTime expiredDate) {
-                _commission.ExpireDate = expiredDate;
+            // public Builder WithExpiredDate(DateTime expiredDate) {
+            //     _commission.ExpireDate = expiredDate;
+            //     return this;
+            // }
+
+            public Builder WithValidTime(TimeSpan validTime) {
+                _commission.ValidTime = validTime;
+                return this;
+            }
+
+            public Builder WithStartTime(DateTime? startTime) {
+                _commission.StartTime = startTime;
                 return this;
             }
 
