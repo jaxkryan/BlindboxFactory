@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using Script.Alert;
 using Script.Controller;
 using Script.Controller.Commission;
 using Script.Quest;
@@ -54,11 +55,21 @@ namespace Script.UI.Mission
             _stringBuilder.AppendJoin(", ", items.Keys);
             _name.text = _stringBuilder.ToString();
 
+            var box = GameController.Instance.BoxController;
+            bool isComplete = true;
+            
             _stringBuilder.Clear();
             foreach (var item in items)
             {
                 _stringBuilder.Append($"{item.Value}x {item.Key}, ");
+                
+                if (box.TryGetAmount(item.Key, out var amount)) {
+                    if (amount < item.Value) isComplete = false;
+                }
+                else Debug.LogError($"Cannot get amount {item.Key}");
             }
+
+            if (isComplete) _accept.image.sprite = AlertManager.Instance.Green;
             if (_stringBuilder.Length > 0) _stringBuilder.Length -= 2;
             _description.text = _stringBuilder.ToString();
 

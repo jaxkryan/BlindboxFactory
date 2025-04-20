@@ -222,7 +222,7 @@ namespace Script.Controller {
             var ui = Object.FindFirstObjectByType<MissionHubUI>(FindObjectsInactive.Include);
 
             if (ui) {
-                if (Commissions.Count == 0 && ui.ActivePanelName != nameof(AvailableCommissionPanel) && ui.ActivePanelName != nameof(CommissionPanel)) {
+                if (Commissions.Count == 0 && ui.ActivePanelName != nameof(AvailableCommissionPanel) /*&& ui.ActivePanelName != nameof(CommissionPanel)*/) {
                     new GameAlert.Builder(AlertType.Notification)
                         .WithHeader("Commissions Fulfilled!")
                         .WithMessage("All of your commissions have been fulfilled!")

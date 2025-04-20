@@ -207,10 +207,6 @@ namespace Script.Alert {
             raisingAlert.gameObject.SetActive(true);
             if (raisingAlert.gameObject.TryGetComponent<DotweenAnimation>(out var anim)) {
                 anim.AnimateIn();
-                var messageContainer = raisingAlert.Message.transform.parent;
-                if (messageContainer != null) {
-                    messageContainer.localPosition.Set(messageContainer.localPosition.x, 0, messageContainer.localPosition.y);
-                }
             }
 
             onAlertRaised?.Invoke(alert.Type, raisingAlert.Header.text);
