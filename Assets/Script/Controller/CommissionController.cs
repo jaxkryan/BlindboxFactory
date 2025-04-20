@@ -286,15 +286,15 @@ namespace Script.Controller {
 
         public override void Save(SaveManager saveManager) {
             var newSave = new SaveData() {
-                ForAllProducts = _forAllProducts,
-                CommissionedProducts = _commissionedProducts,
-                NumberOfCommissionsPerItem = _numberOfCommissionsPerItem,
-                BaseAmountModifierForNextProduct = _baseAmountModifierForNextProduct,
-                AmountModifierRange = _amountModifierRange,
-                BonusRange = new() { Min = _bonusRange.x, Max = _bonusRange.y },
-                MaximumTotalCommissions = _maximumTotalCommissions,
-                BaseCommission = _baseCommission,
-                ExpireHours = _expireHours,
+                // ForAllProducts = _forAllProducts,
+                // CommissionedProducts = _commissionedProducts,
+                // NumberOfCommissionsPerItem = _numberOfCommissionsPerItem,
+                // BaseAmountModifierForNextProduct = _baseAmountModifierForNextProduct,
+                // AmountModifierRange = _amountModifierRange,
+                // BonusRange = new() { Min = _bonusRange.x, Max = _bonusRange.y },
+                // MaximumTotalCommissions = _maximumTotalCommissions,
+                // BaseCommission = _baseCommission,
+                // ExpireHours = _expireHours,
                 Commissions = _commissions,
             };
 

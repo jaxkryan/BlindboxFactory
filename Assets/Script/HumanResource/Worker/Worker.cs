@@ -248,8 +248,8 @@ namespace Script.HumanResource.Worker {
                 agent.enabled = true;
             }
 
-            _maximumCores = new SerializedDictionary<CoreType, float>(data.MaximumCores);
-            _startingCores = new SerializedDictionary<CoreType, float>(data.StartingCores);
+            // _maximumCores = new SerializedDictionary<CoreType, float>(data.MaximumCores);
+            // _startingCores = new SerializedDictionary<CoreType, float>(data.StartingCores);
             _currentCores = new(data.CurrentCores);
             // _bonuses = data.Bonuses;
 

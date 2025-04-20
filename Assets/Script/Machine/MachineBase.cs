@@ -335,9 +335,9 @@ namespace Script.Machine {
         public virtual MachineBaseData Save() => new MachineBaseData() {
                 PrefabName = PrefabName,
                 Position = new(Position),
-                PowerUse = _powerUse,
+                // PowerUse = _powerUse,
                 ResourceManager = _resourceManager.ToSaveData(),
-                HasEnergyForWork = HasEnergyForWork,
+                // HasEnergyForWork = HasEnergyForWork,
                 HasTimer = _progressPerSecTimer is not null && _progressPerSecTimer != default,
                 TimerTime = _progressPerSecTimer?.Time ?? 0f * _progressPerSecTimer?.Progress ?? 1f,
                 TimerCurrentTime = _progressPerSecTimer?.Time ?? 0f,
@@ -345,11 +345,11 @@ namespace Script.Machine {
                 IsClosed = _isClosed,
                 CurrentProgress = _currentProgress,
                 LastProgress = _lastProgress,
-                WorkDetails = _workDetails.Select(w => w.Save()).ToList(),
+                // WorkDetails = _workDetails.Select(w => w.Save()).ToList(),
                 Product = _product.Save(),
                 PlacedTime = _placedTime,
-                SpawnWorkers = _spawnWorkers,
-                SpawnWorkerType = _spawnWorkerType,
+                // SpawnWorkers = _spawnWorkers,
+                // SpawnWorkerType = _spawnWorkerType,
             };
 
         public virtual void Load(MachineBaseData data) {
