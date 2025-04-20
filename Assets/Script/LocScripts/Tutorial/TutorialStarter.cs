@@ -3,20 +3,30 @@
 public class TutorialStarter : MonoBehaviour
 {
     public TutorialManager tutorialManager;
+    public GameObject tutorialCanvas;  // ✅ Kéo TutorialCanvas vào đây
 
     // Biến trạng thái đơn giản: false = chưa xong, true = đã hoàn thành
-    public bool hasCompletedTutorial = false;
+    public bool hasCompletedTutorial ;
 
     void Start()
     {
         if (!hasCompletedTutorial)
         {
             tutorialManager.StartTutorial();
-            hasCompletedTutorial = true; // đánh dấu đã xong
+            
+        }
+        else
+        {
+            if (tutorialCanvas != null)
+            {
+                tutorialCanvas.SetActive(false);  // ✅ Tắt canvas nếu đã xong
+            }
         }
     }
-    public bool IsTutorialCompleted()
+
+    public void IsTutorialCompleted()
     {
-        return hasCompletedTutorial == true;
+         hasCompletedTutorial = true;
+        tutorialCanvas.SetActive(false);
     }
 }

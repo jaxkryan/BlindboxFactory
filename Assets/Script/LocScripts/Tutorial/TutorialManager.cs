@@ -6,17 +6,18 @@ using System.Collections;
 public class TutorialManager : MonoBehaviour
 {
     public List<TutorialStep> steps;
-    public RectTransform overlay;                 // overlay có lỗ tròn
+    public RectTransform overlay;
     public DialogueManager dialogueManager;
-    //public bool clickOverlay = true;              // nếu true → click toàn màn hình, false → chỉ click quanh vùng lỗ
-    public float clickRadius = 90f;               // bán kính click được khi clickOverlay = false
+    public float clickRadius = 90f;
     public RectTransform characterRect;
+
     private int currentStep = -1;
     private bool waitingForClick = false;
 
     void Start()
     {
         StartTutorial();
+        
     }
 
     void Update()
@@ -25,6 +26,7 @@ public class TutorialManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
+            
             var step = steps[currentStep];
 
             if (step.clickOverlay)
@@ -54,6 +56,7 @@ public class TutorialManager : MonoBehaviour
     {
         return waitingForClick;
     }
+
     public void StartTutorial()
     {
         currentStep = -1;
@@ -71,40 +74,80 @@ public class TutorialManager : MonoBehaviour
         }
 
         TutorialStep step = steps[currentStep];
-        characterRect.anchoredPosition = step.characterPosition;
-        // Cập nhật vị trí overlay
-        overlay.anchoredPosition = step.overlayCenterPosition;
-        overlay.gameObject.SetActive(true);
-        // ✅ Nếu bật scale overlay → áp dụng
-        if (step.enableOverlayScale)
+        Vector2 localPoint = step.overlayCenterPosition; // mặc định nếu không có attach nào
+
+        // ==== ƯU TIÊN 1: ATTACH BUTTON ====
+        if (step.isAttachButton && step.targetButton != null)
         {
-            overlay.localScale = step.overlayScale;
+            Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(null, step.targetButton.position);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                overlay.parent as RectTransform,
+                screenPos,
+                null,
+                out localPoint
+            );
+            localPoint.y -= 50f; // offset nếu muốn
+            Debug.Log("[Tutorial] ✅ Attached to targetButton.");
+        }
+
+        // ==== ƯU TIÊN 2: ATTACH NAME ====
+        if (step.isAttachName && !string.IsNullOrEmpty(step.targetObjectName))
+        {
+            GameObject found = GameObject.Find(step.targetObjectName);
+            if (found != null)
+            {
+                RectTransform target = found.GetComponent<RectTransform>();
+                if (target != null)
+                {
+                    Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(null, target.position);
+                    RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                        overlay.parent as RectTransform,
+                        screenPos,
+                        null,
+                        out localPoint
+                    );
+                    localPoint.y -= 50f;
+                    Debug.Log($"[Tutorial] ✅ Found by name: {step.targetObjectName}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[Tutorial] ⚠️ Object found but no RectTransform: {step.targetObjectName}");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[Tutorial] ❌ Cannot find object by name: {step.targetObjectName}");
+            }
+            
         }
         else
         {
-            overlay.localScale = Vector3.one;
+            Debug.LogWarning($"[Tutorial] ❌ not attatch or null: {step.targetObjectName}");
         }
-        // Thoại + ảnh nhân vật
 
+        // === Gán vị trí overlay sau khi tính ===
+        step.overlayCenterPosition = localPoint;
+        overlay.anchoredPosition = localPoint;
+        overlay.localScale = step.enableOverlayScale ? step.overlayScale : Vector3.one;
+        overlay.gameObject.SetActive(true);
+
+        // === Nhân vật & thoại ===
+        characterRect.anchoredPosition = step.characterPosition;
         characterRect.gameObject.SetActive(true);
-
         dialogueManager.StartDialogue(step.dialogueText, step.characterSprite);
-        // Sự kiện khởi đầu bước
-        step.onStepStart?.Invoke();
 
+        // === Bắt đầu bước ===
+        step.onStepStart?.Invoke();
         waitingForClick = true;
     }
+
 
     public void OnClickOverlay()
     {
         if (!waitingForClick) return;
 
         waitingForClick = false;
-
-        // Gọi sự kiện hoàn thành step nếu có
         steps[currentStep].onStepComplete?.Invoke();
-
-        // Đợi 0.5 giây rồi mới NextStep
         StartCoroutine(WaitAndNextStep(0.5f));
     }
 
