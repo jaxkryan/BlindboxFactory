@@ -72,6 +72,8 @@ namespace Script.UI.Mission {
 
             ActivePanelName = nameof(CommissionPanel);
             var controller = GameController.Instance.CommissionController;
+            controller.UpdateCommissions();
+            
             var list = controller.Commissions.Select(c => {
                 var commission = Instantiate(_commissionPanel.ItemPrefab.gameObject, _contentHolder.transform);
                 if (commission.TryGetComponent<CommissionItemUI>(out var item)) {
@@ -149,6 +151,9 @@ namespace Script.UI.Mission {
 
         private void Setup(MissionPanel panel = null) {
             gameObject.SetActive(true);
+            if (TryGetComponent<DotweenAnimation>(out var animation)) {
+                animation.AnimateIn();
+            } 
             ClearContent();
 
             if (panel != null) { 

@@ -89,7 +89,8 @@ namespace Script.Controller {
                 for (int i = 1; i <= upperBound; i++) {
                     var baseNumber = newCommissionsCount.Any() ? newCommissionsCount.Max() : prevBoxSoldPerCommission;
                     var amountMod = _amountModifierForNextProduct - 1;
-                    var modifierNumber = Mathf.FloorToInt(baseNumber * amountMod);
+                    if (baseNumber <= 1) amountMod = Mathf.Abs(amountMod);
+                    var modifierNumber = Mathf.RoundToInt(baseNumber * amountMod);
 
                     int count = baseNumber + modifierNumber;
                     newCommissionsCount.Add(count);
@@ -102,7 +103,8 @@ namespace Script.Controller {
                 for (int i = 1; i <= lowerBound; i++) {
                     var baseNumber = newCommissionsCount.Any() ? newCommissionsCount.Min() : prevBoxSoldPerCommission;
                     var amountMod = _amountModifierForNextProduct - 1;
-                    var modifierNumber = Mathf.FloorToInt(baseNumber * amountMod);
+                    if (baseNumber <= 1) amountMod = Mathf.Abs(amountMod);
+                    var modifierNumber = Mathf.RoundToInt(baseNumber * amountMod);
 
                     int count = baseNumber - modifierNumber;
                     newCommissionsCount.Add(count);
@@ -156,6 +158,7 @@ namespace Script.Controller {
             if (_maximumTotalCommissions == Commissions.Count) return false;
 
             commission.Start();
+            Debug.Log($"Adding commission: {string.Join(", ", commission.Items.Select(c => c.Key))} for {commission.Price}");
             _commissions.Add(commission);
             OnCommissionChanged?.Invoke();
             return true;
@@ -206,12 +209,12 @@ namespace Script.Controller {
         private void UpdateCommissions(Resource resource, long l1, long l2) => UpdateCommissions();
         private void UpdateCommissions(ProductBase product) => UpdateCommissions();
 
-        private void UpdateCommissions() {
+        public void UpdateCommissions() {
             if (_log) Debug.Log("[Commission] Updating commissions...");
             Commissions.Where(c => c.IsFulfilled(out _)).ToList().ForEach(c => {
+                TryRemoveCommission(c);
                 c.Reward.Grant();
                 onCommissionCompleted?.Invoke(c);
-                TryRemoveCommission(c);
             });
 
             _commissions.Where(c => c.ExpireDate <= DateTime.Now).ToList().ForEach(TryRemoveCommission);
@@ -219,7 +222,7 @@ namespace Script.Controller {
             var ui = Object.FindFirstObjectByType<MissionHubUI>(FindObjectsInactive.Include);
 
             if (ui) {
-                if (Commissions.Count == 0 && ui.ActivePanelName != nameof(AvailableCommissionPanel)) {
+                if (Commissions.Count == 0 && ui.ActivePanelName != nameof(AvailableCommissionPanel) && ui.ActivePanelName != nameof(CommissionPanel)) {
                     new GameAlert.Builder(AlertType.Notification)
                         .WithHeader("Commissions Fulfilled!")
                         .WithMessage("All of your commissions have been fulfilled!")

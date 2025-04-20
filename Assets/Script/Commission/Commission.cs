@@ -44,6 +44,10 @@ namespace Script.Controller.Commission {
             }
 
             var total = Items.Values?.Sum() ?? 0;
+            if (total == 0) {
+                progress = 100;
+                return true;
+            }
             progress = 0;
             foreach (var pair in Items) {
                 if (GameController.Instance.BoxController.TryGetAmount(pair.Key, out var amount)) {
@@ -51,6 +55,7 @@ namespace Script.Controller.Commission {
                 }
             }
             progress = progress / total * 100;
+            Debug.Log("Commission progress " + progress);
             return progress  >= 100;
         }
 

@@ -26,7 +26,7 @@ namespace Script.Alert {
         [SerializeField] public Sprite Yellow;
 
         public GameAlert Current { get; private set; } = null;
-        
+
         [Space] [SerializeField] bool _logs = false;
 
         //Test
@@ -128,6 +128,7 @@ namespace Script.Alert {
                 if ((_alertBackLog.Any(a => a == alert) || alert == Current) && raiseAgainIfDuplicated) {
                     _alertBackLog.Enqueue(alert);
                 }
+
                 return;
             }
 
@@ -204,6 +205,14 @@ namespace Script.Alert {
 
             raisingAlert.enabled = true;
             raisingAlert.gameObject.SetActive(true);
+            if (raisingAlert.gameObject.TryGetComponent<DotweenAnimation>(out var anim)) {
+                anim.AnimateIn();
+                var messageContainer = raisingAlert.Message.transform.parent;
+                if (messageContainer != null) {
+                    messageContainer.localPosition.Set(messageContainer.localPosition.x, 0, messageContainer.localPosition.y);
+                }
+            }
+
             onAlertRaised?.Invoke(alert.Type, raisingAlert.Header.text);
         }
 
