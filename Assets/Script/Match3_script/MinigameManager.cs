@@ -6,22 +6,20 @@ using Script.Machine.Machines;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 public class MinigameManager : MonoBehaviour
 {
     private MachineController machineController;
-    [SerializeField] private string match3SceneName = "Match3Scene";
-    [SerializeField] private string whackAMoleSceneName = "WhackAMoleScene";
-    [SerializeField] private string wireConnectionSceneName = "WireConnectionScene";
-    [SerializeField] private string mainSceneName = "MainScreen";
     [SerializeField] private string exclamationButtonName = "needfix";
     [SerializeField] private float minigameInterval = 3f * 3600f; // 3 giờ
     [SerializeField] private float maxInactiveTime = 20f * 60f; // 20 phút
-    [SerializeField] private bool testMode = true;
-    [SerializeField] private float minigameSpawnChance = 0.3f; // Xác suất 30% spawn minigame khi máy được đặt
+    [SerializeField] private float minigameSpawnChance = 0.3f; // Xác suất 30%
+    [SerializeField] private Button minigameTriggerButton; // Nút kích hoạt minigame duy nhất
+    [SerializeField] private GameObject match3GameObject; // GameObject cho Match-3
+    [SerializeField] private GameObject whackAMoleGameObject; // GameObject cho Whack-a-Mole
+    [SerializeField] private GameObject wireConnectionGameObject; // GameObject cho Wire-Connection
 
     private const int MAX_MINIGAMES_PER_DAY = 5;
     private int remainingMinigamesToday = MAX_MINIGAMES_PER_DAY;
@@ -32,7 +30,7 @@ public class MinigameManager : MonoBehaviour
 
     private class MinigameData
     {
-        public string SceneName;
+        public GameObject MinigameObject; // Thay SceneName bằng GameObject
         public Button ExclamationButton;
         public float TimeRemaining;
     }
@@ -43,28 +41,30 @@ public class MinigameManager : MonoBehaviour
         lastResetTime = DateTime.UtcNow.Date;
         machineController = GameController.Instance.MachineController;
 
-        // Đăng ký sự kiện khi scene được load
-        SceneManager.sceneLoaded += OnSceneLoaded;
-
-        // Đăng ký sự kiện khi máy được thêm
+        // Đăng ký sự kiện
         machineController.onMachineAdded += OnMachineAdded;
 
-        if (testMode)
+        // Thiết lập MinigameTriggerButton
+        if (minigameTriggerButton != null)
         {
-            int minigamesToSpawn = Random.Range(1, 3);
-            minigamesToSpawn = Mathf.Min(minigamesToSpawn, remainingMinigamesToday);
-
-            for (int i = 0; i < minigamesToSpawn; i++)
-            {
-                SpawnRandomMinigame();
-            }
-            remainingMinigamesToday -= minigamesToSpawn;
+            minigameTriggerButton.gameObject.SetActive(false); // Ẩn ban đầu
+            minigameTriggerButton.onClick.RemoveAllListeners();
+            minigameTriggerButton.onClick.AddListener(OnMinigameTriggerButtonClicked);
         }
+        else
+        {
+            Debug.LogWarning("MinigameTriggerButton not assigned in Inspector!");
+        }
+
+        // Tắt tất cả minigame GameObject ban đầu
+        DeactivateAllMinigameObjects();
+
+        // Kiểm tra tất cả máy hiện có để spawn minigame
+        CheckExistingMachinesForMinigames();
     }
 
     void OnDestroy()
     {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
         if (machineController != null)
         {
             machineController.onMachineAdded -= OnMachineAdded;
@@ -74,8 +74,16 @@ public class MinigameManager : MonoBehaviour
     void Update()
     {
         CheckDailyReset();
-        if (!testMode) SpawnMinigames();
+        SpawnMinigames();
         UpdateActiveMinigames();
+
+        // Cập nhật trạng thái MinigameTriggerButton
+        if (minigameTriggerButton != null)
+        {
+            bool hasActiveMinigames = activeMinigames.Count > 0;
+            minigameTriggerButton.gameObject.SetActive(hasActiveMinigames);
+            minigameTriggerButton.interactable = hasActiveMinigames;
+        }
     }
 
     private void CheckDailyReset()
@@ -88,16 +96,40 @@ public class MinigameManager : MonoBehaviour
         }
     }
 
+    private void CheckExistingMachinesForMinigames()
+    {
+        // Chỉ spawn một minigame nếu chưa có minigame nào
+        if (activeMinigames.Count > 0) return;
+
+        foreach (var machine in machineController.Machines)
+        {
+            if (remainingMinigamesToday <= 0) break;
+            if (IsMinigameEligibleMachine(machine) && !activeMinigames.ContainsKey(machine))
+            {
+                float roll = Random.value;
+                if (roll <= minigameSpawnChance)
+                {
+                    SpawnMinigameForMachine(machine);
+                    remainingMinigamesToday--;
+                    lastMinigameTime = DateTime.UtcNow;
+                    Debug.Log($"Minigame spawned at startup for machine: {machine.name}");
+                    break; // Thoát sau khi spawn một minigame
+                }
+            }
+        }
+    }
+
     private void SpawnMinigames()
     {
         if (remainingMinigamesToday <= 0) return;
+        if (activeMinigames.Count > 0) return; // Không spawn nếu đã có minigame
 
         DateTime currentTime = DateTime.UtcNow;
         float elapsedTime = (float)(currentTime - lastMinigameTime).TotalSeconds;
 
         if (elapsedTime >= minigameInterval)
         {
-            int minigamesToSpawn = Random.Range(1, 3);
+            int minigamesToSpawn = 1; // Chỉ spawn một minigame
             minigamesToSpawn = Mathf.Min(minigamesToSpawn, remainingMinigamesToday);
 
             for (int i = 0; i < minigamesToSpawn; i++)
@@ -125,7 +157,7 @@ public class MinigameManager : MonoBehaviour
 
     private void OnMachineAdded(MachineBase machine)
     {
-        if (!testMode && remainingMinigamesToday > 0 && IsMinigameEligibleMachine(machine))
+        if (remainingMinigamesToday > 0 && IsMinigameEligibleMachine(machine) && activeMinigames.Count == 0)
         {
             float roll = Random.value;
             if (roll <= minigameSpawnChance)
@@ -138,7 +170,83 @@ public class MinigameManager : MonoBehaviour
         }
     }
 
-   
+    private void SpawnMinigameForMachine(MachineBase selectedMachine)
+    {
+        GameObject minigameObject = GetMinigameObject(selectedMachine);
+        if (minigameObject == null)
+        {
+            Debug.LogWarning($"No minigame GameObject assigned for machine: {selectedMachine.name}");
+            return;
+        }
+
+        Button exclamationButton = selectedMachine.GetComponentInChildren<Button>(true);
+        if (exclamationButton == null || exclamationButton.name != exclamationButtonName)
+        {
+            Debug.LogWarning($"No button named '{exclamationButtonName}' found in {selectedMachine.name}");
+            return;
+        }
+
+        exclamationButton.gameObject.SetActive(true);
+        exclamationButton.interactable = false; // Không cho phép click trực tiếp
+        Graphic graphic = exclamationButton.GetComponent<Graphic>();
+        if (graphic != null) graphic.raycastTarget = false; // Tắt raycast để không nhận click
+
+        activeMinigames[selectedMachine] = new MinigameData
+        {
+            MinigameObject = minigameObject,
+            ExclamationButton = exclamationButton,
+            TimeRemaining = maxInactiveTime
+        };
+
+        string minigameType = GetMinigameType(minigameObject);
+        Debug.Log($"Minigame event spawned at machine: {selectedMachine.name} (Type: {selectedMachine.GetType().Name}, Minigame: {minigameType})");
+    }
+
+    private void OnMinigameTriggerButtonClicked()
+    {
+        if (activeMinigames.Count == 0)
+        {
+            Debug.LogWarning("No active minigames to trigger!");
+            return;
+        }
+
+        // Chọn máy duy nhất trong activeMinigames
+        var enumerator = activeMinigames.GetEnumerator();
+        if (enumerator.MoveNext())
+        {
+            var pair = enumerator.Current;
+            MachineBase machine = pair.Key;
+            GameObject minigameObject = pair.Value.MinigameObject;
+            Debug.Log($"MinigameTriggerButton clicked, starting minigame for machine: {machine.name}, GameObject: {minigameObject.name}");
+            StartMinigame(machine, minigameObject);
+        }
+    }
+
+    private void StartMinigame(MachineBase machine, GameObject minigameObject)
+    {
+        if (activeMinigames.ContainsKey(machine))
+        {
+            Debug.Log($"Activating minigame GameObject: {minigameObject.name} for machine: {machine.name}");
+            activeMinigames[machine].ExclamationButton.gameObject.SetActive(false);
+            activeMinigames.Remove(machine);
+            minigameStartTime = DateTime.UtcNow;
+
+            // Tắt tất cả minigame GameObject khác và bật cái được chọn
+            DeactivateAllMinigameObjects();
+            minigameObject.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning($"Machine {machine.name} not found in activeMinigames!");
+        }
+    }
+
+    private void DeactivateAllMinigameObjects()
+    {
+        if (match3GameObject != null) match3GameObject.SetActive(false);
+        if (whackAMoleGameObject != null) whackAMoleGameObject.SetActive(false);
+        if (wireConnectionGameObject != null) wireConnectionGameObject.SetActive(false);
+    }
 
     private List<MachineBase> GetAvailableMachines()
     {
@@ -158,61 +266,20 @@ public class MinigameManager : MonoBehaviour
         return machine is Generator || machine is StorageMachine || machine is Canteen;
     }
 
-    private string GetMinigameSceneName(MachineBase machine)
+    private GameObject GetMinigameObject(MachineBase machine)
     {
-        if (machine is Generator) return match3SceneName;
-        if (machine is StorageMachine) return whackAMoleSceneName;
-        if (machine is Canteen) return wireConnectionSceneName;
+        if (machine is Generator) return match3GameObject;
+        if (machine is StorageMachine) return whackAMoleGameObject;
+        if (machine is Canteen) return wireConnectionGameObject;
         return null;
     }
 
-    private void SpawnMinigameForMachine(MachineBase selectedMachine)
+    private string GetMinigameType(GameObject minigameObject)
     {
-        string sceneName = GetMinigameSceneName(selectedMachine);
-        if (string.IsNullOrEmpty(sceneName)) return;
-
-        Button exclamationButton = selectedMachine.GetComponentInChildren<Button>(true);
-        if (exclamationButton == null || exclamationButton.name != exclamationButtonName)
-        {
-            Debug.LogWarning($"No button named '{exclamationButtonName}' found in {selectedMachine.name}");
-            return;
-        }
-
-        exclamationButton.gameObject.SetActive(true);
-        exclamationButton.interactable = true;
-        Graphic graphic = exclamationButton.GetComponent<Graphic>();
-        if (graphic != null) graphic.raycastTarget = true;
-
-        exclamationButton.onClick.RemoveAllListeners();
-        exclamationButton.onClick.AddListener(() => StartMinigame(selectedMachine, sceneName));
-
-        activeMinigames[selectedMachine] = new MinigameData
-        {
-            SceneName = sceneName,
-            ExclamationButton = exclamationButton,
-            TimeRemaining = maxInactiveTime
-        };
-
-        }
-
-    private string GetMinigameType(string sceneName)
-    {
-        if (sceneName == match3SceneName) return "Match-3";
-        if (sceneName == whackAMoleSceneName) return "Whack-a-Mole";
-        if (sceneName == wireConnectionSceneName) return "Wire-Connection";
+        if (minigameObject == match3GameObject) return "Match-3";
+        if (minigameObject == whackAMoleGameObject) return "Whack-a-Mole";
+        if (minigameObject == wireConnectionGameObject) return "Wire-Connection";
         return "Unknown";
-    }
-
-    private void StartMinigame(MachineBase machine, string sceneName)
-    {
-        if (activeMinigames.ContainsKey(machine))
-        {
-            activeMinigames[machine].ExclamationButton.gameObject.SetActive(false);
-            activeMinigames.Remove(machine);
-            minigameStartTime = DateTime.UtcNow;
-            Debug.Log($"Minigame started at machine: {machine.name}, loading scene: {sceneName}");
-            SceneManager.LoadScene(sceneName);
-        }
     }
 
     private void UpdateActiveMinigames()
@@ -240,27 +307,5 @@ public class MinigameManager : MonoBehaviour
     {
         data.ExclamationButton.gameObject.SetActive(false);
         Debug.Log($"Minigame cancelled at machine: {machine.name} due to timeout.");
-    }
-
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        if (scene.name == mainSceneName && minigameStartTime.HasValue)
-        {
-            DateTime currentTime = DateTime.UtcNow;
-            float timeInMinigame = (float)(currentTime - minigameStartTime.Value).TotalSeconds;
-            lastMinigameTime = lastMinigameTime.AddSeconds(timeInMinigame);
-            minigameStartTime = null;
-
-            Debug.Log($"Returned to main scene. Time spent in minigame: {timeInMinigame}s. Updated lastMinigameTime: {lastMinigameTime}");
-
-            if (!testMode)
-            {
-                float elapsedTime = (float)(currentTime - lastMinigameTime).TotalSeconds;
-                if (elapsedTime >= minigameInterval && remainingMinigamesToday > 0)
-                {
-                    SpawnMinigames();
-                }
-            }
-        }
     }
 }

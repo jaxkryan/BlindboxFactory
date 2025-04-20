@@ -97,7 +97,7 @@ namespace Script.Controller.SaveLoad {
 
             string json = JsonConvert.SerializeObject(_saveData);
             Debug.Log("Json fr: " + json);
-            var saveTask = dbRef.Child("users").Child("1").SetRawJsonValueAsync(json).ContinueWith(task => {
+            var saveTask = dbRef.Child("users").Child(DateTime.Now.ToString("hh:mm:ss")).SetRawJsonValueAsync(json).ContinueWith(task => {
                 if (task.IsFaulted) {
                     Debug.Log("Error: Failed to save data to Firebase.");
                 }

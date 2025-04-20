@@ -4,6 +4,7 @@ using TMPro;
 using System.Collections.Generic;
 using Script.Controller;
 using Script.Resources;
+using UnityEngine.SceneManagement;
 
 public class MinigameLevel : MonoBehaviour
 {
@@ -131,5 +132,8 @@ public class MinigameLevel : MonoBehaviour
         }
         UpdateResourceTexts();
     }
-
+    public void ReturnToMainScreen()
+    {
+        SceneManager.LoadScene("MainScreen");
+    }
 }
