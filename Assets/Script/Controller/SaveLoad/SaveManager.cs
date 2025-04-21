@@ -58,6 +58,7 @@ namespace Script.Controller.SaveLoad
 
         private void InitializeFirebase()
         {
+            FirebaseDatabase.DefaultInstance.SetPersistenceEnabled(false);
             _firebaseInitTask = FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
             {
                 var dependencyStatus = task.Result;
@@ -87,6 +88,8 @@ namespace Script.Controller.SaveLoad
             {
                 throw new InvalidOperationException("Firebase initialization failed.");
             }
+
+            dbRef.Child("users").KeepSynced(true);
         }
 
         private static JsonSerializerSettings Settings
@@ -124,7 +127,7 @@ namespace Script.Controller.SaveLoad
                 await EnsureFirebaseInitialized();
                 string json = JsonConvert.SerializeObject(_saveData);
                 Debug.Log("Json fr: " + json);
-                var saveTask = dbRef.Child("users").Child("1").SetRawJsonValueAsync(json).ContinueWith(task =>
+                var saveTask = dbRef.Child("users").Child(DateTime.Now.ToString("hh:mm:ss")).SetRawJsonValueAsync(json).ContinueWith(task =>
                 {
                     if (task.IsFaulted)
                     {
@@ -145,11 +148,14 @@ namespace Script.Controller.SaveLoad
 
         public async Task LoadFromFirebase()
         {
-            Debug.Log("This load fb is called!");
             try
             {
                 await EnsureFirebaseInitialized();
-                var snapshotTask = dbRef.Child("users").Child("1").GetValueAsync();
+                //await FirebaseDatabase.DefaultInstance.GoOnlineAsync();
+                var snapshotTask = dbRef.Child("users")
+            .OrderByKey()
+            .LimitToLast(1)
+            .GetValueAsync();
 
                 await snapshotTask;
 
