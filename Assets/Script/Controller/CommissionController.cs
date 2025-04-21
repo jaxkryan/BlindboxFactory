@@ -34,6 +34,8 @@ namespace Script.Controller {
 
         [SerializeField] [Range(0f, 1f)] private float _amountModifierRange;
 
+        public bool IgnoreEmptyCommissions { get; set; } = false; 
+
         private float _amountModifierForNextProduct => Random.Range(
             _baseAmountModifierForNextProduct - _amountModifierRange,
             _baseAmountModifierForNextProduct + _amountModifierRange);
@@ -222,10 +224,16 @@ namespace Script.Controller {
             var ui = Object.FindFirstObjectByType<MissionHubUI>(FindObjectsInactive.Include);
 
             if (ui) {
-                if (Commissions.Count == 0 && ui.ActivePanelName != nameof(AvailableCommissionPanel) /*&& ui.ActivePanelName != nameof(CommissionPanel)*/) {
+                if (Commissions.Count == 0 && ui.ActivePanelName != nameof(AvailableCommissionPanel) && !IgnoreEmptyCommissions /*&& ui.ActivePanelName != nameof(CommissionPanel)*/) {
                     new GameAlert.Builder(AlertType.Notification)
                         .WithHeader("Commissions Fulfilled!")
                         .WithMessage("All of your commissions have been fulfilled!")
+                        .WithButton1(new AlertUIButtonDetails() {
+                            Background = AlertManager.Instance.Yellow,
+                            IsCloseButton = true,
+                            Text = "Ignore",
+                            OnClick = () =>  IgnoreEmptyCommissions = true
+                        })
                         .WithButton2(new AlertUIButtonDetails() {
                             Background = AlertManager.Instance.Green,
                             IsCloseButton = true,
@@ -248,15 +256,15 @@ namespace Script.Controller {
                 if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                     || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
 
-                _forAllProducts = data.ForAllProducts;
-                _commissionedProducts = data.CommissionedProducts;
-                _numberOfCommissionsPerItem = data.NumberOfCommissionsPerItem;
-                _baseAmountModifierForNextProduct = data.BaseAmountModifierForNextProduct;
-                _amountModifierRange = data.AmountModifierRange;
-                _bonusRange = new(data.BonusRange.Min, data.BonusRange.Max);
-                _maximumTotalCommissions = data.MaximumTotalCommissions;
-                _baseCommission = data.BaseCommission;
-                _expireHours = data.ExpireHours;
+                // _forAllProducts = data.ForAllProducts;
+                // _commissionedProducts = data.CommissionedProducts;
+                // _numberOfCommissionsPerItem = data.NumberOfCommissionsPerItem;
+                // _baseAmountModifierForNextProduct = data.BaseAmountModifierForNextProduct;
+                // _amountModifierRange = data.AmountModifierRange;
+                // _bonusRange = new(data.BonusRange.Min, data.BonusRange.Max);
+                // _maximumTotalCommissions = data.MaximumTotalCommissions;
+                // _baseCommission = data.BaseCommission;
+                // _expireHours = data.ExpireHours;
                 var commissions = data.Commissions.Select(c => {
                     var reward = new CommissionReward();
                     var commission = new Commission.Commission.Builder()
@@ -318,16 +326,16 @@ namespace Script.Controller {
         }
 
         public class SaveData {
-            public bool ForAllProducts;
-            public List<BoxTypeName> CommissionedProducts;
-            public int NumberOfCommissionsPerItem;
-            public float BaseAmountModifierForNextProduct;
-            public (float Min, float Max) BonusRange;
-            public int MaximumTotalCommissions;
-            public int BaseCommission;
-            public float ExpireHours;
+            // public bool ForAllProducts;
+            // public List<BoxTypeName> CommissionedProducts;
+            // public int NumberOfCommissionsPerItem;
+            // public float BaseAmountModifierForNextProduct;
+            // public (float Min, float Max) BonusRange;
+            // public int MaximumTotalCommissions;
+            // public int BaseCommission;
+            // public float ExpireHours;
             public List<Commission.Commission> Commissions;
-            public float AmountModifierRange;
+            // public float AmountModifierRange;
         }
     }
 }
