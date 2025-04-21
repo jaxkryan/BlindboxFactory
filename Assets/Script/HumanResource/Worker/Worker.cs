@@ -217,13 +217,13 @@ namespace Script.HumanResource.Worker {
                 ? GameController.Instance.WorkerController.PortraitSprites.FirstIndex(p => p == Portrait)
                 : 0,
             Position = new V3(transform.position),
-            MaximumCores = MaximumCore,
-            StartingCores = _startingCores,
+            // MaximumCores = MaximumCore,
+            // StartingCores = _startingCores,
             CurrentCores = CurrentCores,
             // Bonuses = Bonuses,
-            MachinePrefabName = Machine is MachineBase mbf ? mbf?.PrefabName ?? string.Empty : string.Empty,
-            MachinePosition = new V3(Machine is MachineBase mbp ? mbp?.Position ?? Vector3.zero : Vector3.zero),
-            MachineSlotName = WorkingSlot is not null ? WorkingSlot.name : string.Empty,
+            // MachinePrefabName = Machine is MachineBase mbf ? mbf?.PrefabName ?? string.Empty : string.Empty,
+            // MachinePosition = new V3(Machine is MachineBase mbp ? mbp?.Position ?? Vector3.zero : Vector3.zero),
+            // MachineSlotName = WorkingSlot is not null ? WorkingSlot.name : string.Empty,
         };
 
         public virtual void Load(SaveData data) {

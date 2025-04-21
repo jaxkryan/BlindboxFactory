@@ -353,19 +353,19 @@ namespace Script.Machine {
             };
 
         public virtual void Load(MachineBaseData data) {
-            _workDetails.Clear();
-            foreach (var w in data.WorkDetails) {
-                var workDetail = (WorkDetail)Activator.CreateInstance(w.Type);
-                workDetail.Load(w);
-                workDetail.Machine = this;
-                _workDetails.Add(workDetail);
-            }
+            // _workDetails.Clear();
+            // foreach (var w in data.WorkDetails) {
+            //     var workDetail = (WorkDetail)Activator.CreateInstance(w.Type);
+            //     workDetail.Load(w);
+            //     workDetail.Machine = this;
+            //     _workDetails.Add(workDetail);
+            // }
 
             PrefabName = data.PrefabName;
             Position = data.Position;
-            PowerUse = data.PowerUse;
+            // PowerUse = data.PowerUse;
             _resourceManager = data.ResourceManager.ToResourceManager(this);
-            HasEnergyForWork = data.HasEnergyForWork;
+            // HasEnergyForWork = data.HasEnergyForWork;
             if (data.HasTimer) {
                 _progressPerSecTimer = new CountdownTimer(data.TimerTime);
                 _progressPerSecTimer.Time = data.TimerCurrentTime;
@@ -376,8 +376,8 @@ namespace Script.Machine {
             CurrentProgress = data.CurrentProgress;
             _lastProgress = data.LastProgress;
             _placedTime = data.PlacedTime;
-            _spawnWorkers = data.SpawnWorkers;
-            _spawnWorkerType = data.SpawnWorkerType;
+            // _spawnWorkers = data.SpawnWorkers;
+            // _spawnWorkerType = data.SpawnWorkerType;
             var pType = Type.GetType(data.Product.Type);
             if (pType != null
                 && pType.IsSubclassOf(typeof(ProductBase))

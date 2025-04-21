@@ -130,6 +130,8 @@ namespace Script.Controller {
             CommissionController.OnCommissionChanged += InitiateSave;
             CommissionController.onCommissionCompleted += InitiateSave;
             QuestController.onQuestStateChanged += InitiateSave;
+
+            if (!CompletedTutorial) onTutorialCompleted += StopIgnoreCommissionOnTutorialCompleted;
         }
 
         private void Unsubscribe() {
@@ -141,6 +143,15 @@ namespace Script.Controller {
             CommissionController.OnCommissionChanged -= InitiateSave;
             CommissionController.onCommissionCompleted -= InitiateSave;
             QuestController.onQuestStateChanged -= InitiateSave;
+            
+            onTutorialCompleted -= StopIgnoreCommissionOnTutorialCompleted;
+        }
+
+        void StopIgnoreCommissionOnTutorialCompleted() {
+            onTutorialCompleted -= StopIgnoreCommissionOnTutorialCompleted;
+            
+            if (CommissionController.IgnoreEmptyCommissions) CommissionController.IgnoreEmptyCommissions = false;
+            CommissionController.UpdateCommissions();
         }
 
         private void InitiateSave(MachineBase obj) => InitiateSave();
@@ -272,6 +283,7 @@ namespace Script.Controller {
                 }
                 if (saveManager.TryGetValue(nameof(CompletedTutorial), out string completedTutorialString)) {
                     CompletedTutorial = completedTutorialString == bool.TrueString;
+                    if (!CompletedTutorial) CommissionController.IgnoreEmptyCommissions = true;
                 }
                 if (saveManager.TryGetValue(nameof(TotalPlaytime), out string totalPlaytimeString)) {
                     if (long.TryParse(totalPlaytimeString, out var totalPlaytime)) {
