@@ -260,10 +260,9 @@ namespace Script.Controller {
         
         private async Task Load(SaveManager saveManager) {
             _isLoading = true;
-           // await SaveManager.LoadFromCloud();
+            // await SaveManager.LoadFromCloud();
             //await SaveManager.LoadFromLocal();
             await SaveManager.LoadFromFirebase();
-
 
             try {
                 #region Game Controller's own save

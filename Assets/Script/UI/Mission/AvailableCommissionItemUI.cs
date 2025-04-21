@@ -22,9 +22,7 @@ namespace Script.UI.Mission
 
         private Commission _commission;
         private StringBuilder _stringBuilder = new StringBuilder();
-        private float _nextUpdateTime;
         private double _remainingSeconds;
-        private const float UPDATE_INTERVAL = 1f; // Update every second
 
         public Commission Commission
         {
@@ -37,14 +35,8 @@ namespace Script.UI.Mission
                     // Calculate remaining time when commission is set
                     _remainingSeconds = (_commission.ExpireDate - DateTime.Now).TotalSeconds;
                     UpdateCommissionData();
-                    _nextUpdateTime = Time.time;
                 }
             }
-        }
-
-        private void Update()
-        {
-            if (_commission == null) return;
         }
 
         public void UpdateCommissionData()
