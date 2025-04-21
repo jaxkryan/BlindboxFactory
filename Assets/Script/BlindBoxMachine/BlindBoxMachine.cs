@@ -28,7 +28,6 @@ public class BlindBoxMachine : MachineBase
         if (_animator != null)
         {
             bool isActive = amount > 0;
-            Debug.Log($"Animator IsActive set to: {isActive}");
             _animator.SetBool("IsActive", isActive);
         }
         else
