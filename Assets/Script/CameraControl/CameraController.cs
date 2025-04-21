@@ -1,3 +1,4 @@
+using DG.Tweening;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -12,7 +13,6 @@ public class CameraController : MonoBehaviour
     [SerializeField] private Tilemap _backgroundTilemap;
 
     private Vector3 touchStart;
-    private bool canDrag = false;
 
     void Update()
     {
@@ -20,6 +20,10 @@ public class CameraController : MonoBehaviour
         {
             HandleZoom();
             HandleDrag();
+        }
+        else
+        {
+
         }
     }
 
@@ -52,12 +56,8 @@ public class CameraController : MonoBehaviour
             if (touch.phase == TouchPhase.Began)
             {
                 touchStart = Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, 0));
-
-                // Only allow dragging if the first touch is on a valid tile
-                canDrag = IsTileAtPosition(touchStart);
-                Debug.Log(canDrag ? "Dragging allowed" : "Dragging blocked");
             }
-            else if (touch.phase == TouchPhase.Moved && canDrag)
+            else if (touch.phase == TouchPhase.Moved)
             {
                 Vector3 newTouchPos = Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, 0));
                 Vector3 direction = touchStart - newTouchPos;
@@ -65,28 +65,14 @@ public class CameraController : MonoBehaviour
 
                 Camera.main.transform.position += direction * dragSpeed;
             }
+            else if (touch.phase == TouchPhase.Ended || IsPointerOverUI())
+            {
+                if (!IsTileAtCameraCenter())
+                {
+                    SnapCameraToNearestTile();
+                }
+            }
         }
-    }
-
-    private bool IsTileAtPosition(Vector3 worldPosition)
-    {
-        if (_backgroundTilemap == null)
-        {
-            Debug.LogError("_backgroundTilemap is NULL! Make sure it's assigned in the Inspector.");
-            return false;
-        }
-
-        Vector3Int cellPosition = _backgroundTilemap.WorldToCell(worldPosition);
-        cellPosition.z = 0; // Ensure we're checking the correct layer
-
-        TileBase tile = _backgroundTilemap.GetTile(cellPosition);
-
-        if (tile == null)
-        {
-            return false;
-        }
-
-        return true;
     }
 
     private bool IsPointerOverUI()
@@ -101,4 +87,49 @@ public class CameraController : MonoBehaviour
 
         return false;
     }
+
+    private bool IsTileAtCameraCenter()
+    {
+        if (_backgroundTilemap == null)
+        {
+            return false;
+        }
+
+        Vector3Int centerCell = _backgroundTilemap.WorldToCell(Camera.main.transform.position);
+        centerCell.z = 0;
+        TileBase tile = _backgroundTilemap.GetTile(centerCell);
+
+        return tile != null;
+    }
+
+    private void SnapCameraToNearestTile()
+    {
+        Vector3 center = Vector3.zero;
+        center.z = 7;
+        if (_backgroundTilemap == null) return;
+
+        Vector3 cameraPos = Camera.main.transform.position;
+        Vector3 direction = (center - cameraPos).normalized;
+        float stepSize = 0.1f;
+
+        float maxDistance = Vector3.Distance(cameraPos, center) + 1;
+
+        for (float dist = 0; dist <= maxDistance; dist += stepSize)
+        {
+            Vector3 checkPos = cameraPos + direction * dist;
+
+            //  Only use X & Y, set Z to 0 always
+            Vector3Int cellPos = _backgroundTilemap.WorldToCell(checkPos);
+            cellPos.z = 0;
+
+            if (_backgroundTilemap.HasTile(cellPos))
+            {
+                Vector3 tileWorldPos = _backgroundTilemap.GetCellCenterWorld(cellPos);
+                Vector3 targetPosition = new Vector3(tileWorldPos.x, tileWorldPos.y, Camera.main.transform.position.z);
+                Camera.main.transform.DOMove(targetPosition, 0.5f).SetEase(Ease.OutQuad);
+                return;
+            }
+        }
+    }
+
 }
