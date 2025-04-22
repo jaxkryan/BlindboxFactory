@@ -56,7 +56,22 @@ namespace Script.Machine {
 
         public float ProgressionPerSec {
             get {
-                _progressPerSec = _progressQueue.Average();
+                float _progressPerSec;
+
+                if (_progressQueue.Count > 0)
+                {
+                    float sum = 0f;
+                    foreach (var value in _progressQueue)
+                    {
+                        sum += value;
+                    }
+                    _progressPerSec = sum / _progressQueue.Count;
+                }
+                else
+                {
+                    _progressPerSec = 0f; 
+                }
+
                 return _progressPerSec;
             }
             set => _progressQueue = new Queue<float>(new[] { value });

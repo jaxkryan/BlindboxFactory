@@ -89,7 +89,25 @@ namespace Script.Controller {
 
                 List<int> newCommissionsCount = new();
                 for (int i = 1; i <= upperBound; i++) {
-                    var baseNumber = newCommissionsCount.Any() ? newCommissionsCount.Max() : prevBoxSoldPerCommission;
+                    int baseNumber;
+
+                    if (newCommissionsCount.Count > 0)
+                    {
+                        int max = newCommissionsCount[0];
+                        for (int k = 1; k < newCommissionsCount.Count; k++)
+                        {
+                            if (newCommissionsCount[k] > max)
+                            {
+                                max = newCommissionsCount[k];
+                            }
+                        }
+                        baseNumber = max;
+                    }
+                    else
+                    {
+                        baseNumber = prevBoxSoldPerCommission;
+                    }
+
                     var amountMod = _amountModifierForNextProduct - 1;
                     if (baseNumber <= 1) amountMod = Mathf.Abs(amountMod);
                     var modifierNumber = Mathf.RoundToInt(baseNumber * amountMod);
@@ -103,7 +121,27 @@ namespace Script.Controller {
                 }
 
                 for (int i = 1; i <= lowerBound; i++) {
-                    var baseNumber = newCommissionsCount.Any() ? newCommissionsCount.Min() : prevBoxSoldPerCommission;
+
+                    int baseNumber;
+
+                    if (newCommissionsCount.Count > 0)
+                    {
+                        int min = newCommissionsCount[0];
+                        for (int k = 1; k < newCommissionsCount.Count; k++)
+                        {
+                            if (newCommissionsCount[k] < min)
+                            {
+                                min = newCommissionsCount[k];
+                            }
+                        }
+                        baseNumber = min;
+                    }
+                    else
+                    {
+                        baseNumber = prevBoxSoldPerCommission;
+                    }
+
+
                     var amountMod = _amountModifierForNextProduct - 1;
                     if (baseNumber <= 1) amountMod = Mathf.Abs(amountMod);
                     var modifierNumber = Mathf.RoundToInt(baseNumber * amountMod);

@@ -124,13 +124,36 @@ namespace Script.Alert {
 
         public void Raise(GameAlert alert, bool raiseAgainIfDuplicated = false) {
             // Raise(alert.Type, alert.Header, alert.Message, alert.HasCloseButton, alert.PauseGame, alert.OnClose, alert.Button1, alert.Button2);
-            if (_alerts.Any(a => a.gameObject.activeInHierarchy)) {
-                if ((_alertBackLog.Any(a => a == alert) || alert == Current) && raiseAgainIfDuplicated) {
+            bool anyAlertActive = false;
+            foreach (var a in _alerts)
+            {
+                if (a.gameObject.activeInHierarchy)
+                {
+                    anyAlertActive = true;
+                    break;
+                }
+            }
+
+            if (anyAlertActive)
+            {
+                bool isDuplicate = false;
+                foreach (var a in _alertBackLog)
+                {
+                    if (a == alert)
+                    {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+
+                if ((isDuplicate || alert == Current) && raiseAgainIfDuplicated)
+                {
                     _alertBackLog.Enqueue(alert);
                 }
 
                 return;
             }
+
 
             if (_logs) Debug.Log("Raising alert " + alert.Header);
             Current = alert;

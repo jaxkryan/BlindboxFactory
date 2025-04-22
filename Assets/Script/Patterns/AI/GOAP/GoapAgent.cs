@@ -91,8 +91,22 @@ public abstract class GoapAgent : MonoBehaviour {
                     CurrentAction = ActionPlan.Actions.Pop();
                     if (_log) Debug.Log($"Popped action: {CurrentAction.Name}");
                     // Verify all precondition effects are true
-                    if (CurrentAction.Preconditions.All(b => b.Evaluate())) { CurrentAction.Start(); }
-                    else {
+                    bool allPreconditionsMet = true;
+                    foreach (var precondition in CurrentAction.Preconditions)
+                    {
+                        if (!precondition.Evaluate())
+                        {
+                            allPreconditionsMet = false;
+                            break;
+                        }
+                    }
+
+                    if (allPreconditionsMet)
+                    {
+                        CurrentAction.Start();
+                    }
+                    else
+                    {
                         var condition = CurrentAction.Preconditions.Where(c => !c.Evaluate()).Select(a => a.Name);
                         if (_log)
                             Debug.Log(
