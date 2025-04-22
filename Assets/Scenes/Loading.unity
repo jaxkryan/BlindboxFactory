@@ -152,7 +152,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: -5.0000305, y: 0}
+  m_AnchoredPosition: {x: -5, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &621785105
@@ -191,7 +191,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.09375001, y: 0.10729688}
   m_AnchorMax: {x: 0.90125, y: 0.17881252}
-  m_AnchoredPosition: {x: 2.0000305, y: -2.0914307}
+  m_AnchoredPosition: {x: 2, y: -2.0914307}
   m_SizeDelta: {x: 3.6948013, y: 6.1828003}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &621785107
@@ -880,6 +880,7 @@ GameObject:
   - component: {fileID: 1943001733}
   - component: {fileID: 1943001732}
   - component: {fileID: 1943001735}
+  - component: {fileID: 1943001736}
   m_Layer: 5
   m_Name: LoadingCanvas
   m_TagString: Untagged
@@ -993,6 +994,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1943001736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1943001730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4975804ffecd8c448a0ef0d10ce9751, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  progressBar: {fileID: 621785107}
+  sceneToLoad: MainScreen
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
