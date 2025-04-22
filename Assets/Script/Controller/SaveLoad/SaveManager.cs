@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +7,6 @@ using Firebase;
 using Firebase.Database;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Script.Alert;
 using Script.Utils;
 using UnityEngine;
 using UnityEngine.Android;
@@ -87,7 +85,8 @@ namespace Script.Controller.SaveLoad {
         }
 
 
-        public static string Serialize<TSource>(TSource data) {
+        public static string Serialize<TSource>(TSource data)
+        {
             var x = JsonConvert.SerializeObject(data, Settings);
             return x;
         }
@@ -165,7 +164,7 @@ namespace Script.Controller.SaveLoad {
                     return;
                 }
 
-                var saveData = Deserialize<ConcurrentDictionary<string, string>>(Decrypt(json));
+                var saveData = Deserialize<Dictionary<string, string>>(Decrypt(json));
                 if (saveData == null) {
                     Debug.LogError("Failed to deserialize Firebase data.");
                     return;
@@ -283,9 +282,9 @@ namespace Script.Controller.SaveLoad {
 
                 using StreamReader sr = new StreamReader(CurrentLoadPath);
                 var str = await sr.ReadToEndAsync();
-                var saveData = Deserialize<ConcurrentDictionary<string, string>>(Decrypt(str));
+                var saveData = Deserialize<Dictionary<string, string>>(Decrypt(str));
 
-                foreach (var data in saveData?.Keys ?? new List<string>()) {
+                foreach (var data in saveData?.Keys.ToList() ?? new ()) {
                     if (saveData is null) break;
                     if (!_saveData.TryGetValue(data, out var value)) _saveData.TryAdd(data, saveData[data]);
                     else if (value != saveData[data]) _saveData[data] = saveData[data];
