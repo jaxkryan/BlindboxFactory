@@ -48,6 +48,8 @@ namespace Script.Controller {
         [Space] [Header("Save")] [SerializeField]
         public bool HasSaveTimer;
 
+        [SerializeField] private bool _enableCloudSave;
+
         [ConditionalField(nameof(HasSaveTimer))] [SerializeField] [Min(0.1f)]
         public float MinutesBetweenSave = 5f;
 
@@ -279,8 +281,8 @@ namespace Script.Controller {
         private async Task Load(SaveManager saveManager) {
             _isLoading = true;
             await SaveManager.LoadFromLocal();
-            await SaveManager.LoadFromCloud();
-            await SaveManager.LoadFromFirebase();
+            if (_enableCloudSave) await SaveManager.LoadFromCloud();
+            if (_enableCloudSave) await SaveManager.LoadFromFirebase();
 
             try {
                 #region Game Controller's own save
@@ -379,8 +381,8 @@ namespace Script.Controller {
             }
 
             await SaveManager.SaveToLocal();
-            await SaveManager.SaveToCloud();
-            await SaveManager.SaveToFirebase();
+            if (_enableCloudSave) await SaveManager.SaveToCloud();
+            if (_enableCloudSave) await SaveManager.SaveToFirebase();
             _saveInitialized = false;
         }
     }
