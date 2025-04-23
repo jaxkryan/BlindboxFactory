@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,7 +14,7 @@ using UnityEngine.Android;
 
 namespace Script.Controller.SaveLoad {
     public class SaveManager {
-        private Dictionary<string, string> _saveData = new();
+        private ConcurrentDictionary<string, string> _saveData = new();
 
         private DatabaseReference dbRef;
 
@@ -85,8 +86,7 @@ namespace Script.Controller.SaveLoad {
         }
 
 
-        public static string Serialize<TSource>(TSource data)
-        {
+        public static string Serialize<TSource>(TSource data) {
             var x = JsonConvert.SerializeObject(data, Settings);
             return x;
         }
@@ -100,9 +100,8 @@ namespace Script.Controller.SaveLoad {
         private static string Decrypt(string coded) => coded;
 
         public void AddOrUpdate(string key, string value)
-            => _saveData.AddOrUpdate(key, value);
-        
-        
+            => _saveData.AddOrUpdate(key, value, (_, _) => value);
+
 
         public bool TryGetValue(string key, out string value)
             => _saveData.TryGetValue(key, out value);
@@ -111,15 +110,15 @@ namespace Script.Controller.SaveLoad {
         public async Task SaveToFirebase() {
             try {
                 await EnsureFirebaseInitialized();
-                string json = JsonConvert.SerializeObject(_saveData);
-                Debug.Log("Json fr: " + json);
+                string json = JsonConvert.SerializeObject(_saveData.ToDictionary(p => p.Key, p => p.Value));
+                if (_log) Debug.Log("Json fr: " + json);
                 var saveTask = dbRef.Child("users").Child(DateTime.Now.ToString("hh:mm:ss")).SetRawJsonValueAsync(json)
                     .ContinueWith(task => {
                         if (task.IsFaulted) {
-                            Debug.Log("Error: Failed to save data to Firebase.");
+                            if (_log) Debug.Log("Error: Failed to save data to Firebase.");
                         }
                         else if (task.IsCompleted) {
-                            Debug.Log("Data saved to Firebase.");
+                            if (_log) Debug.Log("Data saved to Firebase.");
                         }
                     });
                 await saveTask;
@@ -146,13 +145,13 @@ namespace Script.Controller.SaveLoad {
                 }
 
                 if (!snapshotTask.Result.Exists) {
-                    Debug.Log("No save data found in Firebase.");
+                    if (_log) Debug.Log("No save data found in Firebase.");
                     return;
                 }
 
                 DataSnapshot snapshot = snapshotTask.Result.Children.FirstOrDefault();
                 if (snapshot == null) {
-                    Debug.Log("No valid save data found in Firebase snapshot.");
+                    if (_log) Debug.Log("No valid save data found in Firebase snapshot.");
                     return;
                 }
 
@@ -171,12 +170,8 @@ namespace Script.Controller.SaveLoad {
                 }
 
                 foreach (var key in saveData.Keys) {
-                    if (!_saveData.TryGetValue(key, out var value)) {
-                        _saveData.TryAdd(key, saveData[key]);
-                    }
-                    else if (value != saveData[key]) {
-                        _saveData[key] = saveData[key];
-                    }
+                    if (!saveData.TryGetValue(key, out var value) || value is null) break;
+                    AddOrUpdate(key, value);
                 }
 
                 if (_log) Debug.Log("Data loaded successfully from Firebase.");
@@ -216,7 +211,7 @@ namespace Script.Controller.SaveLoad {
                 }
 
                 if (_log) Debug.Log($"Saving data to: {CurrentSavePath}");
-                var str = Serialize(_saveData);
+                var str = Serialize(_saveData.ToDictionary(p => p.Key, p => p.Value));
                 if (_log) Debug.Log($"Serialized data: {str}");
 
                 await using (StreamWriter sw = new StreamWriter(FilePath, false)) {
@@ -284,10 +279,11 @@ namespace Script.Controller.SaveLoad {
                 var str = await sr.ReadToEndAsync();
                 var saveData = Deserialize<Dictionary<string, string>>(Decrypt(str));
 
-                foreach (var data in saveData?.Keys.ToList() ?? new ()) {
-                    if (saveData is null) break;
-                    if (!_saveData.TryGetValue(data, out var value)) _saveData.TryAdd(data, saveData[data]);
-                    else if (value != saveData[data]) _saveData[data] = saveData[data];
+                if (saveData is not null) {
+                    foreach (var data in saveData.Keys.ToList()) {
+                        if (!saveData.TryGetValue(data, out var value) || value is null) break;
+                        AddOrUpdate(data, value);
+                    }
                 }
 
                 // AlertManager.Instance.Raise(new GameAlert.Builder(AlertType.Notification)

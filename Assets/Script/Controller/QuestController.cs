@@ -12,21 +12,22 @@ using UnityEngine.Serialization;
 namespace Script.Controller {
     [Serializable]
     public class QuestController : ControllerBase {
+        [FormerlySerializedAs("_quest")] [SerializeField]
+        private List<Quest.Quest> _quests;
 
-        [FormerlySerializedAs("_quest")] [SerializeField] private List<Quest.Quest> _quests;
         public List<Quest.Quest> Quests {
             get {
                 return _quests ?? NewSetAndLog();
 
                 List<Quest.Quest> NewSetAndLog() {
                     Debug.LogError("Quest list is empty!");
-                    return new ();
+                    return new();
                 }
             }
         }
 
         private Dictionary<string, object> QuestData { get; set; } = new();
-        
+
         public bool ContainsKey(string key) => QuestData.ContainsKey(key);
         public HashSet<string> Keys() => QuestData.Keys.ToHashSet();
 
@@ -43,23 +44,29 @@ namespace Script.Controller {
         public override void OnStart() {
             base.OnStart();
             RegisterQuestsToEvents();
+            _quests.ForEach(q => q.Evaluate());
         }
 
-        public void AddData<T>(string key, T value) => QuestData.TryAdd(key, new Entry<T> (key, value));
+        public void AddData<T>(string key, T value) => QuestData.TryAdd(key, new Entry<T>(key, value));
         public void RemoveData(string key) => QuestData.Remove(key);
         public void SetData<T>(string key, T value) => QuestData[key] = new Entry<T>(key, value);
 
         private void ReevaluateActiveQuests(Func<Quest.Quest, bool> func) =>
-            ActiveQuests(func).ForEach(q => q.Objectives.ForEach(o => o.Evaluate(q)));
+            ActiveQuests(func).ForEach(q => q.Evaluate());
 
-        private IEnumerable<Quest.Quest> ActiveQuests(Func<Quest.Quest, bool> func) => Quests.Where(q => q.State is QuestState.InProgress).Where(func);
+        private IEnumerable<Quest.Quest> ActiveQuests(Func<Quest.Quest, bool> func) =>
+            Quests.Where(q => q.State is QuestState.InProgress).Where(func);
+
         private void RegisterQuestsToEvents() {
             var machines = GameController.Instance.MachineController.Machines;
             machines.ForEach(m => {
-                m.onProductChanged += (_) => ReevaluateActiveQuests(q => q.Objectives.Any(o => o is ResourceConsumedQuestCondition));
-                m.onCreateProduct += (_) => ReevaluateActiveQuests(q => q.Objectives.Any(o => o is ResourceConsumedQuestCondition));
+                m.onProductChanged += (_) =>
+                    ReevaluateActiveQuests(q => q.Objectives.Any(o => o is ResourceConsumedQuestCondition));
+                m.onCreateProduct += (_) =>
+                    ReevaluateActiveQuests(q => q.Objectives.Any(o => o is ResourceConsumedQuestCondition));
             });
-            GameController.Instance.ResourceController.onResourceAmountChanged += (_,_,_) => ReevaluateActiveQuests(q => true);
+            GameController.Instance.ResourceController.onResourceAmountChanged
+                += (_, _, _) => ReevaluateActiveQuests(q => true);
             GameController.Instance.QuestController.onQuestStateChanged += (_) => ReevaluateActiveQuests(q => true);
         }
 
@@ -67,26 +74,30 @@ namespace Script.Controller {
             base.OnValidate();
             List<Quest.Quest> quests = new();
             List<Quest.Quest> duplicatedQuests = new();
-            
+
             Quests?.ForEach(q => {
                 if (quests.Any(regQuest => q.Name == regQuest.Name)) duplicatedQuests.Add(q);
                 quests.Add(q);
             });
-            
+
             if (duplicatedQuests.Any())
-                Debug.LogError("Quests can't be sharing names: " + string.Join(", ", duplicatedQuests.Select(q => q.Name)));
+                Debug.LogError("Quests can't be sharing names: " +
+                               string.Join(", ", duplicatedQuests.Select(q => q.Name)));
         }
 
         public event Action<Quest.Quest> onQuestStateChanged = delegate { };
+
         public override void Load(SaveManager saveManager) {
             try {
                 if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
-                      || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
+                    || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
 
                 _quests.ForEach(q => q.State = QuestState.Locked);
                 for (var i = 0; i < data.QuestStates.Count; i++) {
+                    if (i == _quests.Count) break;
                     _quests[i].State = data.QuestStates[i];
                 }
+
                 QuestData = data.QuestData;
                 Quests.ForEach(q => q.Evaluate());
             }
@@ -98,9 +109,10 @@ namespace Script.Controller {
                 return;
             }
         }
+
         public override void Save(SaveManager saveManager) {
             Quests.ForEach(q => q.Evaluate());
-            var newSave = new SaveData() { QuestData = QuestData, QuestStates =  new()};
+            var newSave = new SaveData() { QuestData = QuestData, QuestStates = new() };
 
             var list = _quests.Clone();
 
@@ -109,8 +121,8 @@ namespace Script.Controller {
                 newSave.QuestStates.Add(quest.State);
                 list.RemoveAt(0);
             }
-            
-            
+
+
             try {
                 var serialized = SaveManager.Serialize(newSave);
                 saveManager.AddOrUpdate(this.GetType().Name, serialized);
@@ -126,7 +138,6 @@ namespace Script.Controller {
                 Debug.LogError($"Cannot save {GetType()}");
                 Debug.LogException(ex);
                 ex.RaiseException();
-
             }
         }
 
