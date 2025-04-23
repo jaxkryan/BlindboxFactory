@@ -122,7 +122,7 @@ public class WorkStrategy : IActionStrategy {
             Debug.LogWarning("Machine is recovering machine");
             //For recovering machines
             var recoveringCore = recovery.Select(r => r.Core);
-            if (_worker.CurrentCores.All(c =>
+            if (_worker.CurrentCores.Where(c => recoveringCore.Contains(c.Key)).All(c =>
                     recoveringCore.Contains(c.Key) && c.Value >= _worker.MaximumCore[c.Key])) {
                 StopWorking();
                 return;
@@ -136,6 +136,7 @@ public class WorkStrategy : IActionStrategy {
     }
 
     public void Stop() {
+            Debug.LogWarning("Work strategy stopped!");
         _worker.Director.TargetSlot = null;
         _worker.Agent.enabled = true;
         var outPos = _worker.transform.position;

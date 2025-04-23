@@ -12,14 +12,13 @@ namespace Script.Machine.Machines.Canteen {
         protected override void Awake() {
             base.Awake();
             _storage = GetComponent<CanteenFoodStorage>();
-            _storage.onMealAmountChanged += (amount) => {
-                IsClosed = _storage.AvailableMeals <= 0;
-            };
             if (_storage is null) Debug.LogError("Cannot find Food storage"); 
             
             _kitchen = GetComponentInChildren<CanteenKitchen>();
             if (_kitchen is null) Debug.LogError("Cannot find Kitchen"); 
         }
+
+        public override bool HasResourceForWork { get => base.HasResourceForWork && _storage.AvailableMeals > 0; }
 
         //
         // [SerializeField]private int _lockedMeals = 0;
