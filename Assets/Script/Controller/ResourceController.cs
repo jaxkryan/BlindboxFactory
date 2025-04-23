@@ -60,24 +60,24 @@ namespace Script.Controller {
         public event Action<Resource, long, long> onResourceAmountChanged = delegate { };
         public event Action<Resource, ResourceData> onResourceDataChanged = delegate { };
         
-        public bool TryGetConversionRate(ResourceConversionPair resourceConversionPair, out List<(Resource
-            ConversionNode, float Rate)> conversionPath, bool tryFindExchange = true)
-            => _resourceConversion.TryGetConversionRates(resourceConversionPair, out conversionPath, tryFindExchange);
+        //public bool TryGetConversionRate(ResourceConversionPair resourceConversionPair, out List<(Resource
+        //    ConversionNode, float Rate)> conversionPath, bool tryFindExchange = true)
+        //    => _resourceConversion.TryGetConversionRates(resourceConversionPair, out conversionPath, tryFindExchange);
 
-        public bool TryGetConversionRate(Resource from, Resource to, out List<(Resource
-            ConversionNode, float Rate)> conversionPath, bool tryFindExchange = true)
-            => _resourceConversion.TryGetConversionRates(from, to, out conversionPath, tryFindExchange);
+        //public bool TryGetConversionRate(Resource from, Resource to, out List<(Resource
+        //    ConversionNode, float Rate)> conversionPath, bool tryFindExchange = true)
+        //    => _resourceConversion.TryGetConversionRates(from, to, out conversionPath, tryFindExchange);
 
-        public bool TryConversion(ResourceConversionPair resourceConversionPair, long amount, out long result,
-            bool tryFindingExchangeRate = true, bool roundDownEachConversion = true)
-            => _resourceConversion.TryConversion(resourceConversionPair, amount, out result, tryFindingExchangeRate,
-                roundDownEachConversion);
+        //public bool TryConversion(ResourceConversionPair resourceConversionPair, long amount, out long result,
+        //    bool tryFindingExchangeRate = true, bool roundDownEachConversion = true)
+        //    => _resourceConversion.TryConversion(resourceConversionPair, amount, out result, tryFindingExchangeRate,
+        //        roundDownEachConversion);
 
-        public bool TryConversion(Resource from,
-            Resource to, long amount, out long result, bool tryFindingExchangeRate = true,
-            bool roundDownEachConversion = true)
-            => _resourceConversion.TryConversion(from, to, amount, out result, tryFindingExchangeRate,
-                roundDownEachConversion);
+        //public bool TryConversion(Resource from,
+        //    Resource to, long amount, out long result, bool tryFindingExchangeRate = true,
+        //    bool roundDownEachConversion = true)
+        //    => _resourceConversion.TryConversion(from, to, amount, out result, tryFindingExchangeRate,
+        //        roundDownEachConversion);
 
         public override void OnAwake() {
             base.OnAwake();
@@ -86,21 +86,21 @@ namespace Script.Controller {
                 .Where(r => !_resourceAmount.ContainsKey(r) && _resourceData.ContainsKey(r))
                 .ForEach(r => _resourceAmount.TryAdd(r, 0));
 
-            _resourceConversion.Where(r => r.Key.From == r.Key.To)
-                .Select(r => r.Key).ToList()
-                .ForEach(_resourceConversion.Remove);
+            //_resourceConversion.Where(r => r.Key.From == r.Key.To)
+            //    .Select(r => r.Key).ToList()
+            //    .ForEach(_resourceConversion.Remove);
         }
 
-        public override void OnValidate() {
-            base.OnValidate();
+        //public override void OnValidate() {
+        //    base.OnValidate();
 
 
-            foreach (var conversion in _resourceConversion) {
-                if (conversion.Key.From != conversion.Key.To) continue;
-                var ex = new ArgumentException($"Cannot convert from {conversion.Key.From} to {conversion.Key.To}");
-                Debug.LogException(ex);
-            }
-        }
+        //    foreach (var conversion in _resourceConversion) {
+        //        if (conversion.Key.From != conversion.Key.To) continue;
+        //        var ex = new ArgumentException($"Cannot convert from {conversion.Key.From} to {conversion.Key.To}");
+        //        Debug.LogException(ex);
+        //    }
+        //}
 
         public bool TryGetAllResourceAmounts(out Dictionary<Resource, long> resourceAmounts)
         {
@@ -124,7 +124,7 @@ namespace Script.Controller {
                 if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                       || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
 
-                _resourceConversion = new(data.ResourceConversion);
+                //_resourceConversion = new(data.ResourceConversion);
                 _resourceData = new(data.ResourceData);
                 _resourceAmount = new(data.ResourceAmount);
                     try {
@@ -149,7 +149,7 @@ namespace Script.Controller {
 
         public override void Save(SaveManager saveManager) {
             var newSave = new SaveData() {
-                ResourceConversion =  _resourceConversion,
+                //ResourceConversion =  _resourceConversion,
                 ResourceData = _resourceData,
                 ResourceAmount = _resourceAmount
             };
@@ -227,7 +227,7 @@ namespace Script.Controller {
         }
         
         public class SaveData{
-            public Dictionary<ResourceConversionPair, float> ResourceConversion;
+            //public Dictionary<ResourceConversionPair, float> ResourceConversion;
             public Dictionary<Resource, ResourceData> ResourceData;
             public Dictionary<Resource, long> ResourceAmount;
             

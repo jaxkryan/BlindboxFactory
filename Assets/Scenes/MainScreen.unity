@@ -54856,9 +54856,11 @@ MonoBehaviour:
     - categoryName: Canteen
       buildables:
       - {fileID: 11400000, guid: eee8dbb741aa7fe488869db1c582b85b, type: 2}
+      - {fileID: 11400000, guid: 322dfa56aae1a0d45b93c0a4f08fa420, type: 2}
       - {fileID: 11400000, guid: 26f3d6c9866885b46b3fffc9633f52eb, type: 2}
     - categoryName: Excavator
       buildables:
+      - {fileID: 11400000, guid: 42878556a0640d240981d228c7f1e279, type: 2}
       - {fileID: 11400000, guid: 5c98395d1ef19534baa0e30882076de1, type: 2}
       - {fileID: 11400000, guid: 964efe4fb23f9f549b59b3872074d8a8, type: 2}
     - categoryName: Electric
@@ -54868,11 +54870,14 @@ MonoBehaviour:
       - {fileID: 11400000, guid: d957a858dfad9074dbe3548da5e6010b, type: 2}
     - categoryName: Ware House
       buildables:
+      - {fileID: 11400000, guid: 63bd7c07f6067574e9efb3a0e1d7e687, type: 2}
       - {fileID: 11400000, guid: 5bb83ee99d30cb64382efd764c7599be, type: 2}
       - {fileID: 11400000, guid: b532705f473e9c04baf578ae1d3c17af, type: 2}
     - categoryName: Productor
       buildables:
       - {fileID: 11400000, guid: e348164e5c8ddda46a2225eb3ed38feb, type: 2}
+      - {fileID: 11400000, guid: 73f058d775cc60143a81b79a5de7c32e, type: 2}
+      - {fileID: 11400000, guid: 60d16e0286dea334380a70f0bac73dbf, type: 2}
     - categoryName: Rest Room
       buildables:
       - {fileID: 11400000, guid: c15e03bda8962d74ebc5f219151bbbe4, type: 2}
@@ -54880,30 +54885,48 @@ MonoBehaviour:
       _serializedList:
       - Key: Canteen 1
         Value: 1
-      - Key: Canteen 2
-        Value: 0
-      - Key: Excavator 1
-        Value: 1
-      - Key: Excavator 2
-        Value: 0
-      - Key: Electric 1
-        Value: 1
       - Key: Electric 2
-        Value: 0
+        Value: 1
       - Key: Electric 3
-        Value: 0
+        Value: 1
       - Key: WareHouse 1
         Value: 1
       - Key: WareHouse 2
-        Value: 0
-      - Key: BoxMachine
         Value: 1
       - Key: Rest Room
+        Value: 1
+      - Key: Canteen 3
+        Value: 1
+      - Key: Excavator 1
+        Value: 1
+      - Key: Excavator 2
+        Value: 1
+      - Key: Electric 1
+        Value: 1
+      - Key: Canteen 2
+        Value: 1
+      - Key: Excavator 3
+        Value: 1
+      - Key: WareHouse 3
+        Value: 1
+      - Key: Box Machine 1
+        Value: 1
+      - Key: Box Machine 2
+        Value: 1
+      - Key: Box Machine 3
         Value: 1
     _recoverMachines:
       _serializedList:
       - Key:
           Machine: {fileID: 11400000, guid: 26f3d6c9866885b46b3fffc9633f52eb, type: 2}
+          Worker: 0000000001000000
+        Value: 01000000
+      - Key:
+          Machine: {fileID: 11400000, guid: c15e03bda8962d74ebc5f219151bbbe4, type: 2}
+          Worker: 0000000001000000
+        Value: 00000000
+      - Key:
+          Machine: {fileID: 11400000, guid: 322dfa56aae1a0d45b93c0a4f08fa420, type: 2}
           Worker: 0000000001000000
         Value: 01000000
       - Key:
