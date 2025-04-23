@@ -11,12 +11,11 @@ namespace Script.Machine.Machines.Canteen {
 
         public event Action<long> onMealAmountChanged = delegate { };
 
-        public bool TryAddMealAmount(long amount) {
-            var newAmount = amount + AvailableMeals;
-            newAmount = newAmount > _maxCapacity ? _maxCapacity : newAmount;
-            newAmount = newAmount < 0 ? 0 : newAmount;
+        public bool TrySetMealAmount(long amount) {
+            amount = amount > MaxCapacity ? MaxCapacity : amount;
+            amount = amount < 0 ? 0 : amount;
             
-            AvailableMeals = newAmount;
+            AvailableMeals = amount;
             onMealAmountChanged?.Invoke(amount);
             return true;
         }
@@ -27,7 +26,7 @@ namespace Script.Machine.Machines.Canteen {
                 return false;
             }
 
-            if (forceDumpExcessAvailableMeals && AvailableMeals > capacity) { TryAddMealAmount(capacity); }
+            if (forceDumpExcessAvailableMeals && AvailableMeals > capacity) { TrySetMealAmount(capacity); }
 
             _maxCapacity = capacity;
             return true;

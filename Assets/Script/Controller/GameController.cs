@@ -45,31 +45,33 @@ namespace Script.Controller {
         public TileBase GroundTile;
         public PlayerData PlayerData;
 
-        [Space] 
-        [Header("Save")] 
-        [SerializeField]
+        [Space] [Header("Save")] [SerializeField]
         public bool HasSaveTimer;
-        [ConditionalField(nameof(HasSaveTimer))] 
-        [SerializeField][Min(0.1f)]
+
+        [SerializeField] private bool _enableCloudSave;
+
+        [ConditionalField(nameof(HasSaveTimer))] [SerializeField] [Min(0.1f)]
         public float MinutesBetweenSave = 5f;
+
         [SerializeField] private int _maxSavesCount = 10;
         public SaveManager SaveManager;
         private Timer _saveTimer;
-        
 
-        public int SessionCount {get; private set;}
+
+        public int SessionCount { get; private set; }
         public bool CompletedTutorial { get; private set; } = false;
         public long TotalPlaytime { get; private set; } = 0;
         public long SessionPlaytime { get; private set; } = 0;
         [CanBeNull] public string SessionId { get; private set; } = null;
         public DateTime SessionStartTime { get; private set; } = DateTime.MinValue;
         public event Action onTutorialCompleted = delegate { };
-        
-        [Space][Header("Log")]
-        [SerializeField] private bool _log;
+
+        [Space] [Header("Log")] [SerializeField]
+        private bool _log;
+
         public bool Log => _log;
-        
-        
+
+
         public List<Vector2Int> GroundAddedTiles = new();
 
         private List<ControllerBase> _controllers =>
@@ -88,7 +90,7 @@ namespace Script.Controller {
             var dispatcher = UnityMainThreadDispatcher.Instance;
             var pool = WorkerPooling.Instance;
         }
-        
+
         public void BuildNavMesh() {
             if (!Application.isPlaying) return;
             if (Log) Debug.Log("Rebuilding NavMesh");
@@ -118,9 +120,10 @@ namespace Script.Controller {
             _controllers.ForEach(c => c.OnDisable());
             if (!_isSubbed) return;
             Unsubscribe();
-        } 
+        }
 
         bool _isSubbed = false;
+
         private void Subscribe() {
             _isSubbed = true;
             onTutorialCompleted += InitiateSave;
@@ -143,13 +146,13 @@ namespace Script.Controller {
             CommissionController.OnCommissionChanged -= InitiateSave;
             CommissionController.onCommissionCompleted -= InitiateSave;
             QuestController.onQuestStateChanged -= InitiateSave;
-            
+
             onTutorialCompleted -= StopIgnoreCommissionOnTutorialCompleted;
         }
 
         void StopIgnoreCommissionOnTutorialCompleted() {
             onTutorialCompleted -= StopIgnoreCommissionOnTutorialCompleted;
-            
+
             if (CommissionController.IgnoreEmptyCommissions) CommissionController.IgnoreEmptyCommissions = false;
             CommissionController.UpdateCommissions();
         }
@@ -158,10 +161,11 @@ namespace Script.Controller {
         private void InitiateSave(string obj) => InitiateSave();
         private void InitiateSave(Commission.Commission obj) => InitiateSave();
         private void InitiateSave(Quest.Quest obj) => InitiateSave();
+
         private void InitiateSave() {
             StartCoroutine(Save(SaveManager).AsCoroutine());
         }
-        
+
         private IEnumerator Start() {
             if (HasSaveTimer) {
                 _saveTimer = new CountdownTimer(MinutesBetweenSave * 60);
@@ -191,7 +195,10 @@ namespace Script.Controller {
                 yield return StartCoroutine(LoadOnStart(SaveManager).AsCoroutine());
                 StartNewSession();
             }
-            async Task LoadOnStart(SaveManager saveManager) { await Load(saveManager); }
+
+            async Task LoadOnStart(SaveManager saveManager) {
+                await Load(saveManager);
+            }
 
             void StartNewSession() {
                 if (SessionId is null) {
@@ -208,12 +215,13 @@ namespace Script.Controller {
         }
 
         #region Quiting
+
         private bool _isSaving = false;
         private bool _quitNow = false;
+
         private bool WantsToQuit() {
             if (_quitNow) return true;
-            if (_isSaving)
-            {
+            if (_isSaving) {
                 if (Log) Debug.Log("Quit requested, but save is in progress.");
                 return false; // Block quitting while saving
             }
@@ -223,10 +231,9 @@ namespace Script.Controller {
         }
 
         private IEnumerator SaveAndQuit() {
-                if (Log) Debug.Log("Save and quiting.");
-            
-            if (_isSaving)
-            {
+            if (Log) Debug.Log("Save and quiting.");
+
+            if (_isSaving) {
                 if (Log) Debug.Log("Save already in progress.");
                 yield break;
             }
@@ -247,13 +254,15 @@ namespace Script.Controller {
         UnityEngine.Application.Quit();
 #endif
         }
+
         #endregion
 
         private float _playtimeTimer = 0;
+
         private void Update() {
             _controllers.ForEach(c => c.OnUpdate(Time.deltaTime));
             _saveTimer?.Tick(Time.deltaTime);
-            
+
             if (SessionId != null) {
                 _playtimeTimer += Time.deltaTime;
                 if (_playtimeTimer > 1) {
@@ -268,12 +277,12 @@ namespace Script.Controller {
 
         private bool _isLoading = false;
         private bool _queueingSave = false;
-        
+
         private async Task Load(SaveManager saveManager) {
             _isLoading = true;
-            // await SaveManager.LoadFromCloud();
-            //await SaveManager.LoadFromLocal();
-            await SaveManager.LoadFromFirebase();
+            await SaveManager.LoadFromLocal();
+            if (_enableCloudSave) await SaveManager.LoadFromCloud();
+            if (_enableCloudSave) await SaveManager.LoadFromFirebase();
 
             try {
                 #region Game Controller's own save
@@ -281,13 +290,16 @@ namespace Script.Controller {
                 if (saveManager.TryGetValue(nameof(SessionCount), out string sessionCountString)) {
                     if (int.TryParse(sessionCountString, out var sessionCount)) SessionCount = sessionCount;
                 }
+
                 if (saveManager.TryGetValue(nameof(CompletedTutorial), out string completedTutorialString)) {
                     CompletedTutorial = completedTutorialString == bool.TrueString;
                     if (!CompletedTutorial) CommissionController.IgnoreEmptyCommissions = true;
                 }
+
                 if (saveManager.TryGetValue(nameof(TotalPlaytime), out string totalPlaytimeString)) {
                     if (long.TryParse(totalPlaytimeString, out var totalPlaytime)) {
-                        if (!saveManager.TryGetValue(nameof(SessionId), out var saveSessionId)) TotalPlaytime += totalPlaytime;
+                        if (!saveManager.TryGetValue(nameof(SessionId), out var saveSessionId))
+                            TotalPlaytime += totalPlaytime;
                         TotalPlaytime = saveSessionId == SessionId ? TotalPlaytime : totalPlaytime + TotalPlaytime;
                     }
                 }
@@ -308,7 +320,7 @@ namespace Script.Controller {
                 }
 
                 if (saveManager.TryGetValue(nameof(PlayerData), out string playerDataString)) {
-                     PlayerData = SaveManager.Deserialize<PlayerData>(playerDataString);
+                    PlayerData = SaveManager.Deserialize<PlayerData>(playerDataString);
                 }
 
                 #endregion
@@ -317,7 +329,6 @@ namespace Script.Controller {
                     if (Log) Debug.Log($"Loading {c.GetType().Name}");
                     c.Load(saveManager);
                 });
-
             }
             catch (System.Exception ex) {
                 Debug.LogError(ex);
@@ -329,6 +340,7 @@ namespace Script.Controller {
         }
 
         private bool _saveInitialized = false;
+
         private async Task Save(SaveManager saveManager) {
             if (_isLoading || _saveInitialized) {
                 _queueingSave = true;
@@ -346,16 +358,21 @@ namespace Script.Controller {
 
 
                 #region Game Controller's own save
+
                 saveManager.AddOrUpdate(nameof(SessionCount), SessionCount.ToString());
                 saveManager.AddOrUpdate(nameof(TotalPlaytime), TotalPlaytime.ToString());
                 saveManager.AddOrUpdate(nameof(SessionPlaytime), SessionPlaytime.ToString());
                 saveManager.AddOrUpdate(nameof(SessionId), SessionId);
                 saveManager.AddOrUpdate(nameof(SessionStartTime), SessionStartTime.Ticks.ToString());
-                saveManager.AddOrUpdate(nameof(CompletedTutorial), CompletedTutorial ? bool.TrueString : bool.FalseString);
+                saveManager.AddOrUpdate(nameof(CompletedTutorial),
+                    CompletedTutorial ? bool.TrueString : bool.FalseString);
                 saveManager.AddOrUpdate(nameof(HasSaveTimer), HasSaveTimer ? bool.TrueString : bool.FalseString);
-                saveManager.AddOrUpdate(nameof(MinutesBetweenSave), MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
-                saveManager.AddOrUpdate(nameof(GroundAddedTiles), SaveManager.Serialize(GroundAddedTiles.Select(t => new V2Int(t)).ToList()));
+                saveManager.AddOrUpdate(nameof(MinutesBetweenSave),
+                    MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
+                saveManager.AddOrUpdate(nameof(GroundAddedTiles),
+                    SaveManager.Serialize(GroundAddedTiles.Select(t => new V2Int(t)).ToList()));
                 saveManager.AddOrUpdate(nameof(PlayerData), SaveManager.Serialize(PlayerData));
+
                 #endregion
             }
             catch (System.Exception e) {
@@ -364,8 +381,8 @@ namespace Script.Controller {
             }
 
             await SaveManager.SaveToLocal();
-            await SaveManager.SaveToCloud();
-            await SaveManager.SaveToFirebase();
+            if (_enableCloudSave) await SaveManager.SaveToCloud();
+            if (_enableCloudSave) await SaveManager.SaveToFirebase();
             _saveInitialized = false;
         }
     }
