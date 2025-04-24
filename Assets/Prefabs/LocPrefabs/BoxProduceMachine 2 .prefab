@@ -411,7 +411,7 @@ Transform:
   m_GameObject: {fileID: 3816411639030502921}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.36, y: 0.23, z: 0}
+  m_LocalPosition: {x: -0.365, y: -0.032, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -431,6 +431,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _currentWorker: {fileID: 0}
   _wishListWorker: {fileID: 0}
+  _flipWorker: 0
   _wishlistTravelTimer: 100
   _forAll: 0
   _forWorker:
@@ -461,7 +462,7 @@ Transform:
   m_GameObject: {fileID: 3875017041318078822}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.69, y: 0.38, z: 0}
+  m_LocalPosition: {x: -0.76, y: 0.146, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -481,6 +482,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _currentWorker: {fileID: 0}
   _wishListWorker: {fileID: 0}
+  _flipWorker: 0
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -734,7 +736,7 @@ Transform:
   m_GameObject: {fileID: 4293744376358838079}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.63, y: 0.38, z: 0}
+  m_LocalPosition: {x: 0.649, y: 0.146, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -754,6 +756,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _currentWorker: {fileID: 0}
   _wishListWorker: {fileID: 0}
+  _flipWorker: 0
   _wishlistTravelTimer: 100
   _forAll: 0
   _forWorker:
@@ -1219,7 +1222,7 @@ Transform:
   m_GameObject: {fileID: 7818295833473424606}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.3, y: 0.2, z: 0}
+  m_LocalPosition: {x: 0.291, y: -0.053, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1239,6 +1242,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _currentWorker: {fileID: 0}
   _wishListWorker: {fileID: 0}
+  _flipWorker: 0
   _wishlistTravelTimer: 100
   _forAll: 0
   _forWorker:
@@ -1528,8 +1532,8 @@ PolygonCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.94, y: 1.97}
+    pivot: {x: 0.5, y: 0}
+    oldSize: {x: 1.94, y: 1.9740001}
     newSize: {x: 9.68, y: 9.83}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -1724,8 +1728,8 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 1.006}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.94, y: 1.97}
+    pivot: {x: 0.5, y: 0}
+    oldSize: {x: 1.94, y: 1.9740001}
     newSize: {x: 9.68, y: 9.83}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
