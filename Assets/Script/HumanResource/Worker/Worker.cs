@@ -87,7 +87,6 @@ namespace Script.HumanResource.Worker {
 
         private void SetBool(int hash, bool value) {
             if (hash == IsWorking) {
-                Debug.LogError("setting working " + value);
                 if (_isWorking == value) return;
                 _isWorking = value;
                 Animator.SetBool(IsWorking, value);
@@ -95,7 +94,6 @@ namespace Script.HumanResource.Worker {
             }
 
             if (hash == IsResting) {
-                Debug.LogError("setting resting " + value);
                 if (_isResting == value) return;
                 _isResting = value;
                 Animator.SetBool(IsResting, value);
@@ -103,7 +101,6 @@ namespace Script.HumanResource.Worker {
             }
 
             if (hash == IsDining) {
-                Debug.LogError("setting dining " + value);
                 if (_isDining == value) return;
                 _isDining = value;
                 Animator.SetBool(IsDining, value);
