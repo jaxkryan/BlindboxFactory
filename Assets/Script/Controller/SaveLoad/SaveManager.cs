@@ -14,7 +14,7 @@ using UnityEngine.Android;
 namespace Script.Controller.SaveLoad {
     public class SaveManager {
         private Dictionary<string, string> _saveData = new();
-
+        private string _playerId;
         private DatabaseReference dbRef;
 
         public string Path { get; init; }
@@ -39,7 +39,12 @@ namespace Script.Controller.SaveLoad {
         [CanBeNull] public string _currentLoadPath;
 
         public SaveManager(int maxSaves = 10) : this(Application.persistentDataPath, maxSaves: maxSaves) { }
-
+        public SaveManager(string playerId)
+        {
+            _playerId = playerId;
+            // Initialize Firebase here if not already done
+            dbRef = FirebaseDatabase.DefaultInstance.RootReference;
+        }
         public SaveManager(string path, string fileName = "data.json", int maxSaves = 10) {
             Path = path;
             _fileName = fileName;
@@ -108,81 +113,55 @@ namespace Script.Controller.SaveLoad {
             => _saveData.TryGetValue(key, out value);
 
 
-        public async Task SaveToFirebase() {
-            try {
-                await EnsureFirebaseInitialized();
+        public async Task SaveToFirebase()
+        {
+            try
+            {
                 string json = JsonConvert.SerializeObject(_saveData);
-                Debug.Log("Json fr: " + json);
-                var saveTask = dbRef.Child("users").Child(DateTime.Now.ToString("hh:mm:ss")).SetRawJsonValueAsync(json)
-                    .ContinueWith(task => {
-                        if (task.IsFaulted) {
-                            Debug.Log("Error: Failed to save data to Firebase.");
-                        }
-                        else if (task.IsCompleted) {
-                            Debug.Log("Data saved to Firebase.");
-                        }
-                    });
-                await saveTask;
+                await dbRef.Child("users").Child(_playerId).SetRawJsonValueAsync(json);
+                Debug.Log("Data saved to Firebase.");
             }
-            catch (System.Exception e) {
+            catch (System.Exception e)
+            {
                 Debug.LogException(new System.Exception($"[Cannot save] Error saving to Firebase", e));
             }
         }
 
-        public async Task LoadFromFirebase() {
-            try {
-                await EnsureFirebaseInitialized();
-                //await FirebaseDatabase.DefaultInstance.GoOnlineAsync();
-                var snapshotTask = dbRef.Child("users")
-                    .OrderByKey()
-                    .LimitToLast(1)
-                    .GetValueAsync();
-
-                await snapshotTask;
-
-                if (snapshotTask.IsFaulted) {
-                    Debug.LogError($"Error loading data from Firebase: {snapshotTask.Exception}");
-                    return;
-                }
-
-                if (!snapshotTask.Result.Exists) {
+        public async Task LoadFromFirebase()
+        {
+            try
+            {
+                var snapshot = await dbRef.Child("users").Child(_playerId).GetValueAsync();
+                if (!snapshot.Exists)
+                {
                     Debug.Log("No save data found in Firebase.");
                     return;
                 }
 
-                DataSnapshot snapshot = snapshotTask.Result.Children.FirstOrDefault();
-                if (snapshot == null) {
-                    Debug.Log("No valid save data found in Firebase snapshot.");
-                    return;
-                }
-
-                if (_log) Debug.Log($"Loading data from Firebase path: users/{snapshot.Key}");
-
                 string json = snapshot.GetRawJsonValue();
-                if (string.IsNullOrEmpty(json)) {
+                if (string.IsNullOrEmpty(json))
+                {
                     Debug.LogWarning("Firebase data is empty or invalid.");
                     return;
                 }
 
-                var saveData = Deserialize<Dictionary<string, string>>(Decrypt(json));
-                if (saveData == null) {
+                var saveData = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                if (saveData == null)
+                {
                     Debug.LogError("Failed to deserialize Firebase data.");
                     return;
                 }
 
-                foreach (var key in saveData.Keys) {
-                    if (!_saveData.TryGetValue(key, out var value)) {
-                        _saveData.TryAdd(key, saveData[key]);
-                    }
-                    else if (value != saveData[key]) {
-                        _saveData[key] = saveData[key];
-                    }
+                foreach (var key in saveData.Keys)
+                {
+                    _saveData[key] = saveData[key];
                 }
 
-                if (_log) Debug.Log("Data loaded successfully from Firebase.");
+                Debug.Log("Data loaded successfully from Firebase.");
             }
-            catch (System.Exception e) {
-                Debug.LogException(new System.Exception($"[Cannot load] Error loading data from Firebase", e));
+            catch (System.Exception e)
+            {
+                Debug.LogException(new System.Exception($"[Cannot load] Error loading from Firebase", e));
             }
         }
 
