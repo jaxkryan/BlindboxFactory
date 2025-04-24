@@ -54881,39 +54881,45 @@ MonoBehaviour:
     - categoryName: Rest Room
       buildables:
       - {fileID: 11400000, guid: c15e03bda8962d74ebc5f219151bbbe4, type: 2}
+      - {fileID: 11400000, guid: e81b19c5917e82d4cb3ecfaa3dd54bae, type: 2}
+      - {fileID: 11400000, guid: 5c4a9674ba92c2140bdde97c54bbd74c, type: 2}
     _unlockMachines:
       _serializedList:
       - Key: Canteen 1
         Value: 1
+      - Key: Canteen 2
+        Value: 0
+      - Key: Canteen 3
+        Value: 0
+      - Key: Electric 1
+        Value: 1
       - Key: Electric 2
-        Value: 1
+        Value: 0
       - Key: Electric 3
-        Value: 1
+        Value: 0
       - Key: WareHouse 1
         Value: 1
       - Key: WareHouse 2
-        Value: 1
-      - Key: Rest Room
-        Value: 1
-      - Key: Canteen 3
-        Value: 1
+        Value: 0
       - Key: Excavator 1
         Value: 1
       - Key: Excavator 2
-        Value: 1
-      - Key: Electric 1
-        Value: 1
-      - Key: Canteen 2
-        Value: 1
+        Value: 0
       - Key: Excavator 3
-        Value: 1
+        Value: 0
       - Key: WareHouse 3
-        Value: 1
+        Value: 0
       - Key: Box Machine 1
         Value: 1
       - Key: Box Machine 2
-        Value: 1
+        Value: 0
       - Key: Box Machine 3
+        Value: 0
+      - Key: Nap Room 3
+        Value: 0
+      - Key: Nap Room 2
+        Value: 0
+      - Key: Nap Room 1
         Value: 1
     _recoverMachines:
       _serializedList:
@@ -54922,10 +54928,6 @@ MonoBehaviour:
           Worker: 0000000001000000
         Value: 01000000
       - Key:
-          Machine: {fileID: 11400000, guid: c15e03bda8962d74ebc5f219151bbbe4, type: 2}
-          Worker: 0000000001000000
-        Value: 00000000
-      - Key:
           Machine: {fileID: 11400000, guid: 322dfa56aae1a0d45b93c0a4f08fa420, type: 2}
           Worker: 0000000001000000
         Value: 01000000
@@ -54933,6 +54935,18 @@ MonoBehaviour:
           Machine: {fileID: 11400000, guid: eee8dbb741aa7fe488869db1c582b85b, type: 2}
           Worker: 0000000001000000
         Value: 01000000
+      - Key:
+          Machine: {fileID: 11400000, guid: 5c4a9674ba92c2140bdde97c54bbd74c, type: 2}
+          Worker: 0000000001000000
+        Value: 00000000
+      - Key:
+          Machine: {fileID: 11400000, guid: e81b19c5917e82d4cb3ecfaa3dd54bae, type: 2}
+          Worker: 0000000001000000
+        Value: 00000000
+      - Key:
+          Machine: {fileID: 11400000, guid: c15e03bda8962d74ebc5f219151bbbe4, type: 2}
+          Worker: 0000000001000000
+        Value: 00000000
   BoxController:
     _boxData:
       _serializedList: []
