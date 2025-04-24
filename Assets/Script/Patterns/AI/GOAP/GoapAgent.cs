@@ -64,7 +64,7 @@ public abstract class GoapAgent : MonoBehaviour {
         if (AgentUpdateOrder >= _agentUpdateInterval) AgentUpdateOrder %= _agentUpdateInterval;
 
         _timers?.ForEach(t => t.Tick(Time.deltaTime));
-        _animation.speed = _navMeshAgent.velocity.magnitude;
+        // _animation.speed = _navMeshAgent.velocity.magnitude;
         if (Time.frameCount % _agentUpdateInterval == AgentUpdateOrder) {
             // Update the plan and current action if there is one
             if (CurrentAction == null) {

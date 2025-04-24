@@ -14,6 +14,8 @@ namespace Script.Machine {
         [SerializeField] [CanBeNull] private Worker _currentWorker;
         [CanBeNull] public Worker WishListWorker  {get => _wishListWorker; private set => _wishListWorker = value; }
         [SerializeField] [CanBeNull] private Worker _wishListWorker;
+        public bool FlipWorker  {get => _flipWorker; set => _flipWorker = value; }
+        [SerializeField] private bool _flipWorker; 
         
         private CountdownTimer _wishlistTimer;
 
