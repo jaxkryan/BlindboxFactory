@@ -81,7 +81,7 @@ namespace Script.Machine {
         }
 
         public event Action<bool> onMachineCloseStatusChanged = delegate { };
-        public event Action onMachineDisabled = delegate { };
+        public event Action onMachineDestroyed = delegate { };
         [SerializeField] private bool _isClosed;
 
         public IEnumerable<MachineSlot> Slots {
@@ -276,9 +276,12 @@ namespace Script.Machine {
             UpdateWorkDetails();
             UnsubscribeWorkDetails();
             WorkDetails.ForEach(d => d.Stop());
-            onMachineDisabled?.Invoke();
 
             if (!_isQuiting)GameController.Instance.BuildNavMesh();
+        }
+
+        private void OnDestroy() {
+            onMachineDestroyed?.Invoke();
         }
 
         protected bool _isQuiting { get; private set; } = false;
