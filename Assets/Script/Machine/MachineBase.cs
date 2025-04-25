@@ -128,7 +128,7 @@ namespace Script.Machine {
             get {
                 var check = _slots.AsValueEnumerable().Select(s => s.CurrentWorker).Where(w => w is not null);
                 if (!_workers.AsValueEnumerable().Intersect(check).TryGetNonEnumeratedCount(out var count1) || !check.TryGetNonEnumeratedCount(out var count2) || count1 != count2) {
-                    _workers = _slots.AsValueEnumerable().Select(s => s.CurrentWorker).ToList();
+                    _workers = _slots.AsValueEnumerable().Select(s => s.CurrentWorker).Where(w => w is not null).ToList();
                 }
                 return _workers;
             }
