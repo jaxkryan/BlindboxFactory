@@ -13,15 +13,15 @@ public class MinigameManager : MonoBehaviour
 {
     private MachineController machineController;
     [SerializeField] private string exclamationButtonName = "needfix";
-    [SerializeField] private float minigameInterval = 3f * 3600f; // 3 giờ
-    [SerializeField] private float maxInactiveTime = 20f * 60f; // 20 phút
-    [SerializeField] private float minigameSpawnChance = 0.3f; // Xác suất 30%
-    [SerializeField] private Button minigameTriggerButton; // Nút kích hoạt minigame duy nhất
+    [SerializeField] private float minigameInterval = 3f * 3600f; // 3 hours
+    [SerializeField] private float maxInactiveTime = 20f * 60f; // 20 minutes
+    [SerializeField] private float minigameSpawnChance = 0.3f; // 30% chance
+    [SerializeField] private Button minigameTriggerButton; // Single minigame trigger button
     [SerializeField] private GameObject match3GameObject;
     [SerializeField] private GameObject whackAMoleGameObject;
     [SerializeField] private GameObject wireConnectionGameObject;
-    [SerializeField] private Camera mainCamera; // Camera chính để điều chỉnh
-    [SerializeField] private float referenceOrthoSize = 5f; // Kích thước orthographic tham chiếu
+    [SerializeField] private Camera mainCamera; // Main camera to adjust
+    [SerializeField] private float referenceOrthoSize = 5f; // Reference orthographic size
     [SerializeField] private Vector2 referenceResolution = new Vector2(1080, 1920);
     [SerializeField] private float minOrthoSizeFactor = 0.8f;
     [SerializeField] private float maxOrthoSizeFactor = 1.2f;
@@ -32,7 +32,7 @@ public class MinigameManager : MonoBehaviour
     private DateTime lastResetTime;
     private DateTime? minigameStartTime;
     private Dictionary<MachineBase, MinigameData> activeMinigames = new();
-    private float originalOrthoSize; // Lưu trữ ortho size gốc
+    private float originalOrthoSize; // Store original ortho size
 
     private class MinigameData
     {
@@ -47,10 +47,10 @@ public class MinigameManager : MonoBehaviour
         lastResetTime = DateTime.UtcNow.Date;
         machineController = GameController.Instance.MachineController;
 
-        // Đăng ký sự kiện
+        // Register events
         machineController.onMachineAdded += OnMachineAdded;
 
-        // Thiết lập MinigameTriggerButton
+        // Set up MinigameTriggerButton
         if (minigameTriggerButton != null)
         {
             minigameTriggerButton.gameObject.SetActive(false);
@@ -62,7 +62,7 @@ public class MinigameManager : MonoBehaviour
             Debug.LogWarning("MinigameTriggerButton not assigned in Inspector!");
         }
 
-        // Thiết lập camera
+        // Set up camera
         if (mainCamera == null)
         {
             mainCamera = Camera.main;
@@ -77,10 +77,10 @@ public class MinigameManager : MonoBehaviour
             originalOrthoSize = mainCamera.orthographicSize;
         }
 
-        // Tắt tất cả minigame GameObject ban đầu
+        // Deactivate all minigame GameObjects initially
         DeactivateAllMinigameObjects();
 
-        // Kiểm tra tất cả máy hiện có để spawn minigame
+        // Check existing machines for minigames
         CheckExistingMachinesForMinigames();
     }
 
@@ -91,7 +91,7 @@ public class MinigameManager : MonoBehaviour
             machineController.onMachineAdded -= OnMachineAdded;
         }
 
-        // Khôi phục ortho size gốc khi thoát
+        // Restore original ortho size on exit
         if (mainCamera != null)
         {
             mainCamera.orthographicSize = originalOrthoSize;
@@ -224,7 +224,6 @@ public class MinigameManager : MonoBehaviour
         };
 
         string minigameType = GetMinigameType(minigameObject);
-        Debug.Log($"Minigame event spawned at machine: {selectedMachine.name} (Type: {selectedMachine.GetType().Name}, Minigame: {minigameType})");
     }
 
     private void OnMinigameTriggerButtonClicked()
@@ -241,7 +240,6 @@ public class MinigameManager : MonoBehaviour
             var pair = enumerator.Current;
             MachineBase machine = pair.Key;
             GameObject minigameObject = pair.Value.MinigameObject;
-            Debug.Log($"MinigameTriggerButton clicked, starting minigame for machine: {machine.name}, GameObject: {minigameObject.name}");
             StartMinigame(machine, minigameObject);
         }
     }
@@ -255,15 +253,20 @@ public class MinigameManager : MonoBehaviour
             activeMinigames.Remove(machine);
             minigameStartTime = DateTime.UtcNow;
 
-            // Điều chỉnh camera orthographic size
+            // Adjust camera orthographic size
             if (mainCamera != null)
             {
                 float orthoSizeFactor = CalculateOrthoSizeFactor();
                 mainCamera.orthographicSize = referenceOrthoSize * orthoSizeFactor;
                 Debug.Log($"Applied ortho size factor: {orthoSizeFactor}, New ortho size: {mainCamera.orthographicSize}");
+
+                // Position minigame at camera's current world position
+                Vector3 cameraPosition = mainCamera.transform.position;
+                minigameObject.transform.position = new Vector3(cameraPosition.x, cameraPosition.y, minigameObject.transform.position.z);
+                Debug.Log($"Positioned minigame {minigameObject.name} at camera position: {minigameObject.transform.position}");
             }
 
-            // Tắt tất cả minigame GameObject khác và bật cái được chọn
+            // Deactivate all other minigame GameObjects and activate the selected one
             DeactivateAllMinigameObjects();
             minigameObject.SetActive(true);
         }
@@ -281,10 +284,10 @@ public class MinigameManager : MonoBehaviour
 
         float referenceAspect = referenceResolution.x / referenceResolution.y;
 
-        // Tính tỷ lệ dựa trên chiều cao
+        // Calculate factor based on height
         float orthoSizeFactor = (screenHeight / referenceResolution.y) * (screenAspect / referenceAspect);
 
-        // Giới hạn tỷ lệ
+        // Clamp factor
         orthoSizeFactor = Mathf.Clamp(orthoSizeFactor, minOrthoSizeFactor, maxOrthoSizeFactor);
         return orthoSizeFactor;
     }
@@ -295,7 +298,7 @@ public class MinigameManager : MonoBehaviour
         if (whackAMoleGameObject != null) whackAMoleGameObject.SetActive(false);
         if (wireConnectionGameObject != null) wireConnectionGameObject.SetActive(false);
 
-        // Khôi phục ortho size gốc khi tắt minigame
+        // Restore original ortho size when deactivating minigames
         if (mainCamera != null)
         {
             mainCamera.orthographicSize = originalOrthoSize;
@@ -317,13 +320,13 @@ public class MinigameManager : MonoBehaviour
 
     private bool IsMinigameEligibleMachine(MachineBase machine)
     {
-        return machine is Generator || machine is StorageMachine || machine is Canteen;
+        return machine is ResourceExtractor || machine is StoreHouse || machine is Canteen;
     }
 
     private GameObject GetMinigameObject(MachineBase machine)
     {
-        if (machine is Generator) return match3GameObject;
-        if (machine is StorageMachine) return whackAMoleGameObject;
+        if (machine is ResourceExtractor) return match3GameObject;
+        if (machine is StoreHouse) return whackAMoleGameObject;
         if (machine is Canteen) return wireConnectionGameObject;
         return null;
     }

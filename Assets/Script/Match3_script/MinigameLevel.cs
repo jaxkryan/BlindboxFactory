@@ -48,22 +48,22 @@ public class MinigameLevel : MonoBehaviour
 
     public virtual void GameWin()
     {
-        Debug.Log("Game win");
         CollectResources();
+        ResourceManager.Instance.ResetResources();
         grid.GameOver();
     }
 
     public virtual void GameLose()
     {
-        Debug.Log("Game lose");
         CollectResources();
+        ResourceManager.Instance.ResetResources();
         grid.GameOver();
     }
 
     private readonly List<Resource> _nonCraftingResources = new () {
-        Resource.Gold, Resource.Gem, 
+        Resource.Gold, Resource.Gem, Resource.Meal,
     };
-    private void CollectResources()
+    protected void CollectResources()
     {
         foreach (Resource resource in System.Enum.GetValues(typeof(Resource)))
         {
@@ -109,7 +109,7 @@ public class MinigameLevel : MonoBehaviour
         }
     }
 
-    private void UpdateResourceTexts()
+    protected void UpdateResourceTexts()
     {
         foreach (ResourceText resourceText in resourceTexts)
         {
