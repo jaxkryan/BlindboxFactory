@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Newtonsoft.Json;
-using Script.Alert;
+using ZLinq;
 using Script.Controller.SaveLoad;
 using Script.Quest;
 using Script.Utils;
@@ -29,7 +27,7 @@ namespace Script.Controller {
         private Dictionary<string, object> QuestData { get; set; } = new();
 
         public bool ContainsKey(string key) => QuestData.ContainsKey(key);
-        public HashSet<string> Keys() => QuestData.Keys.ToHashSet();
+        public HashSet<string> Keys() => QuestData.Keys.AsValueEnumerable().ToHashSet();
 
         public bool TryGetValue<T>(string key, out T value) {
             if (QuestData.TryGetValue(key, out var entry) && entry is Entry<T> castedEntry) {
@@ -55,15 +53,15 @@ namespace Script.Controller {
             ActiveQuests(func).ForEach(q => q.Evaluate());
 
         private IEnumerable<Quest.Quest> ActiveQuests(Func<Quest.Quest, bool> func) =>
-            Quests.Where(q => q.State is QuestState.InProgress).Where(func);
+            Quests.AsValueEnumerable().Where(q => q.State is QuestState.InProgress).Where(func).ToList();
 
         private void RegisterQuestsToEvents() {
             var machines = GameController.Instance.MachineController.Machines;
             machines.ForEach(m => {
                 m.onProductChanged += (_) =>
-                    ReevaluateActiveQuests(q => q.Objectives.Any(o => o is ResourceConsumedQuestCondition));
+                    ReevaluateActiveQuests(q => q.Objectives.AsValueEnumerable().Any(o => o is ResourceConsumedQuestCondition));
                 m.onCreateProduct += (_) =>
-                    ReevaluateActiveQuests(q => q.Objectives.Any(o => o is ResourceConsumedQuestCondition));
+                    ReevaluateActiveQuests(q => q.Objectives.AsValueEnumerable().Any(o => o is ResourceConsumedQuestCondition));
             });
             GameController.Instance.ResourceController.onResourceAmountChanged
                 += (_, _, _) => ReevaluateActiveQuests(q => true);
@@ -76,13 +74,13 @@ namespace Script.Controller {
             List<Quest.Quest> duplicatedQuests = new();
 
             Quests?.ForEach(q => {
-                if (quests.Any(regQuest => q.Name == regQuest.Name)) duplicatedQuests.Add(q);
+                if (quests.AsValueEnumerable().Any(regQuest => q.Name == regQuest.Name)) duplicatedQuests.Add(q);
                 quests.Add(q);
             });
 
-            if (duplicatedQuests.Any())
+            if (duplicatedQuests.AsValueEnumerable().Any())
                 Debug.LogError("Quests can't be sharing names: " +
-                               string.Join(", ", duplicatedQuests.Select(q => q.Name)));
+                               string.Join(", ", duplicatedQuests.AsValueEnumerable().Select(q => q.Name)));
         }
 
         public event Action<Quest.Quest> onQuestStateChanged = delegate { };
@@ -116,7 +114,7 @@ namespace Script.Controller {
 
             var list = _quests.Clone();
 
-            while (list.Any(q => q.State != QuestState.Locked)) {
+            while (list.AsValueEnumerable().Any(q => q.State != QuestState.Locked)) {
                 var quest = list[0];
                 newSave.QuestStates.Add(quest.State);
                 list.RemoveAt(0);
@@ -147,7 +145,7 @@ namespace Script.Controller {
         }
 
         public override void OnDestroy() {
-            _quests?.Where(q => q is not null).ForEach(q => q.State = QuestState.Locked);
+            _quests?.AsValueEnumerable().Where(q => q is not null).ForEach(q => q.State = QuestState.Locked);
             base.OnDestroy();
         }
     }

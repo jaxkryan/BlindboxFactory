@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using ZLinq;
 using System.Threading.Tasks;
 using Firebase;
 using Firebase.Database;
@@ -110,7 +110,7 @@ namespace Script.Controller.SaveLoad {
         public async Task SaveToFirebase() {
             try {
                 await EnsureFirebaseInitialized();
-                string json = JsonConvert.SerializeObject(_saveData.ToDictionary(p => p.Key, p => p.Value));
+                string json = JsonConvert.SerializeObject(_saveData.AsValueEnumerable().ToDictionary(p => p.Key, p => p.Value));
                 if (_log) Debug.Log("Json fr: " + json);
                 var saveTask = dbRef.Child("users").Child(DateTime.Now.ToString("hh:mm:ss")).SetRawJsonValueAsync(json)
                     .ContinueWith(task => {
@@ -149,7 +149,7 @@ namespace Script.Controller.SaveLoad {
                     return;
                 }
 
-                DataSnapshot snapshot = snapshotTask.Result.Children.FirstOrDefault();
+                DataSnapshot snapshot = snapshotTask.Result.Children.AsValueEnumerable().FirstOrDefault();
                 if (snapshot == null) {
                     if (_log) Debug.Log("No valid save data found in Firebase snapshot.");
                     return;
@@ -211,7 +211,7 @@ namespace Script.Controller.SaveLoad {
                 }
 
                 if (_log) Debug.Log($"Saving data to: {CurrentSavePath}");
-                var str = Serialize(_saveData.ToDictionary(p => p.Key, p => p.Value));
+                var str = Serialize(_saveData.AsValueEnumerable().ToDictionary(p => p.Key, p => p.Value));
                 if (_log) Debug.Log($"Serialized data: {str}");
 
                 await using (StreamWriter sw = new StreamWriter(FilePath, false)) {
@@ -229,7 +229,7 @@ namespace Script.Controller.SaveLoad {
         private void RemoveOldSaves() {
             var filePaths = GetAllSavePaths();
             while (filePaths.Count >= MaxSaves && filePaths.Count > 0) {
-                var removingFilePath = filePaths.ElementAtOrDefault(filePaths.Count - 1);
+                var removingFilePath = filePaths.AsValueEnumerable().ElementAtOrDefault(filePaths.Count - 1);
                 if (string.IsNullOrEmpty(removingFilePath)) {
                     Debug.LogError($"{nameof(removingFilePath)} is empty");
                     break;
@@ -248,12 +248,12 @@ namespace Script.Controller.SaveLoad {
         }
 
         private List<string> GetAllSavePaths() {
-            var parts = _fileName.Split('.').ToList();
-            var name = parts.ElementAtOrDefault(0) ?? "";
+            var parts = _fileName.Split('.').AsValueEnumerable().ToList();
+            var name = parts.AsValueEnumerable().ElementAtOrDefault(0) ?? "";
             name += "-";
             if (parts.Count > 0) parts.RemoveAt(0);
 
-            return Directory.GetFiles(Path, $"{name}*{string.Join(".", parts)}").OrderByDescending(file => file)
+            return Directory.GetFiles(Path, $"{name}*{string.Join(".", parts)}").AsValueEnumerable().OrderByDescending(file => file)
                 .ToList();
         }
 
@@ -264,7 +264,7 @@ namespace Script.Controller.SaveLoad {
                         || !Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead)) return;
                 }
 
-                CurrentLoadPath = GetAllSavePaths().Count > 0 ? GetAllSavePaths().First() : FilePath;
+                CurrentLoadPath = GetAllSavePaths().Count > 0 ? GetAllSavePaths().AsValueEnumerable().First() : FilePath;
                 if (_log) Debug.Log($"Current load path: {CurrentLoadPath}");
                 if (!File.Exists(CurrentLoadPath)) {
                     if (_log) Debug.Log($"Save file doesn't exist: {CurrentLoadPath}. Cancelling...");
@@ -280,7 +280,7 @@ namespace Script.Controller.SaveLoad {
                 var saveData = Deserialize<Dictionary<string, string>>(Decrypt(str));
 
                 if (saveData is not null) {
-                    foreach (var data in saveData.Keys.ToList()) {
+                    foreach (var data in saveData.Keys) {
                         if (!saveData.TryGetValue(data, out var value) || value is null) break;
                         AddOrUpdate(data, value);
                     }

@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using AYellowpaper.SerializedCollections;
+using ZLinq;
 using Script.Quest;
 using UnityEngine;
 
@@ -43,7 +42,7 @@ namespace Script.Controller.Commission {
                 return true;
             }
 
-            var total = Items.Values?.Sum() ?? 0;
+            var total = Items.Values?.AsValueEnumerable().Sum() ?? 0;
             if (total == 0) {
                 progress = 100;
                 return true;

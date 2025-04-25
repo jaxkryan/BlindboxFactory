@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -87,13 +87,13 @@ public abstract class GoapAgent : MonoBehaviour {
                     CurrentGoal = ActionPlan.AgentGoal;
                     if (_log)
                         Debug.Log(
-                            $"Goal: {CurrentGoal.Name} with {ActionPlan.Actions.Count} actions in plan ({string.Join(", ", ActionPlan.Actions.Select(a => a.Name))}).");
+                            $"Goal: {CurrentGoal.Name} with {ActionPlan.Actions.Count} actions in plan ({string.Join(", ", ActionPlan.Actions.AsValueEnumerable().Select(a => a.Name))}).");
                     CurrentAction = ActionPlan.Actions.Pop();
                     if (_log) Debug.Log($"Popped action: {CurrentAction.Name}");
                     // Verify all precondition effects are true
-                    if (CurrentAction.Preconditions.All(b => b.Evaluate())) { CurrentAction.Start(); }
+                    if (CurrentAction.Preconditions.AsValueEnumerable().All(b => b.Evaluate())) { CurrentAction.Start(); }
                     else {
-                        var condition = CurrentAction.Preconditions.Where(c => !c.Evaluate()).Select(a => a.Name);
+                        var condition = CurrentAction.Preconditions.AsValueEnumerable().Where(c => !c.Evaluate()).Select(a => a.Name);
                         if (_log)
                             Debug.Log(
                                 $"Preconditions not met, clearing current action and goal ({string.Join(", ", condition)})");
@@ -130,10 +130,10 @@ public abstract class GoapAgent : MonoBehaviour {
         // If we have a current goal, we only want to check goals with higher priority
         if (CurrentGoal != null) {
             if (_log) Debug.Log("Current goal exists, checking goals with higher priority");
-            goalsToCheck = new HashSet<AgentGoal>(Goals.Where(g => g.Priority > priorityLevel));
+            goalsToCheck = new HashSet<AgentGoal>(Goals.AsValueEnumerable().Where(g => g.Priority > priorityLevel).ToHashSet());
         }
 
-        if (_log) Debug.Log($"Checking goals: {string.Join(", ", goalsToCheck.Select(a => a.Name))}");
+        if (_log) Debug.Log($"Checking goals: {string.Join(", ", goalsToCheck.AsValueEnumerable().Select(a => a.Name))}");
 
         var potentialPlan = _planner.Plan(this, goalsToCheck, _lastGoal);
         if (potentialPlan != null) {

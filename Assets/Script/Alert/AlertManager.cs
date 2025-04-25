@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using JetBrains.Annotations;
 using Script.Utils;
 using Unity.VisualScripting;
@@ -84,9 +84,9 @@ namespace Script.Alert {
                 }
             }
 
-            var exempt = blockers.Except(slatedForDestroy).ToList();
-            if (exempt.Any()) {
-                var first = exempt.First();
+            var exempt = blockers.AsValueEnumerable().Except(slatedForDestroy).ToList();
+            if (exempt.Count > 0) {
+                var first = exempt[0];
                 exempt.Remove(first);
                 slatedForDestroy.AddRange(exempt);
                 slatedForDestroy.ForEach(b => Destroy(b.gameObject));
@@ -116,7 +116,7 @@ namespace Script.Alert {
 
         public void RaiseBackLog() {
             if (_alertBackLog is null || _alertBackLog.Count == 0) return;
-            if (_alerts.Any(a => a.gameObject.activeInHierarchy)) return;
+            if (_alerts.AsValueEnumerable().Any(a => a.gameObject.activeInHierarchy)) return;
 
             var alert = _alertBackLog.Dequeue();
             Raise(alert);
@@ -124,8 +124,8 @@ namespace Script.Alert {
 
         public void Raise(GameAlert alert, bool raiseAgainIfDuplicated = false) {
             // Raise(alert.Type, alert.Header, alert.Message, alert.HasCloseButton, alert.PauseGame, alert.OnClose, alert.Button1, alert.Button2);
-            if (_alerts.Any(a => a.gameObject.activeInHierarchy)) {
-                if ((_alertBackLog.Any(a => a == alert) || alert == Current) && raiseAgainIfDuplicated) {
+            if (_alerts.AsValueEnumerable().Any(a => a.gameObject.activeInHierarchy)) {
+                if ((_alertBackLog.AsValueEnumerable().Any(a => a == alert) || alert == Current) && raiseAgainIfDuplicated) {
                     _alertBackLog.Enqueue(alert);
                 }
 
@@ -136,7 +136,7 @@ namespace Script.Alert {
             Current = alert;
 
             //Type
-            var fields = alert.GetType().GetFields().ToList();
+            var fields = alert.GetType().GetFields().AsValueEnumerable().ToList();
             fields.RemoveAll(f => f.Name == nameof(alert.Type));
             var raisingAlert = alert.Type switch {
                 AlertType.Error => _errorAlert,
@@ -190,9 +190,9 @@ namespace Script.Alert {
                 raisingAlert.onAlertClosed += wrapper;
             }
 
-            if (fields.Any())
+            if (fields.Count > 0)
                 Debug.LogWarning(
-                    $"Field(s) not used when creating alert: {string.Join(", ", fields.Select(f => f.Name))}");
+                    $"Field(s) not used when creating alert: {string.Join(", ", fields.AsValueEnumerable().Select(f => f.Name))}");
 
             _backgroundBlocker.gameObject.SetActive(true);
 

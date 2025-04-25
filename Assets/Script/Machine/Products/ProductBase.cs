@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using Script.Machine.ResourceManager;
 using Script.Resources;
 using UnityEngine;
@@ -21,7 +21,7 @@ namespace Script.Machine.Products {
                 Type = this.GetType().FullName,
                 MaxProgress = MaxProgress,
                 CanCreateProduct = CanCreateProduct,
-                ResourceUse = ResourceUse.Select(r => new IProduct.SaveData.ResourceUseData() {
+                ResourceUse = ResourceUse.AsValueEnumerable().Select(r => new IProduct.SaveData.ResourceUseData() {
                     Amount = r.Amount,
                     Resource = r.Resource,
                     IsResourceUseOnProductCreated = r.GetType().IsSubclassOf(typeof(ResourceUseOnProductCreated)) || r.GetType() == typeof(ResourceUseOnProductCreated),
@@ -42,7 +42,7 @@ namespace Script.Machine.Products {
 
         protected void BaseLoad(IProduct.SaveData data) {
             _maxProgress = data.MaxProgress;
-            _resourceUse = data.ResourceUse.Select(r => {
+            _resourceUse = data.ResourceUse.AsValueEnumerable().Select(r => {
                     var timer = new CountdownTimer(r.TimeInterval);
                     timer.Time = r.CurrentTime;
                     return r.IsResourceUseOnProductCreated

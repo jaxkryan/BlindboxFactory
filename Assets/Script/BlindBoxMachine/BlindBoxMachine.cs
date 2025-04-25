@@ -4,7 +4,7 @@ using Script.Machine.ResourceManager;
 using Script.Resources;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using Script.Utils;
 using UnityEngine;
 
@@ -109,13 +109,13 @@ public class BlindBoxMachine : MachineBase
         data.Amount = amount;
         data.MaxAmount = maxAmount;
         data.LastBox = lastBox;
-        data.Recipes = recipes.Select(r => r.Save()).Cast<BlindBox.BlindBoxSaveData>().ToList();
+        data.Recipes = recipes.AsValueEnumerable().Select(r => r.Save()).Cast<BlindBox.BlindBoxSaveData>().ToList();
         return data;
     }
 
     public BlindBox GetLastUsedRecipe()
     {
-        return recipes.FirstOrDefault(box => box.BoxTypeName == lastBox);
+        return recipes.AsValueEnumerable().FirstOrDefault(box => box.BoxTypeName == lastBox);
     }
 
     public class BBMData : MachineBase.MachineBaseData
