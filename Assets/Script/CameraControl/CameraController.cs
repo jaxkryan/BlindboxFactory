@@ -23,7 +23,10 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-
+            if (!IsTileAtCameraCenter())
+            {
+                SnapCameraToNearestTile();
+            }
         }
     }
 
@@ -126,7 +129,7 @@ public class CameraController : MonoBehaviour
             {
                 Vector3 tileWorldPos = _backgroundTilemap.GetCellCenterWorld(cellPos);
                 Vector3 targetPosition = new Vector3(tileWorldPos.x, tileWorldPos.y, Camera.main.transform.position.z);
-                Camera.main.transform.DOMove(targetPosition, 0.5f).SetEase(Ease.OutQuad);
+                Camera.main.transform.DOMove(targetPosition, 0.2f).SetEase(Ease.OutQuad);
                 return;
             }
         }
