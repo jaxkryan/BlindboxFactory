@@ -7,6 +7,7 @@ using JetBrains.Annotations;
 using MyBox;
 using Script.Controller;
 using Script.Machine;
+using Script.Utils;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -71,12 +72,41 @@ namespace Script.HumanResource.Worker {
         public event Action onStopWorking = delegate { };
 
         [Header("Animation")] [SerializeField] private RuntimeAnimatorController _runtimeAnimator;
+        private SpriteRenderer _renderer;
         private static readonly int VerticalMovement = Animator.StringToHash("VerticalMovement");
         private static readonly int HorizontalMovement = Animator.StringToHash("HorizontalMovement");
         private static readonly int IsWorking = Animator.StringToHash("IsWorking");
         private static readonly int IsResting = Animator.StringToHash("IsResting");
         private static readonly int IsDining = Animator.StringToHash("IsDining");
+        private static readonly int OnWorkStateChanged = Animator.StringToHash("OnWorkStateChanged");
 
+        
+        private bool _isWorking;
+        private bool _isResting;
+        private bool _isDining;
+
+        private void SetBool(int hash, bool value) {
+            if (hash == IsWorking) {
+                if (_isWorking == value) return;
+                _isWorking = value;
+                Animator.SetBool(IsWorking, value);
+                Animator.SetTrigger(OnWorkStateChanged);
+            }
+
+            if (hash == IsResting) {
+                if (_isResting == value) return;
+                _isResting = value;
+                Animator.SetBool(IsResting, value);
+                Animator.SetTrigger(OnWorkStateChanged);
+            }
+
+            if (hash == IsDining) {
+                if (_isDining == value) return;
+                _isDining = value;
+                Animator.SetBool(IsDining, value);
+                Animator.SetTrigger(OnWorkStateChanged);
+            }
+        }
         public Animator Animator {
             get => GetComponent<Animator>();
         }
@@ -84,6 +114,7 @@ namespace Script.HumanResource.Worker {
         public NavMeshAgent Agent {
             get => GetComponent<NavMeshAgent>();
         }
+        
 
         public void UpdateCore(CoreType core, float amount, bool trigger = true) {
             var current = _currentCores[core];
@@ -110,46 +141,55 @@ namespace Script.HumanResource.Worker {
                 return;
             }
 
-            Animator.SetBool(IsWorking, true);
+            SetBool(IsWorking, true);
             var controller = GameController.Instance.MachineController;
-            //Get prefab name of the working machine
-            var prefabName = slot.Machine.PrefabName;
-            //Get the prefab
-            var prefab = controller.Buildables.Find(prefab => prefab.Name == prefabName)?.gameObject;
-            if (prefab != null && prefab.TryGetComponent<MachineBase>(out var recoveryMachine)) {
-                //Check if prefab is a resting machine prefab
-                // var recovery = controller.RecoveryMachines.Any(m => m.Key.GetType() == recoveryMachine.GetType()) 
-                //     ? controller.RecoveryMachines.FirstOrDefault(m => m.Key.GetType() == recoveryMachine.GetType()) : new ();
-                // if (recovery is not null && recovery.Any(r => r.Worker == IWorker.ToWorkerType(this))) {
-                //     var r = recovery.Where(r => r.Worker == IWorker.ToWorkerType(this)).ToList();
-                //     //Check which core the prefab recover 
-                //     if (r.Any(re => re.Core == CoreType.Happiness)) Animator.SetBool(IsResting, true);
-                //     if (r.Any(re => re.Core == CoreType.Hunger)) Animator.SetBool(IsDining, true);
-                // }
-                if (controller.IsRecoveryMachine(recoveryMachine, out var forWorkers, out var recoveries)) { }
+
+            if (controller.IsRecoveryMachine(slot.Machine, this.ToWorkerType(), out var recoveries)) {
+                if (recoveries.Any(r => r.Core == CoreType.Happiness)) SetBool(IsResting, true);
+                else if (recoveries.Any(r => r.Core == CoreType.Hunger)) SetBool(IsDining, true);
             }
+            
+            
+            // //Get prefab name of the working machine
+            // var prefabName = slot.Machine.PrefabName;
+            // //Get the prefab
+            // var prefab = controller.Buildables.Find(prefab => prefab.Name == prefabName)?.gameObject;
+            // if (prefab != null && prefab.TryGetComponent<MachineBase>(out var recoveryMachine)) {
+            //     //Check if prefab is a resting machine prefab
+            //     // var recovery = controller.RecoveryMachines.Any(m => m.Key.GetType() == recoveryMachine.GetType()) 
+            //     //     ? controller.RecoveryMachines.FirstOrDefault(m => m.Key.GetType() == recoveryMachine.GetType()) : new ();
+            //     // if (recovery is not null && recovery.Any(r => r.Worker == IWorker.ToWorkerType(this))) {
+            //     //     var r = recovery.Where(r => r.Worker == IWorker.ToWorkerType(this)).ToList();
+            //     //     //Check which core the prefab recover 
+            //     //     if (r.Any(re => re.Core == CoreType.Happiness)) Animator.SetBool(IsResting, true);
+            //     //     if (r.Any(re => re.Core == CoreType.Hunger)) Animator.SetBool(IsDining, true);
+            //     // }
+            //     if (controller.IsRecoveryMachine(recoveryMachine, out var forWorkers, out var recoveries)) { }
+            // }
 
 
             WorkingSlot = slot;
+            if (WorkingSlot?.FlipWorker ?? false) _renderer.flipX = true;
             Machine = slot.Machine;
             onWorking?.Invoke();
         }
 
         public virtual void StopWorking() {
-            if (Machine is null || WorkingSlot is null) {
-                Debug.LogError($"{Name} is not working");
-                return;
-            }
+            // if (Machine is null || WorkingSlot is null) {
+            //     Debug.LogError($"{Name} is not working");
+            //     return;
+            // }
+            //
+            // if (!ReferenceEquals(WorkingSlot.CurrentWorker, this)) {
+            //     Debug.LogError($"Machine slot ({WorkingSlot.Machine}) is being worked by {Name}");
+            //     return;
+            // }
 
-            if (!ReferenceEquals(WorkingSlot.CurrentWorker, this)) {
-                Debug.LogError($"Machine slot ({WorkingSlot.Machine}) is being worked by {Name}");
-                return;
-            }
+            SetBool(IsWorking, false);
+            SetBool(IsDining, false);
+            SetBool(IsResting, false);
 
-            Animator.SetBool(IsWorking, false);
-            Animator.SetBool(IsDining, false);
-            Animator.SetBool(IsResting, false);
-
+            if (WorkingSlot?.FlipWorker ?? false) _renderer.flipX = false;
             WorkingSlot = null;
             Machine = null;
             onStopWorking?.Invoke();
@@ -180,6 +220,15 @@ namespace Script.HumanResource.Worker {
                     _currentCores.Add(coreType, _startingCores[coreType]);
                 }
             }
+            
+            if (!TryGetComponent(out _renderer)) throw new MissingComponentException(nameof(SpriteRenderer));
+
+            Animator.SetBool(IsWorking, false);
+            Animator.SetBool(IsResting, false);
+            Animator.SetBool(IsDining, false);
+            SetBool(IsWorking, false);
+            SetBool(IsResting, false);
+            SetBool(IsDining, false);
         }
 
         private void OnValidate() {
@@ -193,9 +242,11 @@ namespace Script.HumanResource.Worker {
 
         private void Update() {
             _bonuses.ForEach(b => b.OnUpdate(Time.deltaTime));
-            
-            Animator.SetFloat(HorizontalMovement, Agent.velocity.x);
-            Animator.SetFloat(VerticalMovement, Agent.velocity.y);
+
+            if (!_isWorking) {
+                Animator.SetFloat(HorizontalMovement, Agent.velocity.x);
+                Animator.SetFloat(VerticalMovement, Agent.velocity.y);
+            }
             
             SetOrderInLayer();
         }

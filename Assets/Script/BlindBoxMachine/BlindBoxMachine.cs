@@ -40,6 +40,7 @@ public class BlindBoxMachine : MachineBase
 
     protected override void Start()
     {
+        _animator = GetComponent<Animator>();
         BlindBox nullbb = new BlindBox()
         {
             BoxTypeName = BoxTypeName.Null,

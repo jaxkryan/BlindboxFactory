@@ -411,7 +411,7 @@ Transform:
   m_GameObject: {fileID: 3816411639030502921}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.36, y: 0.23, z: 0}
+  m_LocalPosition: {x: -0.345, y: 0.002, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -431,6 +431,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _currentWorker: {fileID: 0}
   _wishListWorker: {fileID: 0}
+  _flipWorker: 1
   _wishlistTravelTimer: 100
   _forAll: 0
   _forWorker:
@@ -461,7 +462,7 @@ Transform:
   m_GameObject: {fileID: 3875017041318078822}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.69, y: 0.38, z: 0}
+  m_LocalPosition: {x: -0.77, y: 0.18, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -481,6 +482,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _currentWorker: {fileID: 0}
   _wishListWorker: {fileID: 0}
+  _flipWorker: 1
   _wishlistTravelTimer: 100
   _forAll: 1
   _forWorker:
@@ -734,7 +736,7 @@ Transform:
   m_GameObject: {fileID: 4293744376358838079}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.63, y: 0.38, z: 0}
+  m_LocalPosition: {x: 0.664, y: 0.162, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -754,6 +756,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _currentWorker: {fileID: 0}
   _wishListWorker: {fileID: 0}
+  _flipWorker: 0
   _wishlistTravelTimer: 100
   _forAll: 0
   _forWorker:
@@ -1219,7 +1222,7 @@ Transform:
   m_GameObject: {fileID: 7818295833473424606}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.3, y: 0.2, z: 0}
+  m_LocalPosition: {x: 0.229, y: -0.028, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1239,6 +1242,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _currentWorker: {fileID: 0}
   _wishListWorker: {fileID: 0}
+  _flipWorker: 0
   _wishlistTravelTimer: 100
   _forAll: 0
   _forWorker:
@@ -1252,12 +1256,12 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5063111946384183796}
-  - component: {fileID: 9120880716022912423}
   - component: {fileID: 7986783082072029475}
   - component: {fileID: 1518176329254882740}
   - component: {fileID: 7326187405951186412}
   - component: {fileID: 7022986040928576854}
   - component: {fileID: 1077516869655075795}
+  - component: {fileID: 7532129643327143774}
   m_Layer: 0
   m_Name: BoxProduceMachine
   m_TagString: BoxMachine
@@ -1282,28 +1286,6 @@ Transform:
   - {fileID: 2983779541962370661}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &9120880716022912423
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9159193123509703617}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 6618606420365350604, guid: 1ce2ebc03641be94eaa0db4a913e9643, type: 3}
-  m_CullingMode: 2
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &7986783082072029475
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1393,37 +1375,37 @@ MonoBehaviour:
       data:
         _resource: 3
         _amount: 1
-        Machine: {fileID: 0}
+        Machine: {fileID: 7986783082072029475}
     - rid: 7910668519338934395
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 2
         _amount: 1
-        Machine: {fileID: 0}
+        Machine: {fileID: 7986783082072029475}
     - rid: 7910668519338934396
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 4
         _amount: 1
-        Machine: {fileID: 0}
+        Machine: {fileID: 7986783082072029475}
     - rid: 7910668519338934397
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 7
         _amount: 1
-        Machine: {fileID: 0}
+        Machine: {fileID: 7986783082072029475}
     - rid: 7910668519338934398
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 5
         _amount: 1
-        Machine: {fileID: 0}
+        Machine: {fileID: 7986783082072029475}
     - rid: 7910668519338934399
       type: {class: ResourceUseOnProductCreated, ns: Script.Machine.ResourceManager, asm: Assembly-CSharp}
       data:
         _resource: 6
         _amount: 1
-        Machine: {fileID: 0}
+        Machine: {fileID: 7986783082072029475}
     - rid: 7910668632747933989
       type: {class: BlindBox, ns: , asm: Assembly-CSharp}
       data:
@@ -1480,7 +1462,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 1500431959337469658, guid: 1ce2ebc03641be94eaa0db4a913e9643, type: 3}
+  m_Sprite: {fileID: -8809949678940330972, guid: 5f39483baf8ab53418aff59992fda8be, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -1528,8 +1510,8 @@ PolygonCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0}
-    oldSize: {x: 1.936, y: 2.012}
+    pivot: {x: 0.5015544, y: -0.0009832842}
+    oldSize: {x: 1.93, y: 2.034}
     newSize: {x: 9.68, y: 9.83}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -1724,8 +1706,8 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 1.006}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0}
-    oldSize: {x: 1.936, y: 2.012}
+    pivot: {x: 0.5015544, y: -0.0009832842}
+    oldSize: {x: 1.93, y: 2.034}
     newSize: {x: 9.68, y: 9.83}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -1751,3 +1733,25 @@ MonoBehaviour:
   uiAmount: {fileID: 8070454391013840198}
   textAmount: {fileID: 1607429523272748047}
   blindBoxMachine: {fileID: 7986783082072029475}
+--- !u!95 &7532129643327143774
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9159193123509703617}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 788c0bceed2972644ae811f21655b78c, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

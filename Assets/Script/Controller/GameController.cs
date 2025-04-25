@@ -5,8 +5,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using GooglePlayGames;
-using GooglePlayGames.BasicApi;
 using JetBrains.Annotations;
 using MyBox;
 using NavMeshPlus.Components;
@@ -24,11 +22,9 @@ using UnityEngine.Android;
 using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
 
-namespace Script.Controller
-{
+namespace Script.Controller {
     [RequireComponent(typeof(UnityMainThreadDispatcher))]
-    public class GameController : PersistentSingleton<GameController>
-    {
+    public class GameController : PersistentSingleton<GameController> {
         public MachineController MachineController = new();
         public BoxController BoxController = new();
         public WorkerController WorkerController = new();
@@ -49,15 +45,14 @@ namespace Script.Controller
         public TileBase GroundTile;
         public PlayerData PlayerData;
 
-        [Space]
-        [Header("Save")]
-        private string _googlePlayId;
-        [SerializeField]
+        [Space] [Header("Save")] [SerializeField]
         public bool HasSaveTimer;
-        [ConditionalField(nameof(HasSaveTimer))]
-        [SerializeField]
-        [Min(0.1f)]
+
+        [SerializeField] private bool _enableCloudSave;
+
+        [ConditionalField(nameof(HasSaveTimer))] [SerializeField] [Min(0.1f)]
         public float MinutesBetweenSave = 5f;
+
         [SerializeField] private int _maxSavesCount = 10;
         public SaveManager SaveManager;
         private Timer _saveTimer;
@@ -71,9 +66,9 @@ namespace Script.Controller
         public DateTime SessionStartTime { get; private set; } = DateTime.MinValue;
         public event Action onTutorialCompleted = delegate { };
 
-        [Space]
-        [Header("Log")]
-        [SerializeField] private bool _log;
+        [Space] [Header("Log")] [SerializeField]
+        private bool _log;
+
         public bool Log => _log;
 
 
@@ -86,30 +81,27 @@ namespace Script.Controller
                 .Select(fieldInfo => (ControllerBase)fieldInfo.GetValue(this))
                 .ToList();
 
-        protected override void Awake()
-        {
+        protected override void Awake() {
             base.Awake();
             _controllers.ForEach(c => c.OnAwake());
+            SaveManager = new();
             PermissionHandler.RequestPermissionIfNeeded(Permission.ExternalStorageWrite);
             PermissionHandler.RequestPermissionIfNeeded(Permission.ExternalStorageRead);
             var dispatcher = UnityMainThreadDispatcher.Instance;
             var pool = WorkerPooling.Instance;
         }
 
-        public void BuildNavMesh()
-        {
+        public void BuildNavMesh() {
             if (!Application.isPlaying) return;
             if (Log) Debug.Log("Rebuilding NavMesh");
             Physics2D.SyncTransforms();
             NavMeshSurface.BuildNavMesh();
         }
 
-        public void FinishTutorial()
-        {
+        public void FinishTutorial() {
             CompletedTutorial = true;
             if (!SaveManager.TryGetValue(nameof(CompletedTutorial), out string completedTutorialString)
-                || completedTutorialString == bool.FalseString)
-            {
+                || completedTutorialString == bool.FalseString) {
                 onTutorialCompleted?.Invoke();
             }
         }
@@ -118,23 +110,21 @@ namespace Script.Controller
 
         private void OnApplicationQuit() => _controllers.ForEach(c => c.OnApplicationQuit());
 
-        private void OnEnable()
-        {
+        private void OnEnable() {
             _controllers.ForEach(c => c.OnEnable());
             if (_isSubbed) return;
             Subscribe();
         }
 
-        private void OnDisable()
-        {
+        private void OnDisable() {
             _controllers.ForEach(c => c.OnDisable());
             if (!_isSubbed) return;
             Unsubscribe();
         }
 
         bool _isSubbed = false;
-        private void Subscribe()
-        {
+
+        private void Subscribe() {
             _isSubbed = true;
             onTutorialCompleted += InitiateSave;
             MachineController.onMachineAdded += InitiateSave;
@@ -147,8 +137,7 @@ namespace Script.Controller
             if (!CompletedTutorial) onTutorialCompleted += StopIgnoreCommissionOnTutorialCompleted;
         }
 
-        private void Unsubscribe()
-        {
+        private void Unsubscribe() {
             _isSubbed = false;
             onTutorialCompleted -= InitiateSave;
             MachineController.onMachineAdded -= InitiateSave;
@@ -161,8 +150,7 @@ namespace Script.Controller
             onTutorialCompleted -= StopIgnoreCommissionOnTutorialCompleted;
         }
 
-        void StopIgnoreCommissionOnTutorialCompleted()
-        {
+        void StopIgnoreCommissionOnTutorialCompleted() {
             onTutorialCompleted -= StopIgnoreCommissionOnTutorialCompleted;
 
             if (CommissionController.IgnoreEmptyCommissions) CommissionController.IgnoreEmptyCommissions = false;
@@ -173,28 +161,23 @@ namespace Script.Controller
         private void InitiateSave(string obj) => InitiateSave();
         private void InitiateSave(Commission.Commission obj) => InitiateSave();
         private void InitiateSave(Quest.Quest obj) => InitiateSave();
-        private void InitiateSave()
-        {
+
+        private void InitiateSave() {
             StartCoroutine(Save(SaveManager).AsCoroutine());
         }
 
-        private IEnumerator Start()
-        {
-            if (HasSaveTimer)
-            {
+        private IEnumerator Start() {
+            if (HasSaveTimer) {
                 _saveTimer = new CountdownTimer(MinutesBetweenSave * 60);
                 _saveTimer.Start();
                 _saveTimer.OnTimerStop += () => StartCoroutine(OnSaveTimerOnTimerStop(SaveManager).AsCoroutine());
             }
 
             //Retrieve changes to the ground tilemap 
-            Tilemap.tilemapTileChanged += (tilemap, tiles) =>
-            {
+            Tilemap.tilemapTileChanged += (tilemap, tiles) => {
                 if (tilemap is null) return;
-                if (tilemap == Ground)
-                {
-                    foreach (var tile in tiles)
-                    {
+                if (tilemap == Ground) {
+                    foreach (var tile in tiles) {
                         if (tile.tile is null) GroundAddedTiles.Remove(tile.position.ToVector2Int());
                         else GroundAddedTiles.Add(tile.position.ToVector2Int());
                     }
@@ -203,30 +186,42 @@ namespace Script.Controller
 
             _controllers.ForEach(c => c.OnStart());
             Application.wantsToQuit += WantsToQuit;
-            PlayGamesPlatform.Activate();
-            SignInToGooglePlay();
-            //StartCoroutine(LoadThenStartSession()); SignInToGooglePlay se goi cai nay
+            StartCoroutine(LoadThenStartSession());
             BuildNavMesh();
             yield break;
 
 
-            
+            IEnumerator LoadThenStartSession() {
+                yield return StartCoroutine(LoadOnStart(SaveManager).AsCoroutine());
+                StartNewSession();
+            }
 
-            async Task OnSaveTimerOnTimerStop(SaveManager saveManager)
-            {
+            async Task LoadOnStart(SaveManager saveManager) {
+                await Load(saveManager);
+            }
+
+            void StartNewSession() {
+                if (SessionId is null) {
+                    SessionId = Guid.NewGuid().ToString();
+                    SessionCount++;
+                    SessionStartTime = DateTime.UtcNow;
+                }
+            }
+
+            async Task OnSaveTimerOnTimerStop(SaveManager saveManager) {
                 InitiateSave();
                 _saveTimer.Start();
             }
         }
 
         #region Quiting
+
         private bool _isSaving = false;
         private bool _quitNow = false;
-        private bool WantsToQuit()
-        {
+
+        private bool WantsToQuit() {
             if (_quitNow) return true;
-            if (_isSaving)
-            {
+            if (_isSaving) {
                 if (Log) Debug.Log("Quit requested, but save is in progress.");
                 return false; // Block quitting while saving
             }
@@ -235,12 +230,10 @@ namespace Script.Controller
             return false; //Hold quitting until save finishes
         }
 
-        private IEnumerator SaveAndQuit()
-        {
+        private IEnumerator SaveAndQuit() {
             if (Log) Debug.Log("Save and quiting.");
 
-            if (_isSaving)
-            {
+            if (_isSaving) {
                 if (Log) Debug.Log("Save already in progress.");
                 yield break;
             }
@@ -261,19 +254,18 @@ namespace Script.Controller
         UnityEngine.Application.Quit();
 #endif
         }
+
         #endregion
 
         private float _playtimeTimer = 0;
-        private void Update()
-        {
+
+        private void Update() {
             _controllers.ForEach(c => c.OnUpdate(Time.deltaTime));
             _saveTimer?.Tick(Time.deltaTime);
 
-            if (SessionId != null)
-            {
+            if (SessionId != null) {
                 _playtimeTimer += Time.deltaTime;
-                if (_playtimeTimer > 1)
-                {
+                if (_playtimeTimer > 1) {
                     _playtimeTimer -= 1;
                     TotalPlaytime++;
                     SessionPlaytime++;
@@ -286,82 +278,59 @@ namespace Script.Controller
         private bool _isLoading = false;
         private bool _queueingSave = false;
 
-        private async Task Load(SaveManager saveManager)
-        {
+        private async Task Load(SaveManager saveManager) {
             _isLoading = true;
-            await saveManager.LoadFromFirebase();
+            await SaveManager.LoadFromLocal();
+            if (_enableCloudSave) await SaveManager.LoadFromCloud();
+            if (_enableCloudSave) await SaveManager.LoadFromFirebase();
 
-            try
-            {
-                if (saveManager.TryGetValue(nameof(PlayerData), out string playerDataString))
-                {
-                    PlayerData = SaveManager.Deserialize<PlayerData>(playerDataString);
-                    if (PlayerData.Id != _googlePlayId)
-                    {
-                        Debug.LogWarning("Player ID mismatch. Updating to current Google Play ID.");
-                        PlayerData.Id = _googlePlayId;
-                    }
-                    // Update LastLogin only
-                    PlayerData.LastLogin = DateTime.Now;
-                }
-                else
-                {
-                    // First-time login
-                    PlayerData = new PlayerData(_googlePlayId);
-                }
+            try {
                 #region Game Controller's own save
 
-                if (saveManager.TryGetValue(nameof(SessionCount), out string sessionCountString))
-                {
+                if (saveManager.TryGetValue(nameof(SessionCount), out string sessionCountString)) {
                     if (int.TryParse(sessionCountString, out var sessionCount)) SessionCount = sessionCount;
                 }
-                if (saveManager.TryGetValue(nameof(CompletedTutorial), out string completedTutorialString))
-                {
+
+                if (saveManager.TryGetValue(nameof(CompletedTutorial), out string completedTutorialString)) {
                     CompletedTutorial = completedTutorialString == bool.TrueString;
                     if (!CompletedTutorial) CommissionController.IgnoreEmptyCommissions = true;
                 }
-                if (saveManager.TryGetValue(nameof(TotalPlaytime), out string totalPlaytimeString))
-                {
-                    if (long.TryParse(totalPlaytimeString, out var totalPlaytime))
-                    {
-                        if (!saveManager.TryGetValue(nameof(SessionId), out var saveSessionId)) TotalPlaytime += totalPlaytime;
+
+                if (saveManager.TryGetValue(nameof(TotalPlaytime), out string totalPlaytimeString)) {
+                    if (long.TryParse(totalPlaytimeString, out var totalPlaytime)) {
+                        if (!saveManager.TryGetValue(nameof(SessionId), out var saveSessionId))
+                            TotalPlaytime += totalPlaytime;
                         TotalPlaytime = saveSessionId == SessionId ? TotalPlaytime : totalPlaytime + TotalPlaytime;
                     }
                 }
 
-                if (saveManager.TryGetValue(nameof(HasSaveTimer), out string hasSaveTimerString))
-                {
+                if (saveManager.TryGetValue(nameof(HasSaveTimer), out string hasSaveTimerString)) {
                     HasSaveTimer = hasSaveTimerString == bool.TrueString;
                 }
 
-                if (saveManager.TryGetValue(nameof(MinutesBetweenSave), out string minutesBetweenSaveString))
-                {
+                if (saveManager.TryGetValue(nameof(MinutesBetweenSave), out string minutesBetweenSaveString)) {
                     if (float.TryParse(minutesBetweenSaveString, out var minutesBetweenSave))
                         MinutesBetweenSave = minutesBetweenSave;
                 }
 
-                if (saveManager.TryGetValue(nameof(GroundAddedTiles), out string groundAddedTilesString))
-                {
+                if (saveManager.TryGetValue(nameof(GroundAddedTiles), out string groundAddedTilesString)) {
                     var list = SaveManager.Deserialize<List<V2Int>>(groundAddedTilesString);
 
                     list.Select(v => (Vector2Int)v).ForEach(v => Ground.SetTile(v.ToVector3Int(), GroundTile));
                 }
 
-                //if (saveManager.TryGetValue(nameof(PlayerData), out string playerDataString))
-                //{
-                //    PlayerData = SaveManager.Deserialize<PlayerData>(playerDataString);
-                //}
+                if (saveManager.TryGetValue(nameof(PlayerData), out string playerDataString)) {
+                    PlayerData = SaveManager.Deserialize<PlayerData>(playerDataString);
+                }
 
                 #endregion
 
-                _controllers.ForEach(c =>
-                {
+                _controllers.ForEach(c => {
                     if (Log) Debug.Log($"Loading {c.GetType().Name}");
                     c.Load(saveManager);
                 });
             }
-            catch (System.Exception ex)
-            {
+            catch (System.Exception ex) {
                 Debug.LogError(ex);
                 ex.RaiseException();
             }
@@ -369,46 +338,11 @@ namespace Script.Controller
             _isLoading = false;
             if (_queueingSave) InitiateSave();
         }
-        private void SignInToGooglePlay()
-        {
-            PlayGamesPlatform.Instance.Authenticate(status =>
-            {
-                if (status == SignInStatus.Success)
-                {
-                    _googlePlayId = PlayGamesPlatform.Instance.GetUserId();
-                    //Debug.Log($"Signed in as {_googlePlayId}");
-                    SaveManager = new SaveManager(_googlePlayId); // Initialize SaveManager with Google Play ID
-                    StartCoroutine(LoadThenStartSession());
-                }
-                else
-                {
-                    //Debug.LogError("Failed to sign in to Google Play Games.");
-                }
-            });
-
-            IEnumerator LoadThenStartSession()
-            {
-                yield return StartCoroutine(LoadOnStart(SaveManager).AsCoroutine());
-                StartNewSession();
-            }
-            async Task LoadOnStart(SaveManager saveManager) { await Load(saveManager); }
-
-            void StartNewSession()
-            {
-                if (SessionId is null)
-                {
-                    SessionId = Guid.NewGuid().ToString();
-                    SessionCount++;
-                    SessionStartTime = DateTime.UtcNow;
-                }
-            }
-        }
 
         private bool _saveInitialized = false;
-        private async Task Save(SaveManager saveManager)
-        {
-            if (_isLoading || _saveInitialized)
-            {
+
+        private async Task Save(SaveManager saveManager) {
+            if (_isLoading || _saveInitialized) {
                 _queueingSave = true;
                 if (_log) Debug.Log("Loading in progress.");
                 return;
@@ -416,34 +350,39 @@ namespace Script.Controller
 
             _saveInitialized = true;
             _queueingSave = false;
-            try
-            {
-                _controllers.ForEach(c =>
-                {
+            try {
+                _controllers.ForEach(c => {
                     if (Log) Debug.Log($"Saving {c.GetType().Name}");
                     c.Save(saveManager);
                 });
 
+
                 #region Game Controller's own save
-                saveManager.AddOrUpdate(nameof(PlayerData), SaveManager.Serialize(PlayerData));
+
                 saveManager.AddOrUpdate(nameof(SessionCount), SessionCount.ToString());
                 saveManager.AddOrUpdate(nameof(TotalPlaytime), TotalPlaytime.ToString());
                 saveManager.AddOrUpdate(nameof(SessionPlaytime), SessionPlaytime.ToString());
                 saveManager.AddOrUpdate(nameof(SessionId), SessionId);
                 saveManager.AddOrUpdate(nameof(SessionStartTime), SessionStartTime.Ticks.ToString());
-                saveManager.AddOrUpdate(nameof(CompletedTutorial), CompletedTutorial ? bool.TrueString : bool.FalseString);
+                saveManager.AddOrUpdate(nameof(CompletedTutorial),
+                    CompletedTutorial ? bool.TrueString : bool.FalseString);
                 saveManager.AddOrUpdate(nameof(HasSaveTimer), HasSaveTimer ? bool.TrueString : bool.FalseString);
-                saveManager.AddOrUpdate(nameof(MinutesBetweenSave), MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
-                saveManager.AddOrUpdate(nameof(GroundAddedTiles), SaveManager.Serialize(GroundAddedTiles.Select(t => new V2Int(t)).ToList()));
+                saveManager.AddOrUpdate(nameof(MinutesBetweenSave),
+                    MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
+                saveManager.AddOrUpdate(nameof(GroundAddedTiles),
+                    SaveManager.Serialize(GroundAddedTiles.Select(t => new V2Int(t)).ToList()));
+                saveManager.AddOrUpdate(nameof(PlayerData), SaveManager.Serialize(PlayerData));
+
                 #endregion
             }
-            catch (System.Exception e)
-            {
+            catch (System.Exception e) {
                 Debug.LogWarning(e);
                 e.RaiseException();
             }
 
-            await saveManager.SaveToFirebase();
+            await SaveManager.SaveToLocal();
+            if (_enableCloudSave) await SaveManager.SaveToCloud();
+            if (_enableCloudSave) await SaveManager.SaveToFirebase();
             _saveInitialized = false;
         }
     }

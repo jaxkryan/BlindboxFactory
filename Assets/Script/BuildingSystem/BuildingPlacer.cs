@@ -37,7 +37,7 @@ namespace BuildingSystem
 
         private bool isTouching = false;
         private float touchStartTime;
-        private const float maxTouchDuration = 0.2f;
+        private const float maxTouchDuration = 0.6f;
 
         private void Update()
         {

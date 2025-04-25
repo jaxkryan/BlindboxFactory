@@ -43,7 +43,7 @@ public class WorkStrategy : IActionStrategy {
         _worker.onCoreChanged += ConsiderStopWorking;
         _slot.Machine.onCreateProduct += ConsiderStopWorking;
         _slot.Machine.onMachineCloseStatusChanged += ConsiderStopWorkingOnCloseStatusChanged;
-        _slot.Machine.onMachineDisabled += ConsiderStopWorking;
+        _slot.Machine.onMachineDestroyed += StopWorking;
 
         _worker.onStopWorking += Unsubscribe;
     }
@@ -52,7 +52,7 @@ public class WorkStrategy : IActionStrategy {
         _slot.Machine.onCreateProduct -= ConsiderStopWorking;
         _worker.onCoreChanged -= ConsiderStopWorking;
         _slot.Machine.onMachineCloseStatusChanged -= ConsiderStopWorking;
-        _slot.Machine.onMachineDisabled -= ConsiderStopWorking;
+        _slot.Machine.onMachineDestroyed -= StopWorking;
 
         _worker.onStopWorking -= Unsubscribe;
     }
@@ -83,26 +83,34 @@ public class WorkStrategy : IActionStrategy {
         //     StopWorking();
         //     return;
         // }
+        
 
         if (_slot?.Machine is null) {
             StopWorking();
             return;
         }
-        else Debug.LogWarning("Machine is not null");
+        // else Debug.LogWarning("Machine is not null");
 
+        if (!isProductCreate) {
+            if (_slot.Machine.IsClosed) {
+                StopWorking();
+                return;
+            }
+        }
+        
         if (!_slot.Machine.IsWorkable || !_slot.Machine.gameObject.activeInHierarchy ||
             !GameController.Instance.MachineController.Machines.Contains(_slot.Machine)) {
             StopWorking();
             return;
         }
-        else Debug.LogWarning("Machine is workable and active ");
+        // else Debug.LogWarning("Machine is workable and active ");
 
         //For bb machines
         if (_slot.Machine is BlindBoxMachine bbMachine && bbMachine.amount <= 0) {
             StopWorking();
             return;
         }
-        else Debug.LogWarning("Machine is not bb machine");
+        // else Debug.LogWarning("Machine is not bb machine");
 
         var controller = GameController.Instance.MachineController;
         var workerNeeds
@@ -110,24 +118,24 @@ public class WorkStrategy : IActionStrategy {
               new();
         if (!controller.IsRecoveryMachine(_slot.Machine, out var forWorkers, out var recovery) &&
             !forWorkers.Contains(_worker.ToWorkerType())) {
-            Debug.LogWarning("Machine is normal machine");
+            // Debug.LogWarning("Machine is normal machine");
             //For normal machines
             if (_worker.CurrentCores.Any(c => c.Value <= workerNeeds.GetValueOrDefault(c.Key))) {
                 StopWorking();
                 return;
             }
-            else Debug.LogWarning("Worker core not depleted");
+            // else Debug.LogWarning("Worker core not depleted");
         }
         else {
-            Debug.LogWarning("Machine is recovering machine");
+            // Debug.LogWarning("Machine is recovering machine");
             //For recovering machines
             var recoveringCore = recovery.Select(r => r.Core);
-            if (_worker.CurrentCores.All(c =>
+            if (_worker.CurrentCores.Where(c => recoveringCore.Contains(c.Key)).All(c =>
                     recoveringCore.Contains(c.Key) && c.Value >= _worker.MaximumCore[c.Key])) {
                 StopWorking();
                 return;
             }
-            else Debug.LogWarning("Worker core not filled");
+            // else Debug.LogWarning("Worker core not filled");
         }
     }
 
@@ -136,6 +144,7 @@ public class WorkStrategy : IActionStrategy {
     }
 
     public void Stop() {
+            // Debug.LogWarning("Work strategy stopped!");
         _worker.Director.TargetSlot = null;
         _worker.Agent.enabled = true;
         var outPos = _worker.transform.position;
@@ -145,6 +154,7 @@ public class WorkStrategy : IActionStrategy {
                      (Vector3.Distance(_slot.Machine.transform.position, _worker.transform.position));
             _slot.Machine.RemoveWorker(_worker);
         }
+        else _worker.StopWorking();
 
         if (NavMesh.SamplePosition(outPos, out var hit, float.MaxValue, NavMesh.AllAreas))
             _worker.Agent.Warp(hit.position);

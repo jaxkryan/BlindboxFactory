@@ -31,7 +31,7 @@ namespace Script.Machine {
         event Action onWorkerChanged;
         event Action<ProductBase> onCreateProduct;
         event Action<bool> onMachineCloseStatusChanged;
-        event Action onMachineDisabled;
+        event Action onMachineDestroyed;
         DateTimeOffset PlacedTime { get; } 
         Vector3 Position { get; }
     }
