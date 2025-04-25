@@ -121,8 +121,8 @@ namespace Script.HumanResource.Worker {
                 bf.AddBelief($"{_worker.Name}HasBonus: {bonus.Name}", () => condition.IsApplicable(_worker));
             });
             bf.AddBelief($"{_worker.Name}HasWorkingMachine", () => _workMachines(this).Any());
-            bf.AddBelief($"{_worker.Name}HasWorkableMachine", () => _workableMachines(this).Any());
-            bf.AddBelief($"{_worker.Name}HasNoWorkableMachine", () => !_workableMachines(this).Any());
+            bf.AddBelief($"{_worker.Name}HasWorkableMachine", () => _workableMachines(this).AsValueEnumerable().Any());
+            bf.AddBelief($"{_worker.Name}HasNoWorkableMachine", () => !_workableMachines(this).AsValueEnumerable().Any());
             bf.AddBelief($"{_worker.Name}WishListedAMachine",
                 () => GameController.Instance.MachineController.Machines.AsValueEnumerable().Any(m =>
                     m.Slots.AsValueEnumerable().Any(s => (Worker)s.WishListWorker == _worker)));
@@ -314,10 +314,10 @@ namespace Script.HumanResource.Worker {
                 .Build());
         }
 
-        Func<WorkerDirector, ValueEnumerable<Where<FromEnumerable<MachineBase>, MachineBase>, MachineBase>> _workableMachines = (director) =>
+        Func<WorkerDirector, IEnumerable<MachineBase>> _workableMachines = (director) =>
             GameController.Instance.MachineController.FindWorkableMachines(director._worker);
 
-        private Func<WorkerDirector, ValueEnumerable<Where<Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>,MachineBase>> _happinessRecoveryMachines = (director) => {
+        private Func<WorkerDirector, ValueEnumerable<Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>> _happinessRecoveryMachines = (director) => {
             // var list = new List<MachineBase>();
             // list.AddRange(
             return GameController.Instance.MachineController
@@ -329,7 +329,7 @@ namespace Script.HumanResource.Worker {
             // return list;
         };
 
-        private Func<WorkerDirector, ValueEnumerable<Where<Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>,MachineBase>> _hungerRecoveryMachines = (director) => {
+        private Func<WorkerDirector, ValueEnumerable<Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>> _hungerRecoveryMachines = (director) => {
             // var list = new List<MachineBase>();
             // list.AddRange(
             return GameController.Instance.MachineController
@@ -340,13 +340,13 @@ namespace Script.HumanResource.Worker {
             // return list;
         };
 
-        private Func<WorkerDirector, ValueEnumerable<Concat<Where<Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>,Where<Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>,MachineBase>,MachineBase>> _recoveryMachines = (director) => 
+        private Func<WorkerDirector, ValueEnumerable<Concat<Where<FromEnumerable<MachineBase>,MachineBase>,Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>,MachineBase>> _recoveryMachines = (director) => 
             director._happinessRecoveryMachines.Invoke(director)
                 .Concat(director._hungerRecoveryMachines.Invoke(director));
 
 
-        Func<WorkerDirector, ValueEnumerable< Except<Where<FromEnumerable<MachineBase>,MachineBase>,Concat<Where<Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>,Where<Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>,MachineBase>,MachineBase>, MachineBase>> _workMachines = (director) => 
-            director._workableMachines.Invoke(director)
+        Func<WorkerDirector, ValueEnumerable<Except<FromEnumerable<MachineBase>,Concat<Where<FromEnumerable<MachineBase>,MachineBase>,Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>,MachineBase>, MachineBase>> _workMachines = (director) => 
+            director._workableMachines.Invoke(director).AsValueEnumerable()
                 .Except(
                     director._recoveryMachines.Invoke(director));
 

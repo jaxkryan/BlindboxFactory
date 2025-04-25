@@ -87,7 +87,7 @@ public abstract class GoapAgent : MonoBehaviour {
                     CurrentGoal = ActionPlan.AgentGoal;
                     if (_log)
                         Debug.Log(
-                            $"Goal: {CurrentGoal.Name} with {ActionPlan.Actions.Count} actions in plan ({string.Join(", ", ActionPlan.Actions.AsValueEnumerable().Select(a => a.Name))}).");
+                            $"Goal: {CurrentGoal.Name} with {ActionPlan.Actions.Count} actions in plan ({string.Join(", ", ActionPlan.Actions.AsValueEnumerable().Select(a => a.Name).ToList())}).");
                     CurrentAction = ActionPlan.Actions.Pop();
                     if (_log) Debug.Log($"Popped action: {CurrentAction.Name}");
                     // Verify all precondition effects are true
@@ -133,7 +133,7 @@ public abstract class GoapAgent : MonoBehaviour {
             goalsToCheck = new HashSet<AgentGoal>(Goals.AsValueEnumerable().Where(g => g.Priority > priorityLevel).ToHashSet());
         }
 
-        if (_log) Debug.Log($"Checking goals: {string.Join(", ", goalsToCheck.AsValueEnumerable().Select(a => a.Name))}");
+        if (_log) Debug.Log($"Checking goals: {string.Join(", ", goalsToCheck.AsValueEnumerable().Select(a => a.Name).ToList())}");
 
         var potentialPlan = _planner.Plan(this, goalsToCheck, _lastGoal);
         if (potentialPlan != null) {

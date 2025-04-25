@@ -42,11 +42,14 @@ namespace Script.Controller {
 
         public List<BuildableItem> Buildables {
             get {
-                var cat = Categories;
-                var ret = new List<BuildableItem>();
-                cat.ForEach(c => ret.AddRange(c.buildables));
-
-                return ret;
+                var list = new List<BuildableItem>();
+                list.Capacity = Categories.AsValueEnumerable().Select(c => c.buildables.Count).Sum();
+                foreach (var bi in Categories.AsValueEnumerable().Select(c => c.buildables.AsValueEnumerable())) {
+                    foreach (var b in bi) {
+                        list.Add(b);
+                    }
+                }
+                return list;
             }
         }
 
@@ -59,6 +62,7 @@ namespace Script.Controller {
 
             _constructionLayer = GameController.Instance.ConstructionLayer;
             _constructionLayer.TryGetComponent<ConstructionLayer>(out _constructionLayerScript);
+            _path = new();
         }
 
         private Tilemap _constructionLayer;
@@ -92,8 +96,8 @@ namespace Script.Controller {
 
         public bool IsRecoveryMachine(MachineBase machine, out List<WorkerType> forWorkers,
             out List<MachineCoreRecovery> recoveries) {
-            forWorkers = default;
-            recoveries = default;
+            forWorkers = null;
+            recoveries = null;
             if (machine.PrefabName == null) return false;
 
             var prefab = GetPrefab(machine);
@@ -140,7 +144,7 @@ namespace Script.Controller {
             onMachineRemoved?.Invoke(machine);
         }
 
-        public ValueEnumerable<Where<Where<FromEnumerable<MachineBase>, MachineBase>, MachineBase>, MachineBase>
+        public ValueEnumerable<Where<FromEnumerable<MachineBase>, MachineBase>, MachineBase>
             FindRecoveryMachine<TWorker>(CoreType core, TWorker worker = null)
             where TWorker : Worker {
 
@@ -161,29 +165,66 @@ namespace Script.Controller {
             //
             // return list;
 
-            return FindWorkableMachines(worker as Worker).Where(m =>
-                IsRecoveryMachine(m, out var workerType, out _) && workerType.Contains(IWorker.ToWorkerType(worker)));
+            var type = IWorker.ToWorkerType(worker);
+            return FindWorkableMachines(worker as Worker).AsValueEnumerable().Where(m =>
+                IsRecoveryMachine(m, out var workerType, out _) && workerType.AsValueEnumerable().Contains(type));
         }
 
-        public ValueEnumerable<Where<FromEnumerable<MachineBase>, MachineBase>, MachineBase> FindWorkableMachines(
-            [CanBeNull] Worker worker = null, [CanBeNull] IEnumerable<MachineBase> machines = null) {
-            return FindWorkableMachines(machines ?? _machines, worker);
-        }
+        // public IEnumerable<MachineBase>  FindWorkableMachines(
+        //     [CanBeNull] Worker worker = null, [CanBeNull] IEnumerable<MachineBase> machines = null) {
+        //     if (machines == null) return FindWorkableMachines(_machines, worker); 
+        //     return FindWorkableMachines(machines, worker);
+        // }
 
-        private ValueEnumerable<Where<FromEnumerable<MachineBase>, MachineBase>, MachineBase> FindWorkableMachines(
-            IEnumerable<MachineBase> machines, [CanBeNull] Worker worker = null) {
-            return machines.AsValueEnumerable().Where(m => m.IsWorkable
-                                                           && (worker == null
-                                                               ? m.Slots.AsValueEnumerable().Count() >
-                                                                 m.Workers.AsValueEnumerable().Count()
-                                                               : (m.Slots.AsValueEnumerable().Any(s =>
-                                                                   s.CanAddWorker(worker)
-                                                                   && worker.Agent.isOnNavMesh == true
-                                                                   && worker.Agent.CalculatePath(GetNavMeshHit(worker), new())
-                                                                   )))
-                                                           && m.Product is not NullProduct
-                                                           && m.Product is not BlindBox { BoxTypeName: BoxTypeName.Null }
-                                                           );
+        private NavMeshPath _path;
+        
+        public IEnumerable<MachineBase> FindWorkableMachines(
+            [CanBeNull] Worker worker = null, [CanBeNull]List<MachineBase> machines = null) {
+            if (machines == null) machines = _machines;
+            foreach (var m in _machines) {
+                yield return m;
+                if (!m.IsWorkable) continue;
+                if (m.Product is NullProduct) continue;
+                if (m.Product is BlindBox { BoxTypeName: BoxTypeName.Null }) continue;
+                if (worker == null) {
+                    if (m.Slots.AsValueEnumerable().Count() <=
+                        m.Workers.AsValueEnumerable().Count()) continue;
+                    yield return m;
+                }
+                else {
+                    if (!worker.Agent.isOnNavMesh) continue; 
+                    if (!worker.Agent.CalculatePath(GetNavMeshHit(worker), _path)) continue;
+                    
+                    var canAdd = false;
+                    foreach (var s in m.Slots.AsValueEnumerable()) {
+                        if (!s.CanAddWorker(worker)) continue;
+                        
+                        canAdd = true;
+                        break;
+                    }
+                    if (canAdd) 
+                        yield return m;
+                }
+            }
+            
+            
+            // return machines.AsValueEnumerable().Where(m => m.IsWorkable
+            //                                                && 
+            //                                                (worker == null
+            //                                                    ? 
+            //                                                    m.Slots.AsValueEnumerable().Count() >
+            //                                                      m.Workers.AsValueEnumerable().Count()
+            //                                                    : 
+            //                                                    (m.Slots.AsValueEnumerable().All(s =>
+            //                                                    !(s.CanAddWorker(worker)
+            //                                                     && worker.Agent.isOnNavMesh == true
+            //                                                     && worker.Agent.CalculatePath(GetNavMeshHit(worker),
+            //                                                         _path))
+            //                                                        ))
+            //                                                )
+            //                                                && m.Product is not NullProduct
+            //                                                && m.Product is not BlindBox { BoxTypeName: BoxTypeName.Null }
+            //                                                );
         }
 
         private Vector3 GetNavMeshHit(Worker worker) {
