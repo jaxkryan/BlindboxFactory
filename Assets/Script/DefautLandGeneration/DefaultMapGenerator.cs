@@ -103,6 +103,10 @@ public class DefaultMapGenerator : MonoBehaviour
         Debug.Log($"Leftmost tile at world pos: {leftMost}, cell pos: {leftMostCell}");
         Debug.Log($"Rightmost tile at world pos: {rightMost}, cell pos: {rightMostCell}");
 
+        leftMost.x = leftMost.x - 1;
+        leftMost.y = (float)(leftMost.y - 0.25);
+        rightMost.y = (float)(rightMost.y - 0.25);
+
         GameObject leftGround = Instantiate(leftGroundPrefab, leftMost, Quaternion.identity, this.transform);
         GameObject rightGround = Instantiate(rightGroundPrefab, rightMost, Quaternion.identity, this.transform);
 
