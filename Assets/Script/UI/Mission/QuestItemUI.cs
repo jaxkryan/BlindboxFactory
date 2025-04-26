@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using JetBrains.Annotations;
 using Script.Controller.Commission;
@@ -23,7 +24,7 @@ namespace Script.UI.Mission {
         
         public Quest.Quest Quest { get; set; }
 
-        public void UpdateQuestData() {
+        public void SetQuestData() {
             if (Quest == null) {
                 _name.text = "";
                 _description.text = "";
@@ -72,6 +73,12 @@ namespace Script.UI.Mission {
                 catch {
                     return _noRewardSprite;
                 }
+            }
+        }
+
+        private void OnDestroy() {
+            if (Quest != null) {
+                Quest.onQuestStateChanged -= OnQuesStateChanged;
             }
         }
 

@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace Script.UI.Mission {
     public class MissionHubUI : MonoBehaviour {
-        [SerializeField] [Range(1, 3)] private int _defaultPanelIndex = 1;
+        [SerializeField] [Range(1, 4)] private int _defaultPanelIndex = 1;
         [SerializeField] private TextMeshProUGUI _name;
         [SerializeField] private Image _background;
         [SerializeField] private GameObject _contentHolder;
@@ -27,12 +27,15 @@ namespace Script.UI.Mission {
         public void Open() {
             switch (_defaultPanelIndex) {
                 case 1:
-                    OpenCommissionPanel();
+                    OpenAvailableCommissionsPanel();
                     break;
                 case 2:
-                    OpenDailyMissionPanel();
+                    OpenCommissionPanel();
                     break;
                 case 3:
+                    OpenDailyMissionPanel();
+                    break;
+                case 4:
                     OpenQuestPanel();
                     break;
                 default:
@@ -136,7 +139,7 @@ namespace Script.UI.Mission {
                 var quest = Instantiate(_questPanel.ItemPrefab.gameObject, _contentHolder.transform);
                 if (quest.TryGetComponent<QuestItemUI>(out var item)) {
                     item.Quest = q;
-                    item.UpdateQuestData();
+                    item.SetQuestData();
                     return item;
                 }
                 else {
