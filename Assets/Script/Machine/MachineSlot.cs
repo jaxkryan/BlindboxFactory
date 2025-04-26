@@ -56,8 +56,13 @@ namespace Script.Machine {
 
         public bool CanAddWorker(Worker worker) {
             if (!Machine.IsWorkable) return false;
-            
-            return _forAll || _forWorker.Value.AsValueEnumerable().Count(w => w == worker.ToWorkerType()) > 0;
+            if (_forAll) return true;
+
+            var type = worker.ToWorkerType(); 
+            foreach (var workerType in _forWorker.Value) {
+                if (workerType == type) return true;
+            }
+            return false;
         }
         
         public bool SetWishlist([CanBeNull] Worker worker = null) {

@@ -7,7 +7,7 @@ using Script.Resources;
 using UnityEngine;
 
 namespace Script.Quest {
-    [CreateAssetMenu(menuName = "Quest/Condition/Resource Consumed Condition", fileName = "Resource Consumed Condition")]
+    [CreateAssetMenu(menuName = "Quest/Condition/Resource Gained Condition", fileName = "Resource Gained Condition")]
     public class ResourceGainedQuestCondition : QuestCondition {
         Func<Resource, string> keyName = (resource) => $"Gained{Enum.GetName(typeof(Resource), resource)}";
         

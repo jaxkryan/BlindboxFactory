@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Script.Quest;
 using TMPro;
@@ -13,8 +14,6 @@ namespace Script.UI.Mission {
         public Quest.Quest DailyMission { get; set; }
         
         public void UpdateQuestData() {
-            Debug.LogWarning($"Quest {DailyMission.Name}: {DailyMission.State}");
-
             if (DailyMission == null) {
                 _name.text = "";
                 _description.text = "";
@@ -29,16 +28,19 @@ namespace Script.UI.Mission {
             
             _name.text = DailyMission.Name;
             _description.text = DailyMission.Description;
-            _progress.text = isCompleted ? "isComplete" : string.Join("\n", DailyMission.Objectives.Select(p => p.Progress(DailyMission)));
+            _progress.text = isCompleted ? "" : string.Join("\n", DailyMission.Objectives.Select(p => p.Progress(DailyMission)));
             _tick.gameObject.SetActive(isCompleted);
             DailyMission.onQuestStateChanged += OnQuestStateChanged;
         }
 
-        private void OnQuestStateChanged(Quest.Quest quest, QuestState state) {
-            if (state == QuestState.Complete) {
-                Debug.Log($"Daily mission {DailyMission.Name} completed! Removing item.");
-                Destroy(gameObject);
+        private void OnDestroy() {
+            if (DailyMission != null) {
+                DailyMission.onQuestStateChanged -= OnQuestStateChanged;
             }
+        }
+
+        private void OnQuestStateChanged(Quest.Quest quest, QuestState state) {
+            if (quest == DailyMission) UpdateQuestData();
         }
     }
 }
