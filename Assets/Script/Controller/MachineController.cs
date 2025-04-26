@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using ZLinq;
 using AYellowpaper.SerializedCollections;
 using BuildingSystem;
@@ -49,6 +50,7 @@ namespace Script.Controller {
                         list.Add(b);
                     }
                 }
+
                 return list;
             }
         }
@@ -64,6 +66,40 @@ namespace Script.Controller {
             _constructionLayer.TryGetComponent<ConstructionLayer>(out _constructionLayerScript);
             _path = new();
         }
+
+        public override void OnStart() {
+            base.OnStart();
+
+            ResetRecoveryMachinesCache();
+        }
+
+        private void ResetRecoveryMachinesCache() {
+            _recoverMachinesCache.Clear();
+            foreach (var machine in _machines.AsValueEnumerable()) {
+                if (machine.PrefabName == null) continue;
+                var recoverable = RecoveryMachines.AsValueEnumerable()
+                    .Where(m => m.Key.Machine.Name == machine.PrefabName);
+                foreach (var r in recoverable) {
+                    if (_recoverMachinesCache.TryGetValue(machine, out var value)) {
+                        var mcr = (from core in r.Value
+                            from worker in r.Key.Worker
+                            select new MachineCoreRecovery() { Core = core, Worker = worker }).ToList();
+                        value.Recoveries.AddRange(mcr);
+                        value.ForWorker.AddRange(r.Key.Worker);
+                    }
+                    else {
+                        var mcr = (from core in r.Value
+                            from worker in r.Key.Worker
+                            select new MachineCoreRecovery() { Core = core, Worker = worker }).ToList();
+
+                        _recoverMachinesCache.Add(machine, (mcr, r.Key.Worker));
+                    }
+                }
+            }
+        }
+
+        private Dictionary<MachineBase, (List<MachineCoreRecovery> Recoveries, List<WorkerType> ForWorker)>
+            _recoverMachinesCache = new();
 
         private Tilemap _constructionLayer;
         private ConstructionLayer _constructionLayerScript;
@@ -98,34 +134,38 @@ namespace Script.Controller {
             out List<MachineCoreRecovery> recoveries) {
             forWorkers = null;
             recoveries = null;
-            if (machine.PrefabName == null) return false;
+            // if (machine.PrefabName == null) return false;
+            //
+            // var prefab = GetPrefab(machine);
+            // if (prefab is null) return false;
+            //
+            // var keys = RecoveryMachines.Keys?.AsValueEnumerable().Where(r => r.Machine == prefab) ?? new();
 
-            var prefab = GetPrefab(machine);
-            if (prefab is null) return false;
+            if (!_recoverMachinesCache.TryGetValue(machine, out var value)) return false;
+            forWorkers = value.ForWorker;
+            recoveries = value.Recoveries;
+            return true;
 
-            var keys = RecoveryMachines.Keys?.AsValueEnumerable().Where(r => r.Machine == prefab) ?? new();
-
-
-            recoveries = RecoveryMachines
-                .AsValueEnumerable()
-                .Where(r => keys.Contains(r.Key))
-                .Select(r => {
-                    var list = new List<MachineCoreRecovery>();
-                    foreach (var worker in r.Key.Worker) {
-                        foreach (var core in r.Value) {
-                            list.Add(new MachineCoreRecovery() { Worker = worker, Core = core });
-                        }
-                    }
-
-                    return list;
-                })
-                .Aggregate(new List<MachineCoreRecovery>(), (x, y) => x.AsValueEnumerable().Concat(y).ToList());
-            forWorkers = RecoveryMachines
-                .AsValueEnumerable()
-                .Where(r => keys.Contains(r.Key))
-                .Select(r => r.Key.Worker)
-                .Aggregate(new List<WorkerType>(), (x, y) => x.AsValueEnumerable().Concat(y).ToList());
-            return recoveries.Count > 0;
+            // recoveries = RecoveryMachines
+            //     .AsValueEnumerable()
+            //     .Where(r => keys.Contains(r.Key))
+            //     .Select(r => {
+            //         var list = new List<MachineCoreRecovery>();
+            //         foreach (var worker in r.Key.Worker) {
+            //             foreach (var core in r.Value) {
+            //                 list.Add(new MachineCoreRecovery() { Worker = worker, Core = core });
+            //             }
+            //         }
+            //
+            //         return list;
+            //     })
+            //     .Aggregate(new List<MachineCoreRecovery>(), (x, y) => x.AsValueEnumerable().Concat(y).ToList());
+            // forWorkers = RecoveryMachines
+            //     .AsValueEnumerable()
+            //     .Where(r => keys.Contains(r.Key))
+            //     .Select(r => r.Key.Worker)
+            //     .Aggregate(new List<WorkerType>(), (x, y) => x.AsValueEnumerable().Concat(y).ToList());
+            // return recoveries.Count > 0;
         }
 
         [CanBeNull]
@@ -136,18 +176,19 @@ namespace Script.Controller {
 
         public void AddMachine(MachineBase machine) {
             _machines.Add(machine);
+            ResetRecoveryMachinesCache();
             onMachineAdded?.Invoke(machine);
         }
 
         public void RemoveMachine(MachineBase machine) {
             _machines.Remove(machine);
+            ResetRecoveryMachinesCache();
             onMachineRemoved?.Invoke(machine);
         }
 
-        public ValueEnumerable<Where<FromEnumerable<MachineBase>, MachineBase>, MachineBase>
+        public ValueEnumerable<ListWhere<MachineBase>, MachineBase>
             FindRecoveryMachine<TWorker>(CoreType core, TWorker worker = null)
             where TWorker : Worker {
-
             // foreach (var machine in workableMachines) {
             //     var key = _recoverMachines.Keys.FirstOrDefault(k => k.GetType() == machine.GetType());
             //     if (key == null || !_recoverMachines.TryGetValue(key, out var recoveryInfo)) continue;
@@ -167,7 +208,9 @@ namespace Script.Controller {
 
             var type = IWorker.ToWorkerType(worker);
             return FindWorkableMachines(worker as Worker).AsValueEnumerable().Where(m =>
-                IsRecoveryMachine(m, out var workerType, out _) && workerType.AsValueEnumerable().Contains(type));
+                IsRecoveryMachine(m, out var workerType, out var recoveries)
+                && workerType.AsValueEnumerable().Contains(type)
+                && recoveries.AsValueEnumerable().Any(r => r.Core == core));
         }
 
         // public IEnumerable<MachineBase>  FindWorkableMachines(
@@ -177,37 +220,47 @@ namespace Script.Controller {
         // }
 
         private NavMeshPath _path;
-        
-        public IEnumerable<MachineBase> FindWorkableMachines(
-            [CanBeNull] Worker worker = null, [CanBeNull]List<MachineBase> machines = null) {
+
+        public List<MachineBase> FindWorkableMachines(
+            [CanBeNull] Worker worker = null, [CanBeNull] List<MachineBase> machines = null) {
             if (machines == null) machines = _machines;
+            var list = new List<MachineBase>(machines.Count);
             foreach (var m in _machines) {
-                yield return m;
                 if (!m.IsWorkable) continue;
                 if (m.Product is NullProduct) continue;
                 if (m.Product is BlindBox { BoxTypeName: BoxTypeName.Null }) continue;
                 if (worker == null) {
-                    if (m.Slots.AsValueEnumerable().Count() <=
-                        m.Workers.AsValueEnumerable().Count()) continue;
-                    yield return m;
+                    if (m.Slots.AsValueEnumerable().TryGetNonEnumeratedCount(out var count1) &&
+                        m.Workers.AsValueEnumerable().TryGetNonEnumeratedCount(out var count2)) {
+                        if (count1 <= count2) continue;
+                    }
+                    else {
+                        if (m.Slots.AsValueEnumerable().Count() <=
+                            m.Workers.AsValueEnumerable().Count()) continue;
+                    }
+
+                    list.Add(m);
                 }
                 else {
-                    if (!worker.Agent.isOnNavMesh) continue; 
+                    if (!worker.Agent.isOnNavMesh) continue;
                     if (!worker.Agent.CalculatePath(GetNavMeshHit(worker), _path)) continue;
-                    
+
                     var canAdd = false;
                     foreach (var s in m.Slots.AsValueEnumerable()) {
                         if (!s.CanAddWorker(worker)) continue;
-                        
+
                         canAdd = true;
                         break;
                     }
-                    if (canAdd) 
-                        yield return m;
+
+                    if (canAdd)
+                        list.Add(m);
                 }
+
             }
             
-            
+            return list;
+
             // return machines.AsValueEnumerable().Where(m => m.IsWorkable
             //                                                && 
             //                                                (worker == null
@@ -259,6 +312,8 @@ namespace Script.Controller {
             var redundantKeys = UnlockMachines.AsValueEnumerable()
                 .Where(m => Buildables.AsValueEnumerable().All(b => b.Name != m.Key)).Select(m => m.Key);
             redundantKeys.ForEach(k => _unlockMachines.Remove(k));
+
+            ResetRecoveryMachinesCache();
         }
 
         public override void Load(SaveManager saveManager) {

@@ -317,7 +317,7 @@ namespace Script.HumanResource.Worker {
         Func<WorkerDirector, IEnumerable<MachineBase>> _workableMachines = (director) =>
             GameController.Instance.MachineController.FindWorkableMachines(director._worker);
 
-        private Func<WorkerDirector, ValueEnumerable<Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>> _happinessRecoveryMachines = (director) => {
+        private Func<WorkerDirector, ValueEnumerable<ListWhere<MachineBase>,MachineBase>> _happinessRecoveryMachines = (director) => {
             // var list = new List<MachineBase>();
             // list.AddRange(
             return GameController.Instance.MachineController
@@ -329,7 +329,7 @@ namespace Script.HumanResource.Worker {
             // return list;
         };
 
-        private Func<WorkerDirector, ValueEnumerable<Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>> _hungerRecoveryMachines = (director) => {
+        private Func<WorkerDirector, ValueEnumerable<ListWhere<MachineBase>,MachineBase>> _hungerRecoveryMachines = (director) => {
             // var list = new List<MachineBase>();
             // list.AddRange(
             return GameController.Instance.MachineController
@@ -340,12 +340,12 @@ namespace Script.HumanResource.Worker {
             // return list;
         };
 
-        private Func<WorkerDirector, ValueEnumerable<Concat<Where<FromEnumerable<MachineBase>,MachineBase>,Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>,MachineBase>> _recoveryMachines = (director) => 
+        private Func<WorkerDirector, ValueEnumerable< Distinct<Concat<ListWhere<MachineBase>,ListWhere<MachineBase>,MachineBase>,MachineBase>,MachineBase>> _recoveryMachines = (director) => 
             director._happinessRecoveryMachines.Invoke(director)
-                .Concat(director._hungerRecoveryMachines.Invoke(director));
+                .Concat(director._hungerRecoveryMachines.Invoke(director)).Distinct();
 
 
-        Func<WorkerDirector, ValueEnumerable<Except<FromEnumerable<MachineBase>,Concat<Where<FromEnumerable<MachineBase>,MachineBase>,Where<FromEnumerable<MachineBase>,MachineBase>,MachineBase>,MachineBase>, MachineBase>> _workMachines = (director) => 
+        Func<WorkerDirector, ValueEnumerable< Except<FromEnumerable<MachineBase>,Distinct<Concat<ListWhere<MachineBase>,ListWhere<MachineBase>,MachineBase>,MachineBase>,MachineBase>, MachineBase>> _workMachines = (director) => 
             director._workableMachines.Invoke(director).AsValueEnumerable()
                 .Except(
                     director._recoveryMachines.Invoke(director));
