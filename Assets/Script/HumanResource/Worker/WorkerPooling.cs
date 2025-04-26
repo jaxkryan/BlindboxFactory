@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using AYellowpaper.SerializedCollections;
 using JetBrains.Annotations;
 using MyBox;
@@ -42,7 +42,7 @@ namespace Script.HumanResource.Worker {
         public List<Worker> GetAllWorkers(WorkerType workerType, bool refill = true) {
             if (IsPrefabMissing(workerType)) return new List<Worker>();
             var children = _workerPool;
-            var list = children.Where(w => w.ToWorkerType() == workerType).ToList();
+            var list = children.AsValueEnumerable().Where(w => w.ToWorkerType() == workerType).ToList();
 
             for (int i = 0; i < list.Count; i++) {
                 list[i].Director.AgentUpdateOrder = i;
@@ -52,14 +52,14 @@ namespace Script.HumanResource.Worker {
         }
 
         public List<Worker> GetReservedWorkers(WorkerType workerType)
-            => GetAllWorkers(workerType).Where(w => w.ToWorkerType() == workerType).ToList();
+            => GetAllWorkers(workerType).AsValueEnumerable().Where(w => w.ToWorkerType() == workerType).ToList();
 
         [CanBeNull]
         public Worker GetReservedWorker(WorkerType workerType) {
             SetReservedWorkers();
             var list = GetAllWorkers(workerType);
 
-            return list.Count == 0 ? null : list.FirstOrDefault(w => !w.gameObject.activeInHierarchy);
+            return list.Count == 0 ? null : list.AsValueEnumerable().FirstOrDefault(w => !w.gameObject.activeInHierarchy);
         }
 
         private void SetReservedWorkers() {
@@ -72,7 +72,7 @@ namespace Script.HumanResource.Worker {
                     continue;
                 }
 
-                var list = GetAllWorkers(key, false).Where(w => !w.gameObject.activeInHierarchy).ToList();
+                var list = GetAllWorkers(key, false).AsValueEnumerable().Where(w => !w.gameObject.activeInHierarchy).ToList();
                 //If reserved workers exceed maximum
                 if (list.Count > _maximumReservedSize) {
                     var worker = GetReservedWorker(key);

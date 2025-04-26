@@ -5,7 +5,6 @@ using UnityEngine.UI;
 using DG.Tweening;
 using Script.Gacha.Base;
 using System.Collections.Generic;
-using System.Linq;
 
 public class AdminSelectionUI : MonoBehaviour
 {
@@ -120,7 +119,7 @@ public class AdminSelectionUI : MonoBehaviour
             string policies = "";
             foreach (var p in admin.Policies)
             {
-                policies += $"• {p.Description}\n";
+                policies += $"ï¿½ {p.Description}\n";
             }
             policies = policies.TrimEnd('\n');
 

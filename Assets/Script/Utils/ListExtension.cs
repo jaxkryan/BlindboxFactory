@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ZLinq;
 using Script.Gacha.Machine;
 using Script.Machine;
 using Unity.VisualScripting;
@@ -60,7 +61,7 @@ public static class ListExtension {
     }
     
     public static bool IsNullOrEmpty<T>(this IList<T> list) {
-        return list == null || !list.Any();
+        return list == null || !(list.Count > 0);
     }
 
     public static void AddIfNew<T>(this List<T> list, T item) {

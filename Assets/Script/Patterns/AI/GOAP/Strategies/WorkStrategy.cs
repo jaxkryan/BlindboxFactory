@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using Script.Controller;
 using Script.HumanResource.Worker;
 using Script.Machine;
@@ -120,7 +120,7 @@ public class WorkStrategy : IActionStrategy {
             !forWorkers.Contains(_worker.ToWorkerType())) {
             // Debug.LogWarning("Machine is normal machine");
             //For normal machines
-            if (_worker.CurrentCores.Any(c => c.Value <= workerNeeds.GetValueOrDefault(c.Key))) {
+            if (_worker.CurrentCores.AsValueEnumerable().Any(c => c.Value <= workerNeeds.GetValueOrDefault(c.Key))) {
                 StopWorking();
                 return;
             }
@@ -129,8 +129,8 @@ public class WorkStrategy : IActionStrategy {
         else {
             // Debug.LogWarning("Machine is recovering machine");
             //For recovering machines
-            var recoveringCore = recovery.Select(r => r.Core);
-            if (_worker.CurrentCores.Where(c => recoveringCore.Contains(c.Key)).All(c =>
+            var recoveringCore = recovery.AsValueEnumerable().Select(r => r.Core);
+            if (_worker.CurrentCores.AsValueEnumerable().Where(c => recoveringCore.Contains(c.Key)).All(c =>
                     recoveringCore.Contains(c.Key) && c.Value >= _worker.MaximumCore[c.Key])) {
                 StopWorking();
                 return;

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using MyBox;
 using Newtonsoft.Json;
 using Script.Alert;
@@ -74,7 +74,7 @@ namespace Script.Controller {
 
             var newSave = new SaveData() {
                 LastUpdate = _lastUpdate,
-                DailyMissionsState = _dailyMissions?.Select(m => m.State).ToList() ?? new (),
+                DailyMissionsState = _dailyMissions?.AsValueEnumerable().Select(m => m.State).ToList() ?? new (),
             };
             
             

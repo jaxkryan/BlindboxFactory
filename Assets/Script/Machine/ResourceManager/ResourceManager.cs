@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
+using ZLinq;
 using Script.Controller;
 using Script.Machine.Machines.Canteen;
 using Script.Resources;
@@ -22,7 +22,7 @@ namespace Script.Machine.ResourceManager {
             _machine = machine;
         }
 
-        public void SetResourceUses(params ResourceUse[] uses) => _resourceUse = uses.ToList();
+        public void SetResourceUses(params ResourceUse[] uses) => _resourceUse = uses.AsValueEnumerable().ToList();
 
         public bool TryConsumeResources(int times, out int actualTimes) {
             actualTimes = 0;
@@ -109,7 +109,7 @@ namespace Script.Machine.ResourceManager {
         }
 
         public void UnlockResource() {
-            UnlockResource(LockedResources.Keys?.ToArray());
+            UnlockResource(LockedResources.Keys?.AsValueEnumerable().ToArray());
         }
 
         public void UnlockResource(params Resource[] resources) {
@@ -191,7 +191,7 @@ namespace Script.Machine.ResourceManager {
         public SaveData ToSaveData() =>
             new SaveData() {
                 LockedResources = _lockedResources,
-                ResourceUse = _resourceUse.Select(r => new IProduct.SaveData.ResourceUseData() {
+                ResourceUse = _resourceUse.AsValueEnumerable().Select(r => new IProduct.SaveData.ResourceUseData() {
                     Amount = r.Amount,
                     Resource = r.Resource,
                     IsResourceUseOnProductCreated = r.GetType().IsSubclassOf(typeof(ResourceUseOnProductCreated)),
@@ -206,7 +206,7 @@ namespace Script.Machine.ResourceManager {
 
             public ResourceManager ToResourceManager(MachineBase machine) => new ResourceManager(machine) {
                 _lockedResources = LockedResources,
-                _resourceUse = ResourceUse.Select(r => {
+                _resourceUse = ResourceUse.AsValueEnumerable().Select(r => {
                     var timer = new CountdownTimer(r.TimeInterval);
                     timer.Time = r.CurrentTime;
                     return r.IsResourceUseOnProductCreated

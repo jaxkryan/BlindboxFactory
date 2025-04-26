@@ -2,11 +2,12 @@ using System;
 using BuildingSystem.Models;
 using Exception;
 using System.Collections.Generic;
+using System.Linq;
 using Script.Machine;
 using UnityEngine;
 using Script.Controller;
 using Script.HumanResource.Worker;
-using System.Linq;
+using ZLinq;
 using Script.Machine.Machines.Canteen;
 
 namespace BuildingSystem {
@@ -162,12 +163,12 @@ namespace BuildingSystem {
 
         private void RemoveBuildingWorker(MachineBase machine)
         {
-            List<Worker> worker = GameController.Instance.WorkerSpawner.FindSpawnedWorkers(machine).ToList();
-            if (worker != null)
-            {
-                if(worker.Count > 0)
+            var worker = GameController.Instance.WorkerSpawner.FindSpawnedWorkers(machine);
+            if (worker != null) {
+                var workers = worker.AsValueEnumerable();
+                if(workers.Count() > 0)
                 {
-                    foreach(Worker w in worker)
+                    foreach(Worker w in workers)
                     {
                         GameController.Instance.WorkerSpawner.RemoveWorker(w);
                     }
@@ -211,14 +212,15 @@ namespace BuildingSystem {
             int number = machine.SpawnWorkers;
 
             // Find Wokers in the machine
-            List<Worker> workers = machine.Workers.ToList();
+            var workers = machine.Workers.ToList();
 
             if (workers.Count < number)
             {
                 number -= workers.Count;
 
                 // Find Resting Workers
-                List<Worker> restingWorkers = GameController.Instance.WorkerController.WorkerList
+                var restingWorkers = GameController.Instance.WorkerController.WorkerList
+                    .AsValueEnumerable()
                     .SelectMany(k => k.Value)
                     .Where(w => w.Machine == null)
                     .Take(number)
@@ -231,6 +233,7 @@ namespace BuildingSystem {
                 if (number > 0)
                 {
                     List<Worker> coreUpdateWorkers = GameController.Instance.WorkerController.WorkerList
+                        .AsValueEnumerable()
                         .SelectMany(k => k.Value)
                         .Where(w => w.Machine is Canteen || w.Machine is RestRoom)
                         .Take(number)

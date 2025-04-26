@@ -1,11 +1,11 @@
 // #nullable enable
-using System.Linq;
+using ZLinq;
 using JetBrains.Annotations;
 using MyBox;
 using Script.Controller;
 using Script.HumanResource.Worker;
+using Script.Utils;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Script.Machine {
     [DisallowMultipleComponent]
@@ -57,8 +57,7 @@ namespace Script.Machine {
         public bool CanAddWorker(Worker worker) {
             if (!Machine.IsWorkable) return false;
             
-            if (_forAll) return true;
-            return _forWorker.Value.Any(w => w == IWorker.ToWorkerType(worker));
+            return _forAll || _forWorker.Value.AsValueEnumerable().Count(w => w == worker.ToWorkerType()) > 0;
         }
         
         public bool SetWishlist([CanBeNull] Worker worker = null) {
