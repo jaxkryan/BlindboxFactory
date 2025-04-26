@@ -28,7 +28,7 @@ namespace Script.UI.Mission {
             
             _name.text = DailyMission.Name;
             _description.text = DailyMission.Description;
-            _progress.text = isCompleted ? "isComplete" : string.Join("\n", DailyMission.Objectives.Select(p => p.Progress(DailyMission)));
+            _progress.text = isCompleted ? "" : string.Join("\n", DailyMission.Objectives.Select(p => p.Progress(DailyMission)));
             _tick.gameObject.SetActive(isCompleted);
             DailyMission.onQuestStateChanged += OnQuestStateChanged;
         }
@@ -40,10 +40,7 @@ namespace Script.UI.Mission {
         }
 
         private void OnQuestStateChanged(Quest.Quest quest, QuestState state) {
-            if (state == QuestState.Complete) {
-                Debug.Log($"Daily mission {DailyMission.Name} completed! Removing item.");
-                Destroy(gameObject);
-            }
+            if (quest == DailyMission) UpdateQuestData();
         }
     }
 }

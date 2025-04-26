@@ -18,7 +18,7 @@ namespace Script.Controller {
         private List<Quest.Quest> _dailyMissions;
         
         public List<Quest.Quest> DailyMissions {
-            get => _dailyMissions ?? CreateDailyMissions();
+            get => _dailyMissions ?? CreateDailyMissions(true);
         }
 
         private List<Quest.Quest> CreateDailyMissions(bool save = false) {
@@ -33,6 +33,8 @@ namespace Script.Controller {
                 _dailyMissions?.ForEach(q => q.ClearQuestData());
                 _dailyMissions = list;
             }
+
+            list.ForEach(m => m.Evaluate());
             return list;
         }
 
@@ -42,7 +44,7 @@ namespace Script.Controller {
 
             if ((DateTime.Today <= _lastUpdate.Date || _resetTime.AsDateTime() > DateTime.Now)
                 && _dailyMissions is not null) return;
-            //CreateDailyMissions(true); //Tu add de debug clear
+            CreateDailyMissions(true); //Tu add de debug clear
             _lastUpdate = DateTime.Now;
         }
 

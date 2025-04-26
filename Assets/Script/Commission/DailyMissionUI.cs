@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Script.Quest;
-using ZLinq;
+using System.Linq;
 using Script.Controller;
 
 public class DailyMissionUI : MonoBehaviour
@@ -52,7 +52,7 @@ public class DailyMissionUI : MonoBehaviour
             {
                 Slider progressBar = missionItem.transform.Find("ProgressBar").GetComponent<Slider>();
                 float progress = mission.Objectives.Count > 0 ?
-                    mission.Objectives.AsValueEnumerable().Count(o => o.Evaluate(mission)) / (float)mission.Objectives.Count : 0;
+                    mission.Objectives.Count(o => o.Evaluate(mission)) / (float)mission.Objectives.Count : 0;
                 progressBar.value = progress;
             }
 

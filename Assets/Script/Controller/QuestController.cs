@@ -53,7 +53,7 @@ namespace Script.Controller {
             ActiveQuests(func).ForEach(q => q.Evaluate());
 
         private IEnumerable<Quest.Quest> ActiveQuests(Func<Quest.Quest, bool> func) =>
-            Quests.AsValueEnumerable().Where(q => q.State is QuestState.InProgress).Where(func).ToList();
+            Quests.AsValueEnumerable().Concat(GameController.Instance.DailyMissionController.DailyMissions).Where(q => q.State is QuestState.InProgress).Where(func).ToList();
 
         private void RegisterQuestsToEvents() {
             var machines = GameController.Instance.MachineController.Machines;

@@ -83,10 +83,7 @@ namespace Script.UI.Mission {
         }
 
         private void OnQuesStateChanged(Quest.Quest quest, QuestState state) {
-            if (state == QuestState.Complete) {
-                Debug.Log($"Daily mission {Quest.Name} completed! Removing item.");
-                Destroy(gameObject);
-            }
+            if (quest == Quest) SetQuestData();
         }
     }
 }

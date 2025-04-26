@@ -56,6 +56,7 @@ namespace Script.UI.Mission {
                 //Instantiate mission from prefab and populate content
                 var mission = Instantiate(_dailyMissionPanel.ItemPrefab.gameObject, _contentHolder.transform);
                 if (mission.TryGetComponent<DailyItemUI>(out var item)) {
+                    // Debug.LogWarning(m.State);
                     item.DailyMission = m;
                     item.UpdateQuestData();
                     return item;
