@@ -45,6 +45,7 @@ namespace Script.Controller {
         [SerializeField] [Min(1)] private int _baseCommission;
         [SerializeField] [Min(1)] private float _expireHours;
         [SerializeField] [Min(0.017f)] public float AvailableCommissionRefreshHours = 1;
+        [SerializeField] bool _alertWhenCommissionEmpty = true;
         private bool _log => GameController.Instance.Log;
 
         public ReadOnlyCollection<Commission.Commission> Commissions {
@@ -223,7 +224,7 @@ namespace Script.Controller {
 
             var ui = Object.FindFirstObjectByType<MissionHubUI>(FindObjectsInactive.Include);
 
-            if (ui) {
+            if (ui && _alertWhenCommissionEmpty) {
                 if (Commissions.Count == 0 && ui.ActivePanelName != nameof(AvailableCommissionPanel) && !IgnoreEmptyCommissions /*&& ui.ActivePanelName != nameof(CommissionPanel)*/) {
                     new GameAlert.Builder(AlertType.Notification)
                         .WithHeader("Commissions Fulfilled!")

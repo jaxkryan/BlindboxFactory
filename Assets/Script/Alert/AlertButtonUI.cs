@@ -32,11 +32,9 @@ namespace Script.Alert {
             button.Text.color = TextColor;
             
             if (IsCloseButton) {
-                    Debug.LogWarning("Button is close button");
-                
                 UnityAction listener = null;
                 listener = () => {
-                    Debug.LogWarning("Closing alert via button");
+                    // Debug.LogWarning("Closing alert via button");
                     alert.Close();
                     // button.gameObject.GetComponent<Button>().onClick.RemoveListener(listener);
                 };
