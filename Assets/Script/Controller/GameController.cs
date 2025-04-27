@@ -203,7 +203,7 @@ namespace Script.Controller {
                     Debug.Log($"Signed in as {_googlePlayId}");
                 }
                 else {
-                    Debug.LogError("Failed to sign in to Google Play Games. Using local save only.");
+                    //Debug.LogError("Failed to sign in to Google Play Games. Using local save only.");
                     SaveManager = new SaveManager();
                     StartCoroutine(LoadThenStartSession());
                 }
