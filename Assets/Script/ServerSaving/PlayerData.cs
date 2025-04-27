@@ -1,9 +1,21 @@
 using System;
 using UnityEngine;
 
-public class PlayerData : MonoBehaviour
-{ 
-    private string Id;
-    private DateTime LastLogin;
-    private DateTime FirstLogin;
+[Serializable]
+public class PlayerData
+{
+    public string Id;
+    public DateTime FirstLogin;
+    public DateTime LastLogin;
+
+    public PlayerData(string userId)
+    {
+        Id = userId;
+        FirstLogin = DateTime.Now;
+        LastLogin = DateTime.Now;
+    }
+
+    public PlayerData()
+    {
+    }
 }

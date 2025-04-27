@@ -91,7 +91,7 @@ namespace Script.HumanResource.Administrator {
         }
 
         // Helper method to find where a mascot is currently assigned
-        private MascotType? GetAssignedDepartment([CanBeNull] Mascot mascot) {
+        public MascotType? GetAssignedDepartment([CanBeNull] Mascot mascot) {
             if (mascot == null) return null;
             if (GeneratorMascot == mascot) return MascotType.Generator;
             if (CanteenMascot == mascot) return MascotType.Canteen;
