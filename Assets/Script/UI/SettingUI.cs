@@ -5,6 +5,7 @@ using UnityEngine.Localization.Settings;
 using UnityEngine.UI;
 using DG.Tweening;
 using Script.Utils;
+using TMPro;
 
 [System.Serializable]
 public class SettingPreferences
@@ -20,6 +21,7 @@ public class SettingUI : MonoBehaviour
     public Slider musicSlider;
     public Slider sfxSlider;
     public GameObject settingsCanvas;
+    public TextMeshProUGUI playername;
 
     private string savePath;
     private SettingPreferences settings;
@@ -35,16 +37,34 @@ public class SettingUI : MonoBehaviour
         settingsCanvas.transform.localScale = Vector3.zero; // Start scaled down
         settingsCanvas.SetActive(false);
     }
+    private void UpdatePlayerName()
+    {
+        playername.text = "Player: " + Social.localUser.userName;
+        GooglePlayManager.Instance.OnSignInComplete -= UpdatePlayerName;
+    }
 
     private void Start()
     {
-        // Apply settings
         musicSlider.value = settings.musicVolume;
         sfxSlider.value = settings.sfxVolume;
         SetMusicVolume();
         SetSFXVolume();
         SetLocale(settings.language);
+
+        // Listen for Google login complete
+        if (GooglePlayManager.Instance != null)
+        {
+            if (GooglePlayManager.Instance.IsSignedIn)
+            {
+                UpdatePlayerName(); // Already signed in
+            }
+            else
+            {
+                GooglePlayManager.Instance.OnSignInComplete += UpdatePlayerName;
+            }
+        }
     }
+
 
     public void SetMusicVolume()
     {

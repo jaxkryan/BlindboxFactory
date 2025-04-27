@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+using ZLinq;
 using AYellowpaper.SerializedCollections;
 using MyBox;
 using Script.Controller;
@@ -25,7 +23,7 @@ namespace Script.HumanResource.Administrator.Policies {
             foreach (var p in controller.WorkerList)
                 list.AddRange(p.Value);
             if (!_forAllWorkers) {
-                list = list.Where(w => _workerType.Value.Any(t => t.GetType() == w.GetType())).ToList();
+                list = list.AsValueEnumerable().Where(w => _workerType.Value.AsValueEnumerable().Any(t => t.GetType() == w.GetType())).ToList();
             }
             list.ForEach(ApplyBonus);
             

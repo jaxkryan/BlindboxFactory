@@ -2,17 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Threading;
+using ZLinq;
 using System.Threading.Tasks;
 using GooglePlayGames;
 using GooglePlayGames.BasicApi;
 using JetBrains.Annotations;
 using MyBox;
 using NavMeshPlus.Components;
-using NavMeshPlus.Extensions;
-using Newtonsoft.Json;
-using Script.Alert;
 using Script.Controller.Permissions;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Administrator;
@@ -78,6 +74,7 @@ namespace Script.Controller {
 
         private List<ControllerBase> _controllers =>
             typeof(GameController).GetFields()
+                .AsValueEnumerable()
                 .Where(f => f.FieldType.IsSubclassOf(typeof(ControllerBase)))
                 .Where(f => ((ControllerBase)f.GetValue(this)) != null)
                 .Select(fieldInfo => (ControllerBase)fieldInfo.GetValue(this))
@@ -341,7 +338,10 @@ namespace Script.Controller {
                 }
                 if (saveManager.TryGetValue(nameof(GroundAddedTiles), out string groundAddedTilesString)) {
                     var list = SaveManager.Deserialize<List<V2Int>>(groundAddedTilesString);
-                    list.Select(v => (Vector2Int)v).ForEach(v => Ground.SetTile(v.ToVector3Int(), GroundTile));
+
+
+                    list.AsValueEnumerable().Select(v => (Vector2Int)v).ForEach(v => Ground.SetTile(v.ToVector3Int(), GroundTile));
+
                 }
                 #endregion
 
@@ -389,7 +389,10 @@ namespace Script.Controller {
                 saveManager.AddOrUpdate(nameof(MinutesBetweenSave),
                     MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
                 saveManager.AddOrUpdate(nameof(GroundAddedTiles),
-                    SaveManager.Serialize(GroundAddedTiles.Select(t => new V2Int(t)).ToList()));
+
+                    SaveManager.Serialize(GroundAddedTiles.AsValueEnumerable().Select(t => new V2Int(t)).ToList()));
+
+
                 #endregion
             }
             catch (System.Exception e) {

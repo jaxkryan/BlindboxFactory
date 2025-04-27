@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using AYellowpaper.SerializedCollections;
 using BuildingSystem;
 using JetBrains.Annotations;
@@ -145,8 +145,8 @@ namespace Script.HumanResource.Worker {
             var controller = GameController.Instance.MachineController;
 
             if (controller.IsRecoveryMachine(slot.Machine, this.ToWorkerType(), out var recoveries)) {
-                if (recoveries.Any(r => r.Core == CoreType.Happiness)) SetBool(IsResting, true);
-                else if (recoveries.Any(r => r.Core == CoreType.Hunger)) SetBool(IsDining, true);
+                if (recoveries.AsValueEnumerable().Any(r => r.Core == CoreType.Happiness)) SetBool(IsResting, true);
+                else if (recoveries.AsValueEnumerable().Any(r => r.Core == CoreType.Hunger)) SetBool(IsDining, true);
             }
             
             
@@ -264,7 +264,7 @@ namespace Script.HumanResource.Worker {
         public virtual SaveData Save() => new SaveData() {
             Name = Name,
             Description = Description,
-            PortraitIndex = GameController.Instance.WorkerController.PortraitSprites.Any(p => p == Portrait)
+            PortraitIndex = GameController.Instance.WorkerController.PortraitSprites.AsValueEnumerable().Any(p => p == Portrait)
                 ? GameController.Instance.WorkerController.PortraitSprites.FirstIndex(p => p == Portrait)
                 : 0,
             Position = new V3(transform.position),
@@ -281,7 +281,7 @@ namespace Script.HumanResource.Worker {
             Name = data.Name;
             _description = data.Description;
             Portrait = GameController.Instance.WorkerController.PortraitSprites.Count >= data.PortraitIndex
-                ? GameController.Instance.WorkerController.PortraitSprites.ElementAtOrDefault(data.PortraitIndex - 1)
+                ? GameController.Instance.WorkerController.PortraitSprites.AsValueEnumerable().ElementAtOrDefault(data.PortraitIndex - 1)
                 : default;
             //NavMesh
             if (TryGetComponent<NavMeshAgent>(out var agent)) {

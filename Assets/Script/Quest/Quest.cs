@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using MyBox;
 using Script.Controller;
 using UnityEngine;
+using ZLinq;
 
 namespace Script.Quest {
     [CreateAssetMenu(menuName = "Quest/Quest", fileName = "New Quest")]
@@ -21,8 +20,8 @@ namespace Script.Quest {
 
         public void ClearQuestData() {
             var controller = GameController.Instance.QuestController;
-            var keys = controller.Keys().Where(k => k.StartsWith(Key(""))); 
-            keys.Where(k => controller.ContainsKey(k)).ForEach(k => controller.RemoveData(k));
+            var keys = controller.Keys().AsValueEnumerable().Where(k => k.StartsWith(Key(""))); 
+            foreach (var k in keys.Where(k => controller.ContainsKey(k))) controller.RemoveData(k);
         }
 
         public void AddData<T>(string keyName, T data) {
@@ -42,12 +41,12 @@ namespace Script.Quest {
                 oriState = State;
                 switch (oriState) {
                     case QuestState.Locked:
-                        if (Preconditions.All(c => c?.Evaluate(this) ?? true))
+                        if (Preconditions.AsValueEnumerable().All(c => c?.Evaluate(this) ?? true))
                             State = QuestState.InProgress;
                         if (State == QuestState.InProgress) if (log) Debug.Log($"State of quest {Name} change to {State}");
                         break;
                     case QuestState.InProgress:
-                        if (Objectives.All(o => o.Evaluate(this))) {
+                        if (Objectives.AsValueEnumerable().All(o => o.Evaluate(this))) {
                             State = QuestState.Complete;
                             OnComplete();
                         }

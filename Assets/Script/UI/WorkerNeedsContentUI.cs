@@ -1,15 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using MyBox;
+using ZLinq;
 using Script.Controller;
 using Script.HumanResource.Worker;
-using Script.Machine;
-using Script.Machine.WorkDetails;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.AI;
 using UnityEngine.UI;
 
 public class WorkerNeedsContentUI : MonoBehaviour {
@@ -48,17 +42,17 @@ public class WorkerNeedsContentUI : MonoBehaviour {
         var needFloat = new Dictionary<CoreType, float>();
         needs.ForEach(n => needFloat.Add(n.Key, n.Value));
 
-        _workerType.text = $"{workers.Count}x {workers.First().GetType().Name.ToNormalString(StringExtension.StringCapitalizationSetting.CapitalizeEachWords)}";
-        _description.text = workers?.First().Description;
-        _portrait.sprite = workers?.First().Portrait;
+        _workerType.text = $"{workers.Count}x {workers.AsValueEnumerable().First().GetType().Name.ToNormalString(StringExtension.StringCapitalizationSetting.CapitalizeEachWords)}";
+        _description.text = workers?.AsValueEnumerable().First().Description;
+        _portrait.sprite = workers?.AsValueEnumerable().First().Portrait;
         
-        _happinessBar.value = needs.FirstOrDefault(c => c.Key == CoreType.Happiness).Value;
-        _hungerBar.value = needs.FirstOrDefault(c => c.Key == CoreType.Hunger).Value;
+        _happinessBar.value = needs.AsValueEnumerable().FirstOrDefault(c => c.Key == CoreType.Happiness).Value;
+        _hungerBar.value = needs.AsValueEnumerable().FirstOrDefault(c => c.Key == CoreType.Hunger).Value;
 
         var happinessBonusText = "";
         var hungerBonusText = "";
         
-        foreach (var bonus in workers.First().Bonuses.Where(b => b.Condition.IsApplicable(b.Worker))) {
+        foreach (var bonus in workers.AsValueEnumerable().First().Bonuses.AsValueEnumerable().Where(b => b.Condition.IsApplicable(b.Worker))) {
             var condition = bonus.Condition;
         
             if (condition.Conditions.ContainsKey(CoreType.Hunger)) {

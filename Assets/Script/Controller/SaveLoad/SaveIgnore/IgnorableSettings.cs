@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using AYellowpaper.SerializedCollections;
+using ZLinq;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -26,7 +25,7 @@ namespace Script.Controller.SaveLoad.SaveIgnore {
             var dict = new ConcurrentDictionary<string, string>(dictionary);
             foreach (var key in keys) {
                 var parts = key.Trim().Split(".");
-                var rootKey = parts.FirstOrDefault();
+                var rootKey = parts.AsValueEnumerable().FirstOrDefault();
                 if (string.IsNullOrEmpty(rootKey)) continue;
                 
                 if (!dictionary.TryGetValue(rootKey, out var data)) continue;

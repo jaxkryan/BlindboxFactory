@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using ZLinq;
 using AYellowpaper.SerializedCollections;
 using Script.Controller.SaveLoad;
 using UnityEngine;
@@ -110,7 +111,7 @@ namespace Script.Controller {
                 var keys = _boxLog.Keys;
                 keys.ForEach(k => {
                     if (_boxLog.TryGetValue(k, out var logs)) {
-                        var expLogs = logs.Where(log => log.DateTime.AddHours(_expireTime) <= DateTime.Now).ToList()
+                        var expLogs = logs.AsValueEnumerable().Where(log => log.DateTime.AddHours(_expireTime) <= DateTime.Now).ToList()
                             .Clone();
                         expLogs.ForEach(log => logs.Remove(log));
                     }
