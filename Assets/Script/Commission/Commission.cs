@@ -54,7 +54,6 @@ namespace Script.Controller.Commission {
                 }
             }
             progress = progress / total * 100;
-            Debug.Log("Commission progress " + progress);
             return progress  >= 100;
         }
 

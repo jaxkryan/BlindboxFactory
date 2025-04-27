@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using Script.Controller;
+using UnityEngine;
 
 public class TutorialStarter : MonoBehaviour
 {
@@ -6,10 +8,15 @@ public class TutorialStarter : MonoBehaviour
     public GameObject tutorialCanvas;  // ✅ Kéo TutorialCanvas vào đây
 
     // Biến trạng thái đơn giản: false = chưa xong, true = đã hoàn thành
-    public bool hasCompletedTutorial ;
+    public bool hasCompletedTutorial => GameController.Instance.CompletedTutorial;
 
-    void Start()
+    private void Start() {
+        GameController.Instance.onLoad += onLoad;
+    }
+
+    void onLoad()
     {
+        GameController.Instance.onLoad -= onLoad;
         if (!hasCompletedTutorial)
         {
             tutorialManager.StartTutorial();
@@ -26,7 +33,8 @@ public class TutorialStarter : MonoBehaviour
 
     public void IsTutorialCompleted()
     {
-         hasCompletedTutorial = true;
+         // hasCompletedTutorial = true;
+         GameController.Instance.FinishTutorial();
         tutorialCanvas.SetActive(false);
     }
 }

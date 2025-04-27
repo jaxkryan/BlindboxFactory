@@ -21,6 +21,7 @@ namespace Script.UI.Mission {
         [SerializeField] private CommissionPanel _commissionPanel;
         [SerializeField] private AvailableCommissionPanel _availableCommissionPanel;
         [SerializeField] private TextMeshProUGUI _timerText;
+        [SerializeField] private bool _openCommissionPanelWhenSelectNewCommission = true;
 
         public string ActivePanelName { get; private set; } = string.Empty;
         
@@ -124,7 +125,7 @@ namespace Script.UI.Mission {
                 ui.GetComponentInChildren<Button>().onClick.AddListener(() =>
                 {
                     controller.TryAddCommission(available);
-                    OpenCommissionPanel(); 
+                    if (_openCommissionPanelWhenSelectNewCommission) OpenCommissionPanel(); 
                 });
             }
         }

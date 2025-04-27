@@ -83,59 +83,67 @@ public class WorkStrategy : IActionStrategy {
         //     StopWorking();
         //     return;
         // }
-        
 
-        if (_slot?.Machine is null) {
-            StopWorking();
-            return;
-        }
-        // else Debug.LogWarning("Machine is not null");
 
-        if (!isProductCreate) {
-            if (_slot.Machine.IsClosed) {
+        try {
+            if (_slot?.Machine is null) {
                 StopWorking();
                 return;
             }
-        }
-        
-        if (!_slot.Machine.IsWorkable || !_slot.Machine.gameObject.activeInHierarchy ||
-            !GameController.Instance.MachineController.Machines.Contains(_slot.Machine)) {
-            StopWorking();
-            return;
-        }
-        // else Debug.LogWarning("Machine is workable and active ");
+            // else Debug.LogWarning("Machine is not null");
 
-        //For bb machines
-        if (_slot.Machine is BlindBoxMachine bbMachine && bbMachine.amount <= 0) {
-            StopWorking();
-            return;
-        }
-        // else Debug.LogWarning("Machine is not bb machine");
+            if (!isProductCreate) {
+                if (_slot.Machine.IsClosed) {
+                    StopWorking();
+                    return;
+                }
+            }
 
-        var controller = GameController.Instance.MachineController;
-        var workerNeeds
-            = GameController.Instance.WorkerController.WorkerNeedsList.GetValueOrDefault(_worker.ToWorkerType()) ??
-              new();
-        if (!controller.IsRecoveryMachine(_slot.Machine, out var forWorkers, out var recovery) &&
-            !forWorkers.Contains(_worker.ToWorkerType())) {
-            // Debug.LogWarning("Machine is normal machine");
-            //For normal machines
-            if (_worker.CurrentCores.AsValueEnumerable().Any(c => c.Value <= workerNeeds.GetValueOrDefault(c.Key))) {
+            if (!_slot.Machine.IsWorkable || !_slot.Machine.gameObject.activeInHierarchy ||
+                !GameController.Instance.MachineController.Machines.Contains(_slot.Machine)) {
                 StopWorking();
                 return;
             }
-            // else Debug.LogWarning("Worker core not depleted");
-        }
-        else {
-            // Debug.LogWarning("Machine is recovering machine");
-            //For recovering machines
-            var recoveringCore = recovery.AsValueEnumerable().Select(r => r.Core);
-            if (_worker.CurrentCores.AsValueEnumerable().Where(c => recoveringCore.Contains(c.Key)).All(c =>
-                    recoveringCore.Contains(c.Key) && c.Value >= _worker.MaximumCore[c.Key])) {
+            // else Debug.LogWarning("Machine is workable and active ");
+
+            //For bb machines
+            if (_slot.Machine is BlindBoxMachine bbMachine && bbMachine.amount <= 0) {
                 StopWorking();
                 return;
             }
-            // else Debug.LogWarning("Worker core not filled");
+            // else Debug.LogWarning("Machine is not bb machine");
+
+            var controller = GameController.Instance.MachineController;
+            var workerNeeds
+                = GameController.Instance.WorkerController.WorkerNeedsList.GetValueOrDefault(_worker.ToWorkerType()) ??
+                  new();
+            if (!controller.IsRecoveryMachine(_slot.Machine, out var forWorkers, out var recovery) ||
+                !forWorkers.Contains(_worker.ToWorkerType())) {
+                // Debug.LogWarning("Machine is normal machine");
+                //For normal machines
+                if (_worker.CurrentCores.AsValueEnumerable()
+                    .Any(c => c.Value <= workerNeeds.GetValueOrDefault(c.Key))) {
+                    StopWorking();
+                    return;
+                }
+                // else Debug.LogWarning("Worker core not depleted");
+            }
+            else {
+                // Debug.LogWarning("Machine is recovering machine");
+                //For recovering machines
+                var recoveringCore = recovery.AsValueEnumerable().Select(r => r.Core);
+                if (_worker.CurrentCores.AsValueEnumerable().Where(c => recoveringCore.Contains(c.Key)).All(c =>
+                        recoveringCore.Contains(c.Key) && c.Value >= _worker.MaximumCore[c.Key])) {
+                    StopWorking();
+                    return;
+                }
+                // else Debug.LogWarning("Worker core not filled");
+            }
+        }
+        catch (System.Exception e) {
+            Debug.LogError(new System.Exception("Consider stop working failed", e));
+            StopWorking();
+            return;
         }
     }
 

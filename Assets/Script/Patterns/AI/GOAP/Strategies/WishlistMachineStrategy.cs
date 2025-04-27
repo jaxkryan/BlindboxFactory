@@ -68,8 +68,6 @@ namespace Script.Patterns.AI.GOAP.Strategies {
                         Debug.LogWarning($"Cannot calculate path to machine. From {_agent.transform.position} to {hit.position}");
                         continue;
                     }
-
-                    Debug.LogError($"Slot: {slot.name} of machine: {machine.name}");
                     slots.Add(slot, (CalculateWeight(slot, _agent, path), path, machine));
                 }
             }
