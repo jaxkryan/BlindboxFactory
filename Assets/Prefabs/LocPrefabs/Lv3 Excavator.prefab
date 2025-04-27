@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3381988189812620941
 RectTransform:
   m_ObjectHideFlags: 0
@@ -25,16 +25,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 396537147323671063}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.01, y: 0.01, z: 0.22}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 5421377443806336576}
+  m_Father: {fileID: 4541750559389087329}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.16015, y: 60.4}
+  m_AnchoredPosition: {x: 0.10260148, y: 1.3350029}
   m_SizeDelta: {x: 50.35, y: 46}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1376007300296486647
@@ -377,6 +377,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 3381988189812620941}
   - {fileID: 5421377443806336576}
   m_Father: {fileID: 9160669899557759488}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -898,7 +899,7 @@ PolygonCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5059289, y: -0.013264555}
+    pivot: {x: 0.45, y: 0.18}
     oldSize: {x: 2.024, y: 2.714}
     newSize: {x: 2.024, y: 2.714}
     adaptiveTilingThreshold: 0.5
@@ -1120,7 +1121,6 @@ RectTransform:
   - {fileID: 1525019511934621299}
   - {fileID: 5912513832058782296}
   - {fileID: 3451022240855972247}
-  - {fileID: 3381988189812620941}
   - {fileID: 3666433082324448073}
   m_Father: {fileID: 4541750559389087329}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
