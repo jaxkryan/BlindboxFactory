@@ -65,6 +65,9 @@ namespace Script.Controller {
             _constructionLayer = GameController.Instance.ConstructionLayer;
             _constructionLayer.TryGetComponent<ConstructionLayer>(out _constructionLayerScript);
             _path = new();
+            Categories.AsValueEnumerable().Where(c => c.buildables.Any(b => b == null)).ForEach(c => {
+                c.buildables.RemoveAll(b => b == null);
+            });
         }
 
         public override void OnStart() {
@@ -303,7 +306,9 @@ namespace Script.Controller {
                         Debug.LogError("Buildable name conflict: " + g.Key);
                     }
                 });
-
+            Categories.AsValueEnumerable().Where(c => c.buildables.Any(b => b == null)).ForEach(c => {
+                Debug.LogError($"Missing machine prefab at category: {c.categoryName}!");
+            });
             foreach (var machine in Buildables) {
                 if (UnlockMachines.ContainsKey(machine.Name)) continue;
                 else _unlockMachines.Add(machine.Name, false);

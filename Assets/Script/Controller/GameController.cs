@@ -391,7 +391,7 @@ namespace Script.Controller {
                 saveManager.AddOrUpdate(nameof(GroundAddedTiles),
 
                     SaveManager.Serialize(GroundAddedTiles.AsValueEnumerable().Select(t => new V2Int(t)).ToList()));
-
+                if (PlayerData) saveManager.AddOrUpdate(nameof(PlayerData), SaveManager.Serialize(PlayerData));
 
                 #endregion
             }
