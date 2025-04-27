@@ -37,17 +37,34 @@ public class SettingUI : MonoBehaviour
         settingsCanvas.transform.localScale = Vector3.zero; // Start scaled down
         settingsCanvas.SetActive(false);
     }
+    private void UpdatePlayerName()
+    {
+        playername.text = "Player: " + Social.localUser.userName;
+        GooglePlayManager.Instance.OnSignInComplete -= UpdatePlayerName;
+    }
 
     private void Start()
     {
-        // Apply settings
         musicSlider.value = settings.musicVolume;
         sfxSlider.value = settings.sfxVolume;
-        playername.text = "Player: " + Social.localUser.userName;
         SetMusicVolume();
         SetSFXVolume();
         SetLocale(settings.language);
+
+        // Listen for Google login complete
+        if (GooglePlayManager.Instance != null)
+        {
+            if (GooglePlayManager.Instance.IsSignedIn)
+            {
+                UpdatePlayerName(); // Already signed in
+            }
+            else
+            {
+                GooglePlayManager.Instance.OnSignInComplete += UpdatePlayerName;
+            }
+        }
     }
+
 
     public void SetMusicVolume()
     {
