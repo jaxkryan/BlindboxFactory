@@ -11158,6 +11158,7 @@ MonoBehaviour:
   portalTile: {fileID: 11400000, guid: 5450a86107c5bc943895084f72c84e93, type: 2}
   leftGroundPrefab: {fileID: 6730678244755088382, guid: d03f114a20e4c6d4da8d1e04cdc57907, type: 3}
   rightGroundPrefab: {fileID: 7583030092990770216, guid: e60741b16c4d6c2489dcc03405e77257, type: 3}
+  portal: {fileID: 1000785035}
   size: 32
   portalsize: 4
 --- !u!1 &956303909
@@ -11541,6 +11542,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15b3be66d0edb93469d2b270c9ad75a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1000785035 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8588952390569438921, guid: b61e9b498cad9d8439d1e76fae8dfe44, type: 3}
+  m_PrefabInstance: {fileID: 1242850964}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1004755094
 GameObject:
   m_ObjectHideFlags: 0
@@ -13071,6 +13077,14 @@ PrefabInstance:
       value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 4267659748584628602, guid: b61e9b498cad9d8439d1e76fae8dfe44, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4267659748584628602, guid: b61e9b498cad9d8439d1e76fae8dfe44, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4267659748584628602, guid: b61e9b498cad9d8439d1e76fae8dfe44, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -13104,7 +13118,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4267659748584628602, guid: b61e9b498cad9d8439d1e76fae8dfe44, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: 5.5
       objectReference: {fileID: 0}
     - target: {fileID: 4267659748584628602, guid: b61e9b498cad9d8439d1e76fae8dfe44, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
