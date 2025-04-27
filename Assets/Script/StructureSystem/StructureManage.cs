@@ -113,7 +113,7 @@ public class StructureManage : MonoBehaviour
 
             if (buildableObject.CompareTag("BoxMachine"))
             {
-                Debug.Log($"[HandleBuildableSelection] Buildable found: {buildableObject.name}");
+                //Debug.Log($"[HandleBuildableSelection] Buildable found: {buildableObject.name}");
 
                 // Show UI
                 machineUI.SetActive(true);

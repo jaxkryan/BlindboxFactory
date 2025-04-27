@@ -92,7 +92,7 @@ public class CloudSpawner : MonoBehaviour
                 cloud.SetActive(true);
                 if(cloud.active == true)
                 {
-                    Debug.Log(spawnChance + "spawned");
+                    //Debug.Log(spawnChance + "spawned");
                 }
                 CloudMover mover = cloud.GetComponent<CloudMover>();
                 if (mover == null)

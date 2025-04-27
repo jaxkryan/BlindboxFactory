@@ -100,9 +100,6 @@ public class DefaultMapGenerator : MonoBehaviour
         leftMost = tilemap.CellToWorld(leftMostCell) + tilemap.tileAnchor;
         rightMost = tilemap.CellToWorld(rightMostCell) + tilemap.tileAnchor;
 
-        Debug.Log($"Leftmost tile at world pos: {leftMost}, cell pos: {leftMostCell}");
-        Debug.Log($"Rightmost tile at world pos: {rightMost}, cell pos: {rightMostCell}");
-
         leftMost.x = leftMost.x - 1;
         leftMost.y = (float)(leftMost.y - 0.25);
         rightMost.y = (float)(rightMost.y - 0.25);
