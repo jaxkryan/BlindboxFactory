@@ -22,7 +22,7 @@ public class Loading : MonoBehaviour
         // Step 1: Fake progress up to 90%
         while (fakeProgress < 0.9f)
         {
-            fakeProgress += Time.deltaTime * 0.2f; // Adjust this for speed
+            fakeProgress += Time.deltaTime * 0.5f; // Adjust this for speed
             if (progressBar) progressBar.value = fakeProgress;
             yield return null;
         }

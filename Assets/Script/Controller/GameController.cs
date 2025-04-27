@@ -45,17 +45,16 @@ namespace Script.Controller {
 
         [Space] [Header("Save")] [SerializeField]
         public bool HasSaveTimer;
-
         [SerializeField] private bool _enableCloudSave;
-
         [ConditionalField(nameof(HasSaveTimer))] [SerializeField] [Min(0.1f)]
         public float MinutesBetweenSave = 5f;
-
         [SerializeField] private int _maxSavesCount = 10;
         public SaveManager SaveManager;
         private Timer _saveTimer;
 
         private string _googlePlayId;
+        public event Action onSave = delegate { };
+        public event Action onLoad = delegate { };
 
         public int SessionCount { get; private set; }
         public bool CompletedTutorial { get; private set; } = false;
@@ -204,7 +203,7 @@ namespace Script.Controller {
                     Debug.Log($"Signed in as {_googlePlayId}");
                 }
                 else {
-                    Debug.LogError("Failed to sign in to Google Play Games. Using local save only.");
+                    //Debug.LogError("Failed to sign in to Google Play Games. Using local save only.");
                     SaveManager = new SaveManager();
                     StartCoroutine(LoadThenStartSession());
                 }
@@ -357,6 +356,7 @@ namespace Script.Controller {
 
             _isLoading = false;
             if (_queueingSave) InitiateSave();
+            onLoad?.Invoke();
         }
 
         private bool _saveInitialized = false;
@@ -406,6 +406,7 @@ namespace Script.Controller {
                 await saveManager.SaveToFirebase();
             }
             _saveInitialized = false;
+            onSave?.Invoke();
         }
     }
 }

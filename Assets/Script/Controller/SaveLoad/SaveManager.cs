@@ -239,13 +239,9 @@ namespace Script.Controller.SaveLoad
         private void RemoveOldSaves()
         {
             var filePaths = GetAllSavePaths();
-
-            while (filePaths.Count >= MaxSaves && filePaths.Count > 0)
-            {
-                var removingFilePath = filePaths.ElementAtOrDefault(filePaths.Count - 1);
-                if (string.IsNullOrEmpty(removingFilePath))
-                {
-
+            while (filePaths.Count >= MaxSaves && filePaths.Count > 0) {
+                var removingFilePath = filePaths.AsValueEnumerable().ElementAtOrDefault(filePaths.Count - 1);
+                if (string.IsNullOrEmpty(removingFilePath)) {
                     Debug.LogError($"{nameof(removingFilePath)} is empty");
                     break;
                 }
@@ -268,7 +264,6 @@ namespace Script.Controller.SaveLoad
         private List<string> GetAllSavePaths() {
             var parts = _fileName.Split('.').AsValueEnumerable().ToList();
             var name = parts.AsValueEnumerable().ElementAtOrDefault(0) ?? "";
-
             name += "-";
             if (parts.Count > 0) parts.RemoveAt(0);
 

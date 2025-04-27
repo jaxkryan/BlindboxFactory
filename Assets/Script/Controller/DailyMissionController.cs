@@ -57,7 +57,6 @@ namespace Script.Controller {
                 DailyMissions.ForEach(d => d.State = Quest.QuestState.Locked);
                 _lastUpdate = data.LastUpdate;
                 for (var i = 0; i < data.DailyMissionsState.Count; i++) {
-                    Debug.LogError("Saved State: " + DailyMissions[i].Name + " " + data.DailyMissionsState[i]);
                     _dailyMissions[i].State = data.DailyMissionsState[i];
                 }           
 

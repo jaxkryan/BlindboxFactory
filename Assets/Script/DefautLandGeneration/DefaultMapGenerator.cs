@@ -10,9 +10,10 @@ public class DefaultMapGenerator : MonoBehaviour
     public Tile portalTile;
     public GameObject leftGroundPrefab;
     public GameObject rightGroundPrefab;
+    public GameObject portal;
 
     public int size = 32;
-    public int portalsize = 4;
+    public int portalsize = 3;
 
     void Start()
     {
@@ -36,13 +37,20 @@ public class DefaultMapGenerator : MonoBehaviour
             }
         }
 
-        for (int x = -portalsize/2; x < portalsize/2; x++)
+        Vector3 portalPosition = portal.transform.position;
+        Vector3Int portalCellPosition = tilemap.WorldToCell(portalPosition);
+        for (int x = -portalsize / 2; x < portalsize / 2; x++)
         {
-            for (int y = -portalsize/2; y < portalsize/2; y++)
+            for (int y = -portalsize / 2; y < portalsize / 2; y++)
             {
-                tilemap.SetTile(new Vector3Int(x, y, 0), portalTile);
+                if (Mathf.Abs(x) + Mathf.Abs(y) <= size / 2)
+                {
+                    Vector3Int tilePosition = portalCellPosition + new Vector3Int(x, y, 0);
+                    tilemap.SetTile(tilePosition, portalTile);
+                }
             }
         }
+
 
         tilemap.CompressBounds();
         GameController.Instance.BuildNavMesh();
@@ -99,9 +107,6 @@ public class DefaultMapGenerator : MonoBehaviour
         // Chuyển đổi tọa độ lưới của các ô biên sang tọa độ thế giới
         leftMost = tilemap.CellToWorld(leftMostCell) + tilemap.tileAnchor;
         rightMost = tilemap.CellToWorld(rightMostCell) + tilemap.tileAnchor;
-
-        Debug.Log($"Leftmost tile at world pos: {leftMost}, cell pos: {leftMostCell}");
-        Debug.Log($"Rightmost tile at world pos: {rightMost}, cell pos: {rightMostCell}");
 
         leftMost.x = leftMost.x - 1;
         leftMost.y = (float)(leftMost.y - 0.25);
