@@ -127,8 +127,8 @@ namespace Script.Controller {
                 _resourceData = new(data.ResourceData);
                 _resourceAmount = new(data.ResourceAmount);
                     try {
-                        _resourceAmount.ForEach(r => onResourceAmountChanged?.Invoke(r.Key, 0, r.Value));
-                        _resourceData.ForEach(r => onResourceDataChanged?.Invoke(r.Key, r.Value));
+                        _resourceAmount.ToList().ForEach(r => onResourceAmountChanged?.Invoke(r.Key, r.Value, r.Value));
+                        _resourceData.ToList().ForEach(r => onResourceDataChanged?.Invoke(r.Key, r.Value));
                     }
                     catch (System.Exception e) {
                         Debug.LogException(e);
