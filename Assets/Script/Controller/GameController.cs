@@ -367,7 +367,7 @@ namespace Script.Controller {
                     MinutesBetweenSave.ToString(CultureInfo.InvariantCulture));
                 saveManager.AddOrUpdate(nameof(GroundAddedTiles),
                     SaveManager.Serialize(GroundAddedTiles.AsValueEnumerable().Select(t => new V2Int(t)).ToList()));
-                saveManager.AddOrUpdate(nameof(PlayerData), SaveManager.Serialize(PlayerData));
+                if (PlayerData) saveManager.AddOrUpdate(nameof(PlayerData), SaveManager.Serialize(PlayerData));
 
                 #endregion
             }
