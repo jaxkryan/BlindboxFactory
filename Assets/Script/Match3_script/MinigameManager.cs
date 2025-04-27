@@ -260,10 +260,12 @@ public class MinigameManager : MonoBehaviour
                 mainCamera.orthographicSize = referenceOrthoSize * orthoSizeFactor;
                 Debug.Log($"Applied ortho size factor: {orthoSizeFactor}, New ortho size: {mainCamera.orthographicSize}");
 
-                // Position minigame at camera's current world position
-                Vector3 cameraPosition = mainCamera.transform.position;
-                minigameObject.transform.position = new Vector3(cameraPosition.x, cameraPosition.y, minigameObject.transform.position.z);
-                Debug.Log($"Positioned minigame {minigameObject.name} at camera position: {minigameObject.transform.position}");
+                // Position minigame at the center of the viewport
+                Vector3 viewportCenter = new Vector3(0.5f, 0.5f, 10f); // Center of viewport, z = 10 from camera
+                Vector3 spawnPosition = mainCamera.ViewportToWorldPoint(viewportCenter);
+                spawnPosition.z = -5f; // Ensure minigame is closer to camera
+                minigameObject.transform.position = spawnPosition;
+                Debug.Log($"Positioned minigame {minigameObject.name} at viewport center: {spawnPosition}");
             }
 
             // Deactivate all other minigame GameObjects and activate the selected one
