@@ -14,8 +14,14 @@ public class MachineControllerLoader : MonoBehaviour
 
     void Start()
     {
+        if (!string.IsNullOrEmpty(UserIdHolder.UserId))
+        {
+            userId = UserIdHolder.UserId;
+        }
+
         LoadMachineControllerData(userId);
     }
+
 
     void LoadMachineControllerData(string userId)
     {
