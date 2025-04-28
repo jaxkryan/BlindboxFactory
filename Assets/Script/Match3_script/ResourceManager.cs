@@ -10,7 +10,8 @@ public class ResourceManager : MonoBehaviour
         public int amount;
     }
 
-    public List<Resource> resources;
+    // Initialize the list to prevent NullReferenceException
+    public List<Resource> resources = new List<Resource>();
     private Dictionary<ColorPiece.ColorType, int> resourceDict;
 
     private static ResourceManager instance;
@@ -51,9 +52,21 @@ public class ResourceManager : MonoBehaviour
     {
         resourceDict = new Dictionary<ColorPiece.ColorType, int>();
 
+        // Initialize all ColorType values except ANY and COUNT with 0
+        foreach (ColorPiece.ColorType color in System.Enum.GetValues(typeof(ColorPiece.ColorType)))
+        {
+            if (color == ColorPiece.ColorType.ANY || color == ColorPiece.ColorType.COUNT)
+                continue;
+            resourceDict[color] = 0;
+        }
+
+        // Override with values from the resources list (if any)
         foreach (Resource resource in resources)
         {
-            resourceDict[resource.color] = resource.amount;
+            if (resourceDict.ContainsKey(resource.color))
+            {
+                resourceDict[resource.color] = resource.amount;
+            }
         }
     }
 
@@ -69,8 +82,6 @@ public class ResourceManager : MonoBehaviour
             Debug.LogWarning($"Attempted to add resource for non-existent color: {color}");
         }
     }
-
-   
 
     public int GetResourceAmount(ColorPiece.ColorType color)
     {
