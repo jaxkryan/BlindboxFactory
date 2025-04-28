@@ -44,10 +44,11 @@ public class Grids : MonoBehaviour
     private float halfX;
 
     public TextMeshProUGUI resetText;
+    [SerializeField] private float tileSize = 0.3f;
 
     // -------------------- Unity Lifecycle --------------------
 
-    private void Awake()
+   private void Awake()
     {
         piecePrefabDict = new Dictionary<PieceType, GameObject>(piecePrefabs.Length);
         for (int i = 0; i < piecePrefabs.Length; i++)
@@ -57,8 +58,6 @@ public class Grids : MonoBehaviour
                 piecePrefabDict.Add(piecePrefabs[i].type, piecePrefabs[i].prefab);
             }
         }
-
-       
 
         pieces = new GamePiece[xDim, yDim];
         for (int x = 0; x < xDim; x++)
@@ -72,25 +71,63 @@ public class Grids : MonoBehaviour
         StartCoroutine(Fill());
     }
 
-    // -------------------- Grid Utility Methods --------------------
+    private void OnEnable()
+    {
+        // Recalculate boardOrigin and reposition pieces when the GameObject is enabled
+        CenterGridOnParent();
+        RepositionPieces();
+    }
+
+    private void CenterGridOnParent()
+    {
+        // Calculate the total size of the grid
+        float gridWidth = xDim * tileSize;
+        float gridHeight = yDim * tileSize;
+
+        // Center the grid by offsetting boardOrigin from the GameObject's position
+        Vector2 parentPosition = transform.position;
+        boardOrigin = new Vector2(
+            parentPosition.x - (gridWidth / 2f) + (tileSize / 2f), // Center horizontally
+            parentPosition.y - (gridHeight / 2f) + (tileSize / 2f)  // Center vertically
+        );
+        Debug.Log($"Centered grid: boardOrigin set to {boardOrigin} for parent position {parentPosition}");
+    }
+
+    private void RepositionPieces()
+    {
+        // Reposition all existing pieces based on the updated boardOrigin
+        for (int x = 0; x < xDim; x++)
+        {
+            for (int y = 0; y < yDim; y++)
+            {
+                if (pieces[x, y] != null)
+                {
+                    Vector2 newPos = GetWorldPosition(x, y);
+                    pieces[x, y].transform.position = new Vector3(newPos.x, newPos.y, -5f);
+                    Debug.Log($"Repositioned piece at ({x}, {y}) to {pieces[x, y].transform.position}");
+                }
+            }
+        }
+    }
 
     public Vector2 GetWorldPosition(int x, int y)
     {
-        float tileHeight = 7.5f / yDim;
-        float screenWidth = Camera.main.orthographicSize * 2 * Screen.width / Screen.height;
-        float tileWidth = screenWidth / (xDim + 2);
-        float tileSize = Mathf.Min(tileWidth, tileHeight);
-
         return new Vector2(boardOrigin.x + x * tileSize, boardOrigin.y + y * tileSize);
     }
 
-    public GamePiece SpawnNewPiece(int x, int y, PieceType type)
+    private GamePiece SpawnNewPiece(int x, int y, PieceType type)
     {
-        GameObject newPiece = Instantiate(piecePrefabDict[type], GetWorldPosition(x, y), Quaternion.identity, transform);
-        newPiece.transform.localScale = new Vector3(0.19f, 0.19f, 1); // Scale the tile properly
-        pieces[x, y] = newPiece.GetComponent<GamePiece>();
-        pieces[x, y].Init(x, y, this, type);
-        return pieces[x, y];
+        // Instantiate the piece and parent it to this GameObject (the Grid)
+        GameObject pieceObject = Instantiate(piecePrefabDict[type], transform);
+        
+        // Set the piece's position relative to the boardOrigin
+        Vector2 worldPos = GetWorldPosition(x, y);
+        pieceObject.transform.position = new Vector3(worldPos.x, worldPos.y, -5f); // Set z to -5 to match Match3Panel
+        
+        GamePiece piece = pieceObject.GetComponent<GamePiece>();
+        piece.Init(x, y, this, type);
+        pieces[x, y] = piece;
+        return piece;
     }
 
     // -------------------- Game Logic Methods --------------------

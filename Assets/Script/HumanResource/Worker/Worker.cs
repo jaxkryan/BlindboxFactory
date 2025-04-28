@@ -246,10 +246,16 @@ namespace Script.HumanResource.Worker {
             if (!_isWorking) {
                 Animator.SetFloat(HorizontalMovement, Agent.velocity.x);
                 Animator.SetFloat(VerticalMovement, Agent.velocity.y);
+                if (_workingClipNames.AsValueEnumerable().Any(c => Animator.GetCurrentAnimatorStateInfo(0).IsName(c))) 
+                    Animator.SetTrigger(OnWorkStateChanged);
             }
+            else if (_workingClipNames.AsValueEnumerable().All(c => !Animator.GetCurrentAnimatorStateInfo(0).IsName(c))) 
+                Animator.SetTrigger(OnWorkStateChanged);
             
             SetOrderInLayer();
         }
+        
+        private static readonly HashSet<string> _workingClipNames = new(){"working_Clip", "eatfront_Clip", "sleep_Clip" };
 
         protected virtual void SetOrderInLayer() {
             if (Machine != null && Machine is MachineBase mb && mb.TryGetComponent<SpriteRenderer>(out var sr)) {
