@@ -10,7 +10,7 @@ public class MachineControllerLoader : MonoBehaviour
 
     public string userId = "local_user";
 
-    OnlineMachineBuilder onlineMachineBuilder = new();
+    public OnlineMachineBuilder onlineMachineBuilder;
 
     void Start()
     {

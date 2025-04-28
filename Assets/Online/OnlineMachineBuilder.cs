@@ -9,7 +9,7 @@ public class OnlineMachineBuilder : MonoBehaviour
     [SerializeField] private List<BuildableItem> buildableItems; // Assign your BuildableItem list here
 
 
-    MachineControllerLoader machineControllerLoader = new();
+    MachineControllerLoader machineControllerLoader;
     public void BuildFromFirebaseData(List<MachineControllerLoader.MachineBaseData> machines)
     {
         foreach (var machine in machines)
@@ -21,7 +21,7 @@ public class OnlineMachineBuilder : MonoBehaviour
             }
 
             // Search BuildableItem by GameObject name
-            BuildableItem foundItem = buildableItems.Find(item => item.gameObject.name == machine.PrefabName);
+            BuildableItem foundItem = buildableItems.Find(item => item.Name == machine.PrefabName);
 
             if (foundItem != null)
             {
