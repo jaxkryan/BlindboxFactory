@@ -120,7 +120,7 @@ namespace Script.HumanResource.Worker {
                 var condition = bonus.Condition;
                 bf.AddBelief($"{_worker.Name}HasBonus: {bonus.Name}", () => condition.IsApplicable(_worker));
             });
-            bf.AddBelief($"{_worker.Name}HasWorkingMachine", () => _workMachines(this).Any());
+            bf.AddBelief($"{_worker.Name}HasWorkingMachine", () => _workMachines(this).Where(m => m.Slots.Any(s => s.CurrentWorker == null && s.WishListWorker == null)).Any());
             bf.AddBelief($"{_worker.Name}HasWorkableMachine", () => _workableMachines(this).AsValueEnumerable().Any());
             bf.AddBelief($"{_worker.Name}HasNoWorkableMachine", () => !_workableMachines(this).AsValueEnumerable().Any());
             bf.AddBelief($"{_worker.Name}WishListedAMachine",
@@ -170,16 +170,16 @@ namespace Script.HumanResource.Worker {
                 else
                     Enum.GetValues(typeof(CoreType)).Cast<CoreType>().ForEach(c => needDict.Add(c, 0));
                 bf.AddBelief($"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsDepleted", () =>
-                    _worker.CurrentCores[core] < needDict.GetValueOrDefault(core));
+                    _worker.CurrentCores[core] <= needDict.GetValueOrDefault(core) + 1);
                 bf.AddBelief($"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsFulfilled", () =>
-                    _worker.CurrentCores[core] >= needDict.GetValueOrDefault(core));
+                    _worker.CurrentCores[core] > needDict.GetValueOrDefault(core) + 1);
                 //Beliefs for machines that improve cores
                 switch (core) {
                     case CoreType.Happiness:
                         bf.AddBelief($"{_worker.Name}Has{core}RecoveryMachine",
-                            () => _happinessRecoveryMachines(this).Any());
+                            () => _happinessRecoveryMachines(this).Where(m => m.Slots.Any(s => s.CurrentWorker == null && s.WishListWorker == null)).Any());
                         bf.AddBelief($"{_worker.Name}HasNo{core}RecoveryMachine",
-                            () => !_happinessRecoveryMachines(this).Any());
+                            () => !_happinessRecoveryMachines(this).Where(m => m.Slots.Any(s => s.CurrentWorker == null && s.WishListWorker == null)).Any());
                         bf.AddBelief($"{_worker.Name}WishListedMachineIs{core}RecoveryMachine",
                             () => GameController.Instance.MachineController.Machines
                                 .AsValueEnumerable().Any(m => m.Slots
@@ -189,9 +189,9 @@ namespace Script.HumanResource.Worker {
                         break;
                     case CoreType.Hunger:
                         bf.AddBelief($"{_worker.Name}Has{core}RecoveryMachine",
-                            () => _hungerRecoveryMachines(this).Any());
+                            () => _hungerRecoveryMachines(this).Where(m => m.Slots.Any(s => s.CurrentWorker == null && s.WishListWorker == null)).Any() );
                         bf.AddBelief($"{_worker.Name}HasNo{core}RecoveryMachine",
-                            () => !_hungerRecoveryMachines(this).Any());
+                            () => !_hungerRecoveryMachines(this).Where(m => m.Slots.Any(s => s.CurrentWorker == null && s.WishListWorker == null)).Any());
                         bf.AddBelief($"{_worker.Name}WishListedMachineIs{core}RecoveryMachine",
                             () => GameController.Instance.MachineController.Machines
                                 .AsValueEnumerable().Any(m => m.Slots
