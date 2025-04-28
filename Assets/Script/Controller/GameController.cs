@@ -317,6 +317,7 @@ namespace Script.Controller {
                                 PlayerData.Id = _googlePlayId;
                             }
                             PlayerData.LastLogin = DateTime.Now;
+                            PlayerData.PlayerName = Social.localUser.userName != null ? Social.localUser.userName : "local_user_Tu";
                         }
                     }
                     catch (System.Exception ex)
