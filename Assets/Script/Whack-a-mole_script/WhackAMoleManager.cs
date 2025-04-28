@@ -176,7 +176,7 @@ public class WhackAMoleManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("GameController or ResourceController is not available.");
+           // Debug.LogWarning("GameController or ResourceController is not available.");
         }
     }
 

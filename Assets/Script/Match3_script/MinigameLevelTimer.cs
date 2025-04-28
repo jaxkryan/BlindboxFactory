@@ -50,12 +50,12 @@ public class MinigameLevelTimer : MinigameLevel
     private void ShowWinPanel()
     {
         winPanel.SetActive(true);
-        Debug.Log("Win panel shown");
+       // Debug.Log("Win panel shown");
     }
 
     private void OnWinButtonClicked()
     {
-        Debug.Log("Win button clicked! Collecting resources and deactivating minigame...");
+       // Debug.Log("Win button clicked! Collecting resources and deactivating minigame...");
 
         // Collect resources
         CollectResources();
@@ -71,12 +71,12 @@ public class MinigameLevelTimer : MinigameLevel
 
         // Hide the win panel
         winPanel.SetActive(false);
-        Debug.Log("Win panel hidden");
+        //Debug.Log("Win panel hidden");
 
         // Deactivate the minigame GameObject
-        Debug.Log($"Deactivating minigame: {gameObject.name}, Active before: {gameObject.activeSelf}");
+       // Debug.Log($"Deactivating minigame: {gameObject.name}, Active before: {gameObject.activeSelf}");
         gameObject.SetActive(false);
-        Debug.Log($"Minigame active after: {gameObject.activeSelf}");
+        //Debug.Log($"Minigame active after: {gameObject.activeSelf}");
     }
 
     private void ResetTimer()
@@ -87,7 +87,7 @@ public class MinigameLevelTimer : MinigameLevel
         {
             timerText.text = "Time left: " + Mathf.Ceil(timer).ToString();
         }
-        Debug.Log($"Timer reset to {timeInSeconds} seconds");
+       // Debug.Log($"Timer reset to {timeInSeconds} seconds");
     }
 
     public void StartGame()
@@ -104,6 +104,6 @@ public class MinigameLevelTimer : MinigameLevel
         {
             winPanel.SetActive(false);
         }
-        Debug.Log("Started new game");
+        //Debug.Log("Started new game");
     }
 }

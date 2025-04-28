@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class WireTaskGeneration : MonoBehaviour
 {
-    private void Awake()
+    public void RandomizeWires()
     {
         for (int i = 0; i < transform.childCount; i++)
         {
