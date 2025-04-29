@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
@@ -23,19 +22,19 @@ namespace Script.HumanResource.Administrator
     [CreateAssetMenu(fileName = "PolicyGacha", menuName = "HumanResource/Administrator/Gacha")]
     public class PolicyGacha : ScriptableGachaMachineBase<Policy>, ILootbox<Policy, PolicySettings>
     {
-        private readonly List<(float coefficient, float probability, Grade grade, int storageAmount, string percentString)> coefficientRates = new()
+        private readonly List<(float coefficient, float probability, Grade grade, int storageAmount, string starString)> coefficientRates = new()
         {
-            (1.02f, 0.40f, Grade.Common, 20, "2"),   // 2% - 40%
-            (1.05f, 0.20f, Grade.Rare, 50, "5"),     // 5% - 20%
-            (1.10f, 0.15f, Grade.Special, 100, "10"), // 10% - 15%
-            (1.15f, 0.10f, Grade.Epic, 150, "15"),    // 15% - 10%
-            (1.20f, 0.05f, Grade.Legendary, 200, "20") // 20% - 5%
+            (1.02f, 0.40f, Grade.Common, 20, " <sprite name=\"Star_0\">"),           // 1 Star - 40%
+            (1.05f, 0.20f, Grade.Rare, 50, " <sprite name=\"Star_0\"><sprite name=\"Star_0\">"),           // 2 Stars - 20%
+            (1.10f, 0.15f, Grade.Special, 100, " <sprite name=\"Star_0\"><sprite name=\"Star_0\"><sprite name=\"Star_0\">"),     // 3 Stars - 15%
+            (1.15f, 0.10f, Grade.Epic, 150, " <sprite name=\"Star_0\"><sprite name=\"Star_0\"><sprite name=\"Star_0\"><sprite name=\"Star_0\">"),       // 4 Stars - 10%
+            (1.20f, 0.05f, Grade.Legendary, 200, " <sprite name=\"Star_0\"><sprite name=\"Star_0\"><sprite name=\"Star_0\"><sprite name=\"Star_0\"><sprite name=\"Star_0\">")  // 5 Stars - 5%
         };
 
         private readonly Type[] policyTypes = new Type[]
         {
             typeof(MachineProgressionPolicy),
-            typeof(CoreChangeOnWorkPolicy),
+            //typeof(CoreChangeOnWorkPolicy),
             typeof(IncreaseMachineResourceGainPolicy),
             typeof(StorageModificationPolicy),
             typeof(IncreaseGeneratorPowerPolicy)
@@ -102,7 +101,7 @@ namespace Script.HumanResource.Administrator
 
             float roll = UnityEngine.Random.value;
             float cumulative = 0f;
-            (float coefficient, float probability, Grade policyGrade, int storageAmount, string percentString) rate = coefficientRates[0];
+            (float coefficient, float probability, Grade policyGrade, int storageAmount, string starString) rate = coefficientRates[0];
             foreach (var r in coefficientRates)
             {
                 cumulative += r.probability;
@@ -112,7 +111,7 @@ namespace Script.HumanResource.Administrator
                     break;
                 }
             }
-            var (coefficient, _, policyGrade, _, percentString) = rate;
+            var (coefficient, _, policyGrade, _, starString) = rate;
             policy.SetGrade(policyGrade);
 
             switch (policy)
@@ -139,13 +138,13 @@ namespace Script.HumanResource.Administrator
                         var machineTypeList = new CollectionWrapperList<MachineBase> { Value = new List<MachineBase> { machineInstance } };
                         mp.SetField("_machineType", machineTypeList);
                         mp.SetField("_descriptionKey", "IncreaseMachineProgressionSpeed");
-                        mp.SetField("_descriptionArgs", new string[] { machineType.Name, percentString });
+                        mp.SetField("_descriptionArgs", new string[] { machineType.Name, starString });
                     }
                     else
                     {
                         mp.SetField("_forAllMachines", true);
                         mp.SetField("_descriptionKey", "IncreaseAllMachinesProgressionSpeed");
-                        mp.SetField("_descriptionArgs", new string[] { percentString });
+                        mp.SetField("_descriptionArgs", new string[] { starString });
                     }
                     break;
 
@@ -158,12 +157,12 @@ namespace Script.HumanResource.Administrator
                     if (randomCoreType == CoreType.Hunger)
                     {
                         cc.SetField("_descriptionKey", "DecreaseAllWorkersHunger");
-                        cc.SetField("_descriptionArgs", new string[] { percentString });
+                        cc.SetField("_descriptionArgs", new string[] { starString });
                     }
                     else
                     {
                         cc.SetField("_descriptionKey", "IncreaseAllWorkersCore");
-                        cc.SetField("_descriptionArgs", new string[] { randomCoreType.ToString(), percentString });
+                        cc.SetField("_descriptionArgs", new string[] { randomCoreType.ToString(), starString });
                     }
                     break;
 
@@ -176,7 +175,7 @@ namespace Script.HumanResource.Administrator
                         im.Multiplier.Add(resource, new Vector2(coefficient, coefficient));
                     }
                     im.SetField("_descriptionKey", "IncreaseAllResourcesGain");
-                    im.SetField("_descriptionArgs", new string[] { percentString });
+                    im.SetField("_descriptionArgs", new string[] { starString });
                     break;
 
                 case StorageModificationPolicy sm:
@@ -184,7 +183,7 @@ namespace Script.HumanResource.Administrator
                     sm.Additives = Vector2.zero;
                     sm.SetField("_forAllStorages", true);
                     sm.SetField("_descriptionKey", "IncreaseAllStoragesCapacity");
-                    sm.SetField("_descriptionArgs", new string[] { percentString });
+                    sm.SetField("_descriptionArgs", new string[] { starString });
                     break;
 
                 case IncreaseGeneratorPowerPolicy gp:
@@ -192,13 +191,14 @@ namespace Script.HumanResource.Administrator
                     gp.Additives = Vector2.zero;
                     gp.SetField("_forAllGenerators", true);
                     gp.SetField("_descriptionKey", "IncreaseAllGeneratorCapacity");
-                    gp.SetField("_descriptionArgs", new string[] { percentString });
+                    gp.SetField("_descriptionArgs", new string[] { starString });
                     break;
             }
 
             return policy;
         }
-        private (float coefficient, float probability, Grade grade, int storageAmount, string percentString) PickRandomCoefficient()
+
+        private (float coefficient, float probability, Grade grade, int storageAmount, string starString) PickRandomCoefficient()
         {
             float roll = UnityEngine.Random.value;
             float cumulative = 0f;

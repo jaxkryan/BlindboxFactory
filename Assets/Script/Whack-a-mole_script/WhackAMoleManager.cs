@@ -87,7 +87,7 @@ public class WhackAMoleManager : MonoBehaviour
             if (timeRemaining <= 0)
             {
                 timeRemaining = 0;
-                EndGame();
+                GameOver();
             }
             int minutes = (int)timeRemaining / 60;
             int seconds = (int)timeRemaining % 60;
@@ -121,7 +121,7 @@ public class WhackAMoleManager : MonoBehaviour
         // Kết thúc trò chơi khi đạt điểm mục tiêu
         if (score >= targetScore)
         {
-            EndGame();
+            CompleteGame();
         }
     }
 
@@ -141,7 +141,7 @@ public class WhackAMoleManager : MonoBehaviour
         StopAllCoroutines();
     }
 
-    private void EndGame()
+    private void CompleteGame()
     {
         playing = false;
         playButton.SetActive(true);
@@ -150,35 +150,61 @@ public class WhackAMoleManager : MonoBehaviour
             returnToMinigameButton.SetActive(true);
         }
         StopAllCoroutines();
-
+        Reward();
     }
 
-    public void AddGemsToResources()
+    private void Reward()
     {
         if (GameController.Instance != null && GameController.Instance.ResourceController != null)
         {
+            // Add 15 Gems
             if (GameController.Instance.ResourceController.TryGetAmount(Resource.Gem, out long currentGems))
             {
-                long newGems = currentGems + score;
-                if (GameController.Instance.ResourceController.TrySetAmount(Resource.Gem, newGems))
+                long newGems = currentGems + 15;
+                if (!GameController.Instance.ResourceController.TrySetAmount(Resource.Gem, newGems))
                 {
-                    //Debug.Log($"Added {score} Gems. New total: {newGems}");
+                    //Debug.LogWarning("Failed to set Gem amount in ResourceController.");
                 }
                 else
                 {
-                    //Debug.LogWarning("Failed to set Gem amount in ResourceController.");
+                    //Debug.Log($"Added 15 Gems. New total: {newGems}");
                 }
             }
             else
             {
-               // Debug.LogWarning("Failed to get current Gem amount from ResourceController.");
+                //Debug.LogWarning("Failed to get current Gem amount from ResourceController.");
+            }
+
+            // List of material resources to update
+            Resource[] materials = { Resource.Diamond, Resource.Cloud, Resource.Rainbow, Resource.Gummy, Resource.Ruby, Resource.Star };
+
+            foreach (Resource material in materials)
+            {
+                if (GameController.Instance.ResourceController.TryGetAmount(material, out long currentAmount))
+                {
+                    // Calculate 5% to 10% of current amount
+                    float randomPercentage = Random.Range(0.05f, 0.10f);
+                    long additionalAmount = (long)(currentAmount * randomPercentage);
+                    long newAmount = currentAmount + additionalAmount;
+
+                    if (!GameController.Instance.ResourceController.TrySetAmount(material, newAmount))
+                    {
+                        //Debug.LogWarning($"Failed to set {material} amount in ResourceController.");
+                    }
+                    else
+                    {
+                        //Debug.Log($"Added {additionalAmount} {material}. New total: {newAmount}");
+                    }
+                }
+                else
+                {
+                    //Debug.LogWarning($"Failed to get current {material} amount from ResourceController.");
+                }
             }
         }
         else
         {
-           // Debug.LogWarning("GameController or ResourceController is not available.");
+            //Debug.LogWarning("GameController or ResourceController is not available.");
         }
     }
-
-    
 }

@@ -56,7 +56,7 @@ public class MascotDetailUI : MonoBehaviour
         {
             _portrait.sprite = mascot.Portrait ?? _defaultPortrait;
             _nameText.text = mascot.Name.ToString();
-            var policies = mascot.Policies.AsValueEnumerable().Aggregate("", (current, p) => current + $"� {p.Description}\n").TrimEnd('\n');
+            var policies = mascot.Policies.AsValueEnumerable().Aggregate("", (current, p) => current + $"• {p.Description}\n").TrimEnd('\n');
             _policiesText.text = policies;
             _policiesText.color = _gradeColors[mascot.Grade];
             _gradeText.text = $"Grade: {mascot.Grade}";
