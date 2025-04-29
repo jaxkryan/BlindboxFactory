@@ -212,7 +212,7 @@ namespace Script.Controller {
                     _googlePlayId = PlayGamesPlatform.Instance.GetUserId();
                     SaveManager = new SaveManager(_googlePlayId);
                     StartCoroutine(LoadThenStartSession());
-                    Debug.Log($"Signed in as {_googlePlayId}");
+                    //Debug.Log($"Signed in as {_googlePlayId}");
                 }
                 else {
                     //Debug.LogError("Failed to sign in to Google Play Games. Using local save only.");
@@ -309,20 +309,39 @@ namespace Script.Controller {
                 await saveManager.LoadFromFirebase();
             }
 
-            try {
-                if (saveManager.TryGetValue(nameof(PlayerData), out string playerDataString)) {
-                    PlayerData = SaveManager.Deserialize<PlayerData>(playerDataString);
-                    if (_googlePlayId != null && PlayerData.Id != _googlePlayId) {
-                        Debug.LogWarning("Player ID mismatch. Updating to current Google Play ID.");
-                        PlayerData.Id = _googlePlayId;
+            try
+            {
+                if (saveManager.TryGetValue(nameof(PlayerData), out string playerDataString))
+                {
+                    try
+                    {
+                        PlayerData = SaveManager.Deserialize<PlayerData>(playerDataString);
+                        if (PlayerData == null)
+                        {
+                            Debug.LogWarning("Failed to deserialize PlayerData. Initializing new PlayerData.");
+                            PlayerData = _googlePlayId != null ? new PlayerData(_googlePlayId) : new PlayerData("local_user");
+                        }
+                        else
+                        {
+                            if (_googlePlayId != null && PlayerData.Id != _googlePlayId)
+                            {
+                                Debug.LogWarning("Player ID mismatch. Updating to current Google Play ID.");
+                                PlayerData.Id = _googlePlayId;
+                            }
+                            PlayerData.LastLogin = DateTime.Now;
+                            PlayerData.PlayerName = Social.localUser.userName != null ? Social.localUser.userName : "local_user_Tu";
+                        }
                     }
-                    PlayerData.LastLogin = DateTime.Now;
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogWarning($"Error deserializing PlayerData: {ex.Message}. Initializing new PlayerData.");
+                        PlayerData = _googlePlayId != null ? new PlayerData(_googlePlayId) : new PlayerData("local_user");
+                    }
                 }
-                else if (_googlePlayId != null) {
-                    PlayerData = new PlayerData(_googlePlayId);
-                }
-                else {
-                    PlayerData = new PlayerData("local_user");
+                else
+                {
+                    Debug.Log("No PlayerData found in save data. Initializing new PlayerData.");
+                    PlayerData = _googlePlayId != null ? new PlayerData(_googlePlayId) : new PlayerData("local_user");
                 }
 
                 #region Game Controller's own save

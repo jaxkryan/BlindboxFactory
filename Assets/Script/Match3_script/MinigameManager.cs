@@ -33,6 +33,9 @@ public class MinigameManager : MonoBehaviour
     private DateTime? minigameStartTime;
     private Dictionary<MachineBase, MinigameData> activeMinigames = new();
     private float originalOrthoSize; // Store original ortho size
+    private Vector3 originalCameraPosition; // Store original camera position
+    private readonly Vector3 minigamePlayPosition = new Vector3(10000f, 10000f); // Position to move minigame and camera
+    private CameraController cameraController; // Reference to CameraController script
 
     private class MinigameData
     {
@@ -75,6 +78,14 @@ public class MinigameManager : MonoBehaviour
         if (mainCamera != null)
         {
             originalOrthoSize = mainCamera.orthographicSize;
+            originalCameraPosition = mainCamera.transform.position; // Store original camera position
+
+            // Get the CameraController component
+            cameraController = mainCamera.GetComponent<CameraController>();
+            if (cameraController == null)
+            {
+                Debug.LogWarning("CameraController script not found on Main Camera!");
+            }
         }
 
         // Deactivate all minigame GameObjects initially
@@ -91,10 +102,17 @@ public class MinigameManager : MonoBehaviour
             machineController.onMachineAdded -= OnMachineAdded;
         }
 
-        // Restore original ortho size on exit
+        // Restore original ortho size and position on exit
         if (mainCamera != null)
         {
             mainCamera.orthographicSize = originalOrthoSize;
+            mainCamera.transform.position = originalCameraPosition;
+        }
+
+        // Ensure CameraController is enabled on destroy
+        if (cameraController != null)
+        {
+            cameraController.enabled = true;
         }
     }
 
@@ -224,6 +242,7 @@ public class MinigameManager : MonoBehaviour
         };
 
         string minigameType = GetMinigameType(minigameObject);
+        Debug.Log($"Minigame event spawned at machine: {selectedMachine.name} (Type: {selectedMachine.GetType().Name}, Minigame: {minigameType})");
     }
 
     private void OnMinigameTriggerButtonClicked()
@@ -240,6 +259,7 @@ public class MinigameManager : MonoBehaviour
             var pair = enumerator.Current;
             MachineBase machine = pair.Key;
             GameObject minigameObject = pair.Value.MinigameObject;
+            Debug.Log($"MinigameTriggerButton clicked, starting minigame for machine: {machine.name}, GameObject: {minigameObject.name}");
             StartMinigame(machine, minigameObject);
         }
     }
@@ -256,25 +276,64 @@ public class MinigameManager : MonoBehaviour
             // Adjust camera orthographic size
             if (mainCamera != null)
             {
+                // Disable CameraController to allow free movement
+                if (cameraController != null)
+                {
+                    cameraController.enabled = false;
+                    Debug.Log("Disabled CameraController to allow camera movement");
+                }
+
                 float orthoSizeFactor = CalculateOrthoSizeFactor();
                 mainCamera.orthographicSize = referenceOrthoSize * orthoSizeFactor;
                 Debug.Log($"Applied ortho size factor: {orthoSizeFactor}, New ortho size: {mainCamera.orthographicSize}");
 
-                // Position minigame at the center of the viewport
-                Vector3 viewportCenter = new Vector3(0.5f, 0.5f, 10f); // Center of viewport, z = 10 from camera
-                Vector3 spawnPosition = mainCamera.ViewportToWorldPoint(viewportCenter);
-                spawnPosition.z = -5f; // Ensure minigame is closer to camera
-                minigameObject.transform.position = spawnPosition;
-                Debug.Log($"Positioned minigame {minigameObject.name} at viewport center: {spawnPosition}");
+                // Move camera to minigame play position, preserving z
+                Vector3 cameraPosition = minigamePlayPosition;
+                cameraPosition.z = mainCamera.transform.position.z;
+                mainCamera.transform.position = cameraPosition;
+                Debug.Log($"Moved camera to: {cameraPosition}");
             }
 
-            // Deactivate all other minigame GameObjects and activate the selected one
+            // Deactivate all other minigame GameObjects
             DeactivateAllMinigameObjects();
+
+            // Move minigame to play position *before* activation
+            Vector3 minigamePosition = minigamePlayPosition;
+            minigamePosition.z = -5f; // Explicitly set z to ensure visibility
+            minigameObject.transform.position = minigamePosition;
+            Debug.Log($"Moved minigame {minigameObject.name} to: {minigamePosition}");
+
+            // Activate the minigame (this triggers Grid.OnEnable)
             minigameObject.SetActive(true);
+
+            // Confirm the position after setting
+            Debug.Log($"Final position of minigame {minigameObject.name} after activation: {minigameObject.transform.position}");
         }
         else
         {
             Debug.LogWarning($"Machine {machine.name} not found in activeMinigames!");
+        }
+    }
+
+    public void EndMinigame()
+    {
+        Debug.Log("Ending minigame via MinigameManager.EndMinigame");
+        DeactivateAllMinigameObjects();
+
+        // Explicitly move camera to (0, 0), preserving z
+        if (mainCamera != null)
+        {
+            Vector3 cameraResetPosition = Vector3.zero;
+            cameraResetPosition.z = mainCamera.transform.position.z;
+            mainCamera.transform.position = cameraResetPosition;
+            Debug.Log($"Camera moved to: {cameraResetPosition}");
+
+            // Re-enable CameraController after moving camera back
+            if (cameraController != null)
+            {
+                cameraController.enabled = true;
+                Debug.Log("Re-enabled CameraController after ending minigame");
+            }
         }
     }
 
@@ -300,7 +359,7 @@ public class MinigameManager : MonoBehaviour
         if (whackAMoleGameObject != null) whackAMoleGameObject.SetActive(false);
         if (wireConnectionGameObject != null) wireConnectionGameObject.SetActive(false);
 
-        // Restore original ortho size when deactivating minigames
+        // Restore original ortho size (but not position, handled in EndMinigame)
         if (mainCamera != null)
         {
             mainCamera.orthographicSize = originalOrthoSize;
