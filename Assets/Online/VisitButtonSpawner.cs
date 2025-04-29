@@ -1,13 +1,14 @@
 using Firebase.Database;
 using Firebase.Extensions;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class VisitButtonSpawner : MonoBehaviour
 {
-    public GameObject buttonPrefab; // Assign your Button Prefab here in Inspector
-    public Transform contentParent; // Assign the "Content" GameObject under ScrollView here
-    public string sceneToLoad = "YourSceneName"; // Set your scene to load
+    public GameObject buttonPrefab; // Assign your Button Prefab here
+    public Transform contentParent; // ScrollView Content holder
+    public string sceneToLoad = "YourSceneName"; // Scene to visit
 
     void Start()
     {
@@ -18,7 +19,7 @@ public class VisitButtonSpawner : MonoBehaviour
     {
         FirebaseDatabase.DefaultInstance.GetReference("users").GetValueAsync().ContinueWithOnMainThread(task =>
         {
-            if (task.IsCompleted)
+            if (task.IsCompletedSuccessfully)
             {
                 DataSnapshot snapshot = task.Result;
                 if (snapshot.Exists)
@@ -26,12 +27,12 @@ public class VisitButtonSpawner : MonoBehaviour
                     foreach (var childSnapshot in snapshot.Children)
                     {
                         string userId = childSnapshot.Key;
-                        CreateVisitButton(userId);
+                        LoadPlayerNameAndCreateButton(userId);
                     }
                 }
                 else
                 {
-                    Debug.LogWarning("No users found in the database.");
+                    Debug.LogWarning("No users found in database.");
                 }
             }
             else
@@ -41,7 +42,39 @@ public class VisitButtonSpawner : MonoBehaviour
         });
     }
 
-    void CreateVisitButton(string userId)
+    void LoadPlayerNameAndCreateButton(string userId)
+    {
+        string path = $"users/{userId}/PlayerData";
+        FirebaseDatabase.DefaultInstance.GetReference(path).GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            string playerName = "Guest"; // Default if missing or error
+
+            if (task.IsCompletedSuccessfully)
+            {
+                DataSnapshot snapshot = task.Result;
+                if (snapshot.Exists && snapshot.Value != null)
+                {
+                    var json = snapshot.GetRawJsonValue();
+                    try
+                    {
+                        PlayerData data = JsonUtility.FromJson<PlayerData>(json);
+                        if (!string.IsNullOrEmpty(data.PlayerName))
+                        {
+                            playerName = data.PlayerName;
+                        }
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogWarning($"Failed to parse PlayerData for {userId}: {e.Message}");
+                    }
+                }
+            }
+
+            CreateVisitButton(userId, playerName);
+        });
+    }
+
+    void CreateVisitButton(string userId, string playerName)
     {
         GameObject buttonObj = Instantiate(buttonPrefab, contentParent);
         VisitButton visitButton = buttonObj.GetComponent<VisitButton>();
@@ -51,10 +84,20 @@ public class VisitButtonSpawner : MonoBehaviour
             visitButton.userIdToLoad = userId;
             visitButton.sceneToLoad = sceneToLoad;
         }
-        //Text buttonText = buttonObj.GetComponentInChildren<Text>();
-        //if (buttonText != null)
-        //{
-        //    buttonText.text = $"Visit {userId}";
-        //}
+
+        TMP_Text buttonText = buttonObj.GetComponentInChildren<TMP_Text>();
+        if (buttonText != null)
+        {
+            buttonText.text = $"{playerName}";
+        }
+    }
+
+    [System.Serializable]
+    public class PlayerData
+    {
+        public string Id;
+        public string PlayerName;
+        public string FirstLogin;
+        public string LastLogin;
     }
 }
