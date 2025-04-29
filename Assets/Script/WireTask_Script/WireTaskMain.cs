@@ -1,10 +1,11 @@
 using UnityEngine;
+using TMPro; // For TextMeshProUGUI
 using Script.Controller; // For GameController and ResourceController
 using Script.Resources; // For Resource enum
 
 public class WireTaskMain : MonoBehaviour
 {
-    static public WireTaskMain Instance;
+    public static WireTaskMain Instance;
 
     public int switchCount;
     public GameObject winText;
@@ -12,8 +13,13 @@ public class WireTaskMain : MonoBehaviour
     [SerializeField] private GameObject returnToMinigameButton; // Button to return to minigame
     [SerializeField] private WireTaskGeneration leftWireTaskGeneration; // Reference to WireTaskGeneration for left wires
     [SerializeField] private WireTaskGeneration rightWireTaskGeneration; // Reference to WireTaskGeneration for right wires
+    [SerializeField] private TextMeshProUGUI timerText; // TextMeshPro to display remaining time
     private int oncount = 0;
     private float textDisplayDuration = 2f; // Duration to show the "Connect the wires" text
+    private float timer = 0f; // Tracks elapsed time
+    private bool isTimerRunning = false; // Tracks if timer is active
+    private const float timeLimit = 15f; // 15-second time limit
+    private bool completedInTime = false; // Tracks if completed within 15s
 
     private void Awake()
     {
@@ -40,7 +46,13 @@ public class WireTaskMain : MonoBehaviour
         }
         if (rightWireTaskGeneration == null)
         {
-           // Debug.LogWarning("RightWireTaskGeneration not assigned in Inspector!");
+            //Debug.LogWarning("RightWireTaskGeneration not assigned in Inspector!");
+        }
+
+        // Check TextMeshPro reference
+        if (timerText == null)
+        {
+            //Debug.LogWarning("TimerText (TextMeshProUGUI) not assigned in Inspector!");
         }
     }
 
@@ -50,9 +62,37 @@ public class WireTaskMain : MonoBehaviour
         ResetGame();
     }
 
+    private void Update()
+    {
+        if (isTimerRunning)
+        {
+            timer += Time.deltaTime;
+            UpdateTimerDisplay();
+            if (timer >= timeLimit)
+            {
+                isTimerRunning = false;
+                UpdateTimerDisplay(); // Ensure timer shows 0.0 when time's up
+                //Debug.Log("Time's up! No gem reward.");
+            }
+        }
+    }
+
+    private void UpdateTimerDisplay()
+    {
+        if (timerText != null)
+        {
+            float timeRemaining = Mathf.Max(0f, timeLimit - timer);
+            timerText.text = timeRemaining.ToString("F1"); // Display with 1 decimal place
+        }
+    }
+
     private void ResetGame()
     {
-       
+        // Reset timer and game state
+        timer = 0f;
+        isTimerRunning = true;
+        completedInTime = false;
+        UpdateTimerDisplay(); // Initialize timer display
 
         // Reset UI elements
         if (winText != null)
@@ -72,7 +112,7 @@ public class WireTaskMain : MonoBehaviour
         }
         else
         {
-           // Debug.LogWarning("ConnectWiresText not assigned in Inspector!");
+            //Debug.LogWarning("ConnectWiresText not assigned in Inspector!");
         }
 
         // Randomize the wires
@@ -123,6 +163,13 @@ public class WireTaskMain : MonoBehaviour
 
     private void EndGame()
     {
+        // Stop the timer
+        isTimerRunning = false;
+        UpdateTimerDisplay(); // Update display one last time
+
+        // Check if completed within time limit
+        completedInTime = timer <= timeLimit;
+
         // Show win text and return button
         if (winText != null)
         {
@@ -133,7 +180,15 @@ public class WireTaskMain : MonoBehaviour
             returnToMinigameButton.SetActive(true);
         }
 
-        AddGemsToResources();
+        // Award gems only if completed in time
+        if (completedInTime)
+        {
+            AddGemsToResources();
+        }
+        else
+        {
+            //Debug.Log("Task completed after 15 seconds, no gems awarded.");
+        }
     }
 
     private void AddGemsToResources()
@@ -142,14 +197,14 @@ public class WireTaskMain : MonoBehaviour
         {
             if (GameController.Instance.ResourceController.TryGetAmount(Resource.Gem, out long currentGems))
             {
-                long newGems = currentGems + Random.Range(1, 101); // random 1 to 100 gems
+                long newGems = currentGems + Random.Range(1, 101); // Random 1 to 100 gems
                 if (GameController.Instance.ResourceController.TrySetAmount(Resource.Gem, newGems))
                 {
-                    //Debug.Log($"Added 20 Gems. New total: {newGems}");
+                    //Debug.Log($"Added {newGems - currentGems} Gems. New total: {newGems}");
                 }
                 else
                 {
-                   // Debug.LogWarning("Failed to set Gem amount in ResourceController.");
+                    //Debug.LogWarning("Failed to set Gem amount in ResourceController.");
                 }
             }
             else
@@ -162,6 +217,4 @@ public class WireTaskMain : MonoBehaviour
             //Debug.LogWarning("GameController or ResourceController is not available.");
         }
     }
-
-   
 }
