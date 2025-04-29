@@ -264,7 +264,6 @@ namespace Script.Machine {
             _progressPerSecTimer = new CountdownTimer(1);
             _resourceManager = new(this);
             _product?.SetParent(this);
-            Debug.LogError("Placed");
         }
 
         protected virtual  void OnEnable() {

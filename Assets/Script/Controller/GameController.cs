@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using ZLinq;
 using System.Threading.Tasks;
+using BuildingSystem;
 using GooglePlayGames;
 using GooglePlayGames.BasicApi;
 using JetBrains.Annotations;
@@ -130,6 +131,11 @@ namespace Script.Controller {
             CommissionController.OnCommissionChanged += InitiateSave;
             CommissionController.onCommissionCompleted += InitiateSave;
             QuestController.onQuestStateChanged += InitiateSave;
+            MascotController.OnMascotAdded += InitiateSave;
+            MascotController.OnMascotRemoved += InitiateSave;
+            RetailUI.onSellBlindbox += InitiateSave;
+            RetailUI.onSellResources += InitiateSave;
+            BuildingSystem.ConstructionLayer.onStoredBuilding += InitiateSave;
 
             if (!CompletedTutorial) onTutorialCompleted += StopIgnoreCommissionOnTutorialCompleted;
         }
@@ -143,6 +149,11 @@ namespace Script.Controller {
             CommissionController.OnCommissionChanged -= InitiateSave;
             CommissionController.onCommissionCompleted -= InitiateSave;
             QuestController.onQuestStateChanged -= InitiateSave;
+            MascotController.OnMascotAdded -= InitiateSave;
+            MascotController.OnMascotRemoved -= InitiateSave;
+            RetailUI.onSellBlindbox -= InitiateSave;
+            RetailUI.onSellResources -= InitiateSave;
+            BuildingSystem.ConstructionLayer.onStoredBuilding -= InitiateSave;
 
             onTutorialCompleted -= StopIgnoreCommissionOnTutorialCompleted;
         }
@@ -158,6 +169,7 @@ namespace Script.Controller {
         private void InitiateSave(string obj) => InitiateSave();
         private void InitiateSave(Commission.Commission obj) => InitiateSave();
         private void InitiateSave(Quest.Quest obj) => InitiateSave();
+        private void InitiateSave(Mascot mascot) => InitiateSave();
 
         private void InitiateSave() {
             StartCoroutine(Save(SaveManager).AsCoroutine());
@@ -348,6 +360,12 @@ namespace Script.Controller {
                     if (Log) Debug.Log($"Loading {c.GetType().Name}");
                     c.Load(saveManager);
                 });
+                
+                if (saveManager.TryGetValue(nameof(BuildingSystem.ConstructionLayer), out string constructionLayerString)) {
+                    if (ConstructionLayer.TryGetComponent(out BuildingSystem.ConstructionLayer constructionScript)) {
+                        constructionScript.Load(SaveManager.Deserialize<ConstructionLayer.SaveData>(constructionLayerString));
+                    }
+                }
             }
             catch (System.Exception ex) {
                 Debug.LogError(ex);
@@ -364,7 +382,7 @@ namespace Script.Controller {
         private async Task Save(SaveManager saveManager) {
             if (_isLoading || _saveInitialized) {
                 _queueingSave = true;
-                if (_log) Debug.Log("Loading in progress.");
+                if (_log) Debug.Log("Saving in progress.");
                 return;
             }
 
@@ -392,8 +410,11 @@ namespace Script.Controller {
 
                     SaveManager.Serialize(GroundAddedTiles.AsValueEnumerable().Select(t => new V2Int(t)).ToList()));
                 if (PlayerData != null) saveManager.AddOrUpdate(nameof(PlayerData), SaveManager.Serialize(PlayerData));
-
                 #endregion
+                
+                if (ConstructionLayer.TryGetComponent(out ConstructionLayer constructionScript)) {
+                    saveManager.AddOrUpdate(nameof(ConstructionLayer), SaveManager.Serialize(constructionScript.Save()));
+                }
             }
             catch (System.Exception e) {
                 Debug.LogWarning(e);
@@ -406,6 +427,7 @@ namespace Script.Controller {
                 await saveManager.SaveToFirebase();
             }
             _saveInitialized = false;
+            if (_queueingSave) InitiateSave();
             onSave?.Invoke();
         }
     }

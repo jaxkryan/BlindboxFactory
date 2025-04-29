@@ -48,7 +48,7 @@ namespace Script.HumanResource.Administrator
             admin.Portrait = PortraitRandomizer.Pull();
 
             // Assign buffs using PolicyGacha
-            admin.Policies = PolicyGacha.GeneratePoliciesForMascot(grade);
+            admin.Policies = PolicyGacha.GeneratePoliciesForMascot(grade).ToList();
             Debug.Log($"Assigned {admin.Policies.Count()} policies to {grade} mascot");
 
             Pulls++;
@@ -82,7 +82,7 @@ namespace Script.HumanResource.Administrator
             admin.Portrait = PortraitRandomizer.Pull();
 
             // Assign buffs using PolicyGacha
-            admin.Policies = PolicyGacha.GeneratePoliciesForMascot(grade);
+            admin.Policies = PolicyGacha.GeneratePoliciesForMascot(grade).ToList();
             Debug.Log($"Assigned {admin.Policies.Count()} policies to {grade} mascot");
 
             Pulls++;

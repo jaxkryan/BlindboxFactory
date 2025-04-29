@@ -105,8 +105,8 @@ namespace Script.HumanResource.Administrator.Policies
             var data = base.Save().CastToSubclass<IncreaseMachineResourceGainData, SaveData>();
             if (data is null) return base.Save();
 
-            data.Additives = Additives;
-            data.Multiplier = Multiplier;
+            data.Additives = Additives.Select(d => new KeyValuePair<Resource, V2>(d.Key, new(d.Value))).ToDictionary(d => d.Key, d => d.Value);
+            data.Multiplier = Multiplier.Select(d => new KeyValuePair<Resource, V2>(d.Key, new(d.Value))).ToDictionary(d => d.Key, d => d.Value);
 
             return data;
         }
@@ -115,16 +115,16 @@ namespace Script.HumanResource.Administrator.Policies
         {
             if (data is IncreaseMachineResourceGainData increaseData)
             {
-                Additives = new(increaseData.Additives);
-                Multiplier = new(increaseData.Multiplier);
+                Additives = new(increaseData.Additives.Select(d => new KeyValuePair<Resource, Vector2>(d.Key, d.Value)));
+                Multiplier = new(increaseData.Multiplier.Select(d => new KeyValuePair<Resource, Vector2>(d.Key, d.Value)));
             }
             base.Load(data);
         }
 
         public class IncreaseMachineResourceGainData : SaveData
         {
-            public Dictionary<Resource, Vector2> Additives;
-            public Dictionary<Resource, Vector2> Multiplier;
+            public Dictionary<Resource, V2> Additives;
+            public Dictionary<Resource, V2> Multiplier;
         }
     }
 }

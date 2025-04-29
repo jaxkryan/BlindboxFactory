@@ -8,7 +8,7 @@ namespace Script.HumanResource.Administrator {
     public abstract class Mascot : Gacha.Base.Loot {
         public EmployeeName Name;
         public Sprite Portrait;
-        public IEnumerable<Policy> Policies;
+        public List<Policy> Policies;
         public void SetGrade(Grade grade) => this.Grade = grade;
         public bool IsActive { get; private set; } = false;
 

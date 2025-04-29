@@ -4,6 +4,7 @@ using MyBox;
 using Script.Controller;
 using Script.Machine;
 using Script.Machine.Machines.Generator;
+using Script.Utils;
 using UnityEngine;
 
 namespace Script.HumanResource.Administrator.Policies
@@ -91,6 +92,29 @@ namespace Script.HumanResource.Administrator.Policies
             _originalPowerValues.Clear();
 
             var controller = GameController.Instance.MachineController;
+        }
+
+        public override SaveData Save() {
+            var data = base.Save().CastToSubclass<IncreaseGeneratorPowerSaveData, SaveData>();
+            if (data is null) return base.Save();
+
+            data.Additives = new(Additives);
+            data.Multiplier = new (Multiplier);
+            return data;
+        }
+
+        public override void Load(SaveData data) {
+            base.Load(data);
+            
+            if (data is not IncreaseGeneratorPowerSaveData coreData) return;
+
+            Additives = coreData.Additives;
+            Multiplier = coreData.Multiplier;
+        }
+
+        public class IncreaseGeneratorPowerSaveData : SaveData {
+            public V2 Additives;
+            public V2 Multiplier;
         }
     }
 }
