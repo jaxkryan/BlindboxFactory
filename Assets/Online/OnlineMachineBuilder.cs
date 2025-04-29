@@ -1,5 +1,6 @@
 using BuildingSystem.Models;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -25,17 +26,47 @@ public class OnlineMachineBuilder : MonoBehaviour
 
             if (foundItem != null)
             {
-                // Instantiate the object
-                GameObject instance = Instantiate(foundItem.gameObject);
+                // Check if BuildableItem has a Prefab reference
+                GameObject prefab = foundItem.gameObject; // Assume BuildableItem has a Prefab field
+                if (prefab == null)
+                {
+                    Debug.LogWarning($"BuildableItem {machine.PrefabName} has no Prefab assigned.");
+                    continue;
+                }
 
-                // Convert the world position to a tilemap cell position
+                // Create a new empty GameObject
+                GameObject instance = new GameObject(machine.PrefabName);
+
+                instance.transform.localScale = prefab.transform.localScale;
+                // Add SpriteRenderer component
+                SpriteRenderer spriteRenderer = instance.AddComponent<SpriteRenderer>();
+
+                // Try to get the SpriteRenderer from the prefab
+                SpriteRenderer originalRenderer = prefab.GetComponent<SpriteRenderer>();
+                if (originalRenderer != null)
+                {
+                    spriteRenderer.sprite = originalRenderer.sprite;
+                    spriteRenderer.sortingOrder = originalRenderer.sortingOrder;
+                }
+                else
+                {
+                    Debug.LogWarning($"Prefab {machine.PrefabName} has no SpriteRenderer.");
+                }
+
+                // Add Animator component (optional)
+                Animator originalAnimator = prefab.GetComponent<Animator>();
+                if (originalAnimator != null)
+                {
+                    Animator animator = instance.AddComponent<Animator>();
+                    animator.runtimeAnimatorController = originalAnimator.runtimeAnimatorController;
+                }
+
+                // Position the object
                 Vector3 worldPos = new Vector3(machine.Position.x, machine.Position.y, machine.Position.z);
                 Vector3Int cellPos = tilemap.WorldToCell(worldPos);
-
-                // Set the object position to the center of the tile
                 instance.transform.position = tilemap.GetCellCenterWorld(cellPos);
 
-                Debug.Log($"Built {machine.PrefabName} at {cellPos}");
+                Debug.Log($"Built simple {machine.PrefabName} at {cellPos}");
             }
             else
             {
