@@ -48,22 +48,18 @@ public class MinigameLevel : MonoBehaviour
 
     public virtual void GameWin()
     {
-        Debug.Log("Game win");
         CollectResources();
+        AddGemsToResources();
+        ResourceManager.Instance.ResetResources();
         grid.GameOver();
     }
 
-    public virtual void GameLose()
-    {
-        Debug.Log("Game lose");
-        CollectResources();
-        grid.GameOver();
-    }
+
 
     private readonly List<Resource> _nonCraftingResources = new () {
-        Resource.Gold, Resource.Gem, 
+        Resource.Gold, Resource.Gem, Resource.Meal,
     };
-    private void CollectResources()
+    protected void CollectResources()
     {
         foreach (Resource resource in System.Enum.GetValues(typeof(Resource)))
         {
@@ -77,7 +73,32 @@ public class MinigameLevel : MonoBehaviour
                 GameController.Instance.ResourceController.TrySetAmount(resource, amount + value);
         }
     }
-
+    private void AddGemsToResources()
+    {
+        if (GameController.Instance != null && GameController.Instance.ResourceController != null)
+        {
+            if (GameController.Instance.ResourceController.TryGetAmount(Resource.Gem, out long currentGems))
+            {
+                long newGems = currentGems + 15;
+                if (GameController.Instance.ResourceController.TrySetAmount(Resource.Gem, newGems))
+                {
+                    //Debug.Log($"Added 15 Gems. New total: {newGems}");
+                }
+                else
+                {
+                    // Debug.LogWarning("Failed to set Gem amount in ResourceController.");
+                }
+            }
+            else
+            {
+                //Debug.LogWarning("Failed to get current Gem amount from ResourceController.");
+            }
+        }
+        else
+        {
+            //Debug.LogWarning("GameController or ResourceController is not available.");
+        }
+    }
     private Func<string, string> ToUpper =>
         (str) => {
             var list = new List<char>();
@@ -109,7 +130,7 @@ public class MinigameLevel : MonoBehaviour
         }
     }
 
-    private void UpdateResourceTexts()
+    protected void UpdateResourceTexts()
     {
         foreach (ResourceText resourceText in resourceTexts)
         {

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using MyBox;
 using Newtonsoft.Json;
 using Script.Alert;
@@ -18,7 +18,7 @@ namespace Script.Controller {
         private List<Quest.Quest> _dailyMissions;
         
         public List<Quest.Quest> DailyMissions {
-            get => _dailyMissions ?? CreateDailyMissions();
+            get => _dailyMissions ?? CreateDailyMissions(true);
         }
 
         private List<Quest.Quest> CreateDailyMissions(bool save = false) {
@@ -33,6 +33,8 @@ namespace Script.Controller {
                 _dailyMissions?.ForEach(q => q.ClearQuestData());
                 _dailyMissions = list;
             }
+
+            list.ForEach(m => m.Evaluate());
             return list;
         }
 
@@ -42,7 +44,7 @@ namespace Script.Controller {
 
             if ((DateTime.Today <= _lastUpdate.Date || _resetTime.AsDateTime() > DateTime.Now)
                 && _dailyMissions is not null) return;
-            //CreateDailyMissions(true); //Tu add de debug clear
+            CreateDailyMissions(true); //Tu add de debug clear
             _lastUpdate = DateTime.Now;
         }
 
@@ -55,7 +57,6 @@ namespace Script.Controller {
                 DailyMissions.ForEach(d => d.State = Quest.QuestState.Locked);
                 _lastUpdate = data.LastUpdate;
                 for (var i = 0; i < data.DailyMissionsState.Count; i++) {
-                    Debug.LogError("Saved State: " + DailyMissions[i].Name + " " + data.DailyMissionsState[i]);
                     _dailyMissions[i].State = data.DailyMissionsState[i];
                 }           
 
@@ -74,7 +75,7 @@ namespace Script.Controller {
 
             var newSave = new SaveData() {
                 LastUpdate = _lastUpdate,
-                DailyMissionsState = _dailyMissions?.Select(m => m.State).ToList() ?? new (),
+                DailyMissionsState = _dailyMissions?.AsValueEnumerable().Select(m => m.State).ToList() ?? new (),
             };
             
             

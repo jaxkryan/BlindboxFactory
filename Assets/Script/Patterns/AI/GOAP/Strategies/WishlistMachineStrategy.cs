@@ -15,12 +15,12 @@ namespace Script.Patterns.AI.GOAP.Strategies {
         public bool Complete { get; private set; }
 
         private Worker _worker;
-        private Func<WorkerDirector, HashSet<MachineBase>> _machines;
+        private Func<WorkerDirector, IEnumerable<MachineBase>> _machines;
         private NavMeshAgent _agent;
         private int _retryAttempts;
         private CountdownTimer _timer;
         
-        public WishlistMachineStrategy(Worker worker, Func<WorkerDirector, HashSet<MachineBase>> machines, NavMeshAgent agent, int retryAttempts = 0, float retryTimer = 0.5f) {
+        public WishlistMachineStrategy(Worker worker, Func<WorkerDirector, IEnumerable<MachineBase>> machines, NavMeshAgent agent, int retryAttempts = 0, float retryTimer = 0.5f) {
             _worker = worker;
             _machines = machines;
             _agent = agent;
@@ -68,7 +68,6 @@ namespace Script.Patterns.AI.GOAP.Strategies {
                         Debug.LogWarning($"Cannot calculate path to machine. From {_agent.transform.position} to {hit.position}");
                         continue;
                     }
-                    
                     slots.Add(slot, (CalculateWeight(slot, _agent, path), path, machine));
                 }
             }

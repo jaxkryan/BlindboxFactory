@@ -2,10 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using ZLinq;
 using AYellowpaper.SerializedCollections;
 using BuildingSystem;
-using Newtonsoft.Json;
-using Script.Alert;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Worker;
 using Script.Machine;
@@ -29,13 +28,9 @@ namespace Script.Controller {
 
         private Dictionary<WorkerType, List<Worker>> _workerList;
 
-        public ReadOnlyDictionary<WorkerType, Dictionary<CoreType, int>> WorkerNeedsList {
+        public SerializedDictionary<WorkerType, SerializedDictionary<CoreType, int>> WorkerNeedsList {
             get =>
-                new(new Dictionary<WorkerType, Dictionary<CoreType, int>>
-                (_workerNeedsList
-                    .Select(pair =>
-                        new KeyValuePair<WorkerType, Dictionary<CoreType, int>>
-                            (pair.Key, new(pair.Value)))));
+                _workerNeedsList;
         }
 
         [SerializeField] private SerializedDictionary<WorkerType, SerializedDictionary<CoreType, int>> _workerNeedsList;
@@ -45,9 +40,10 @@ namespace Script.Controller {
             _workerList = workerList;
             _workerNeedsList = new(
                 workerNeedsList
+                    .AsValueEnumerable()
                     .Select(pair =>
                         new KeyValuePair<WorkerType, SerializedDictionary<CoreType, int>>
-                            (pair.Key, new(pair.Value))));
+                            (pair.Key, new(pair.Value))).ToDictionary());
         }
 
         public WorkerController() : this(new Dictionary<WorkerType, List<Worker>>(),
@@ -153,8 +149,8 @@ namespace Script.Controller {
                         || !WorkerPrefabs.TryGetValue(key, out _)) continue;
                     if (_workerList.TryGetValue(key, out var workerList) && workerList.Count > 0) {
                         for (var i = 0; i < (data.WorkerData[key]?.Count ?? 0); i++) {
-                            var w = data.WorkerData[key]?.ElementAtOrDefault(i);
-                            var worker = workerList?.ElementAtOrDefault(i);
+                            var w = data.WorkerData[key]?.AsValueEnumerable().ElementAtOrDefault(i);
+                            var worker = workerList?.AsValueEnumerable().ElementAtOrDefault(i);
                             if (worker is null || w is null) break;
                             worker.Load(w);
                         }
@@ -180,7 +176,7 @@ namespace Script.Controller {
                             continue;
                         }
 
-                        var list = w.Value.Select(worker => worker.Save()).ToList();
+                        var list = w.Value.AsValueEnumerable().Select(worker => worker.Save()).ToList();
                         newSave.WorkerData.Add(w.Key, list);
                     }
                     catch (System.Exception e) {

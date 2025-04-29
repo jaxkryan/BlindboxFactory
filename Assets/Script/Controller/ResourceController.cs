@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ZLinq;
 using AYellowpaper.SerializedCollections;
-using MyBox;
-using Newtonsoft.Json;
 using Script.Alert;
 using Script.Controller.SaveLoad;
 using Script.Resources;
@@ -82,7 +81,7 @@ namespace Script.Controller {
         public override void OnAwake() {
             base.OnAwake();
 
-            Enum.GetValues(typeof(Resource)).Cast<Resource>()
+            Enum.GetValues(typeof(Resource)).Cast<Resource>().AsValueEnumerable()
                 .Where(r => !_resourceAmount.ContainsKey(r) && _resourceData.ContainsKey(r))
                 .ForEach(r => _resourceAmount.TryAdd(r, 0));
 
@@ -128,8 +127,8 @@ namespace Script.Controller {
                 _resourceData = new(data.ResourceData);
                 _resourceAmount = new(data.ResourceAmount);
                     try {
-                        _resourceAmount.ForEach(r => onResourceAmountChanged?.Invoke(r.Key, 0, r.Value));
-                        _resourceData.ForEach(r => onResourceDataChanged?.Invoke(r.Key, r.Value));
+                        _resourceAmount.ToList().ForEach(r => onResourceAmountChanged?.Invoke(r.Key, r.Value, r.Value));
+                        _resourceData.ToList().ForEach(r => onResourceDataChanged?.Invoke(r.Key, r.Value));
                     }
                     catch (System.Exception e) {
                         Debug.LogException(e);
@@ -194,13 +193,13 @@ namespace Script.Controller {
                 while (number / index >= 1000) index *= 1000;
                 var i = index;
                 while (i > 1) {
-                    var max = numberIndex.Keys.Max();
+                    var max = numberIndex.Keys.AsValueEnumerable().Max();
                     if (i > max) {
                         i /= max;
                         abbreviation = numberIndex[max] += abbreviation;
                     }
                     else {
-                        var key = numberIndex.First().Key;
+                        var key = numberIndex.AsValueEnumerable().First().Key;
                         var x = key;
                         do {
                             x *= 10;

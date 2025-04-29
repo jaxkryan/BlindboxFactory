@@ -10,7 +10,8 @@ public class ResourceManager : MonoBehaviour
         public int amount;
     }
 
-    public List<Resource> resources;
+    // Initialize the list to prevent NullReferenceException
+    public List<Resource> resources = new List<Resource>();
     private Dictionary<ColorPiece.ColorType, int> resourceDict;
 
     private static ResourceManager instance;
@@ -51,9 +52,21 @@ public class ResourceManager : MonoBehaviour
     {
         resourceDict = new Dictionary<ColorPiece.ColorType, int>();
 
+        // Initialize all ColorType values except ANY and COUNT with 0
+        foreach (ColorPiece.ColorType color in System.Enum.GetValues(typeof(ColorPiece.ColorType)))
+        {
+            if (color == ColorPiece.ColorType.ANY || color == ColorPiece.ColorType.COUNT)
+                continue;
+            resourceDict[color] = 0;
+        }
+
+        // Override with values from the resources list (if any)
         foreach (Resource resource in resources)
         {
-            resourceDict[resource.color] = resource.amount;
+            if (resourceDict.ContainsKey(resource.color))
+            {
+                resourceDict[resource.color] = resource.amount;
+            }
         }
     }
 
@@ -70,21 +83,6 @@ public class ResourceManager : MonoBehaviour
         }
     }
 
-    public bool UseResource(ColorPiece.ColorType color, int amount)
-    {
-        if (resourceDict.ContainsKey(color) && resourceDict[color] >= amount)
-        {
-            resourceDict[color] -= amount;
-            Debug.Log($"Used {amount} of {color}. Remaining: {resourceDict[color]}");
-            return true;
-        }
-        else
-        {
-            Debug.LogWarning($"Not enough {color} resources. Required: {amount}, Available: {resourceDict[color]}");
-            return false;
-        }
-    }
-
     public int GetResourceAmount(ColorPiece.ColorType color)
     {
         if (resourceDict.ContainsKey(color))
@@ -93,8 +91,18 @@ public class ResourceManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"Attempted to get resource amount for non-existent color: {color}");
             return 0;
+        }
+    }
+
+    public void ResetResources()
+    {
+        List<ColorPiece.ColorType> keys = new List<ColorPiece.ColorType>(resourceDict.Keys);
+        Debug.Log($"Resetting resources: {string.Join(", ", keys)}");
+        foreach (var key in keys)
+        {
+            resourceDict[key] = 0;
+            Debug.Log($"Reset {key} resource to 0");
         }
     }
 }

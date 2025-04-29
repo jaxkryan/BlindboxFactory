@@ -13,13 +13,18 @@ public class MinigameManager : MonoBehaviour
 {
     private MachineController machineController;
     [SerializeField] private string exclamationButtonName = "needfix";
-    [SerializeField] private float minigameInterval = 3f * 3600f; // 3 giờ
-    [SerializeField] private float maxInactiveTime = 20f * 60f; // 20 phút
-    [SerializeField] private float minigameSpawnChance = 0.3f; // Xác suất 30%
-    [SerializeField] private Button minigameTriggerButton; // Nút kích hoạt minigame duy nhất
-    [SerializeField] private GameObject match3GameObject; // GameObject cho Match-3
-    [SerializeField] private GameObject whackAMoleGameObject; // GameObject cho Whack-a-Mole
-    [SerializeField] private GameObject wireConnectionGameObject; // GameObject cho Wire-Connection
+    [SerializeField] private float minigameInterval = 3f * 3600f; // 3 hours
+    [SerializeField] private float maxInactiveTime = 20f * 60f; // 20 minutes
+    [SerializeField] private float minigameSpawnChance = 0.3f; // 30% chance
+    [SerializeField] private Button minigameTriggerButton; // Single minigame trigger button
+    [SerializeField] private GameObject match3GameObject;
+    [SerializeField] private GameObject whackAMoleGameObject;
+    [SerializeField] private GameObject wireConnectionGameObject;
+    [SerializeField] private Camera mainCamera; // Main camera to adjust
+    [SerializeField] private float referenceOrthoSize = 5f; // Reference orthographic size
+    [SerializeField] private Vector2 referenceResolution = new Vector2(1080, 1920);
+    [SerializeField] private float minOrthoSizeFactor = 0.8f;
+    [SerializeField] private float maxOrthoSizeFactor = 1.2f;
 
     private const int MAX_MINIGAMES_PER_DAY = 5;
     private int remainingMinigamesToday = MAX_MINIGAMES_PER_DAY;
@@ -27,10 +32,14 @@ public class MinigameManager : MonoBehaviour
     private DateTime lastResetTime;
     private DateTime? minigameStartTime;
     private Dictionary<MachineBase, MinigameData> activeMinigames = new();
+    private float originalOrthoSize; // Store original ortho size
+    private Vector3 originalCameraPosition; // Store original camera position
+    private readonly Vector3 minigamePlayPosition = new Vector3(10000f, 10000f); // Position to move minigame and camera
+    private CameraController cameraController; // Reference to CameraController script
 
     private class MinigameData
     {
-        public GameObject MinigameObject; // Thay SceneName bằng GameObject
+        public GameObject MinigameObject;
         public Button ExclamationButton;
         public float TimeRemaining;
     }
@@ -41,13 +50,13 @@ public class MinigameManager : MonoBehaviour
         lastResetTime = DateTime.UtcNow.Date;
         machineController = GameController.Instance.MachineController;
 
-        // Đăng ký sự kiện
+        // Register events
         machineController.onMachineAdded += OnMachineAdded;
 
-        // Thiết lập MinigameTriggerButton
+        // Set up MinigameTriggerButton
         if (minigameTriggerButton != null)
         {
-            minigameTriggerButton.gameObject.SetActive(false); // Ẩn ban đầu
+            minigameTriggerButton.gameObject.SetActive(false);
             minigameTriggerButton.onClick.RemoveAllListeners();
             minigameTriggerButton.onClick.AddListener(OnMinigameTriggerButtonClicked);
         }
@@ -56,10 +65,33 @@ public class MinigameManager : MonoBehaviour
             Debug.LogWarning("MinigameTriggerButton not assigned in Inspector!");
         }
 
-        // Tắt tất cả minigame GameObject ban đầu
+        // Set up camera
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+            if (mainCamera == null)
+            {
+                Debug.LogError("No Main Camera found in the scene!");
+            }
+        }
+
+        if (mainCamera != null)
+        {
+            originalOrthoSize = mainCamera.orthographicSize;
+            originalCameraPosition = mainCamera.transform.position; // Store original camera position
+
+            // Get the CameraController component
+            cameraController = mainCamera.GetComponent<CameraController>();
+            if (cameraController == null)
+            {
+                Debug.LogWarning("CameraController script not found on Main Camera!");
+            }
+        }
+
+        // Deactivate all minigame GameObjects initially
         DeactivateAllMinigameObjects();
 
-        // Kiểm tra tất cả máy hiện có để spawn minigame
+        // Check existing machines for minigames
         CheckExistingMachinesForMinigames();
     }
 
@@ -69,6 +101,19 @@ public class MinigameManager : MonoBehaviour
         {
             machineController.onMachineAdded -= OnMachineAdded;
         }
+
+        // Restore original ortho size and position on exit
+        if (mainCamera != null)
+        {
+            mainCamera.orthographicSize = originalOrthoSize;
+            mainCamera.transform.position = originalCameraPosition;
+        }
+
+        // Ensure CameraController is enabled on destroy
+        if (cameraController != null)
+        {
+            cameraController.enabled = true;
+        }
     }
 
     void Update()
@@ -77,7 +122,6 @@ public class MinigameManager : MonoBehaviour
         SpawnMinigames();
         UpdateActiveMinigames();
 
-        // Cập nhật trạng thái MinigameTriggerButton
         if (minigameTriggerButton != null)
         {
             bool hasActiveMinigames = activeMinigames.Count > 0;
@@ -98,7 +142,6 @@ public class MinigameManager : MonoBehaviour
 
     private void CheckExistingMachinesForMinigames()
     {
-        // Chỉ spawn một minigame nếu chưa có minigame nào
         if (activeMinigames.Count > 0) return;
 
         foreach (var machine in machineController.Machines)
@@ -113,7 +156,7 @@ public class MinigameManager : MonoBehaviour
                     remainingMinigamesToday--;
                     lastMinigameTime = DateTime.UtcNow;
                     Debug.Log($"Minigame spawned at startup for machine: {machine.name}");
-                    break; // Thoát sau khi spawn một minigame
+                    break;
                 }
             }
         }
@@ -122,14 +165,14 @@ public class MinigameManager : MonoBehaviour
     private void SpawnMinigames()
     {
         if (remainingMinigamesToday <= 0) return;
-        if (activeMinigames.Count > 0) return; // Không spawn nếu đã có minigame
+        if (activeMinigames.Count > 0) return;
 
         DateTime currentTime = DateTime.UtcNow;
         float elapsedTime = (float)(currentTime - lastMinigameTime).TotalSeconds;
 
         if (elapsedTime >= minigameInterval)
         {
-            int minigamesToSpawn = 1; // Chỉ spawn một minigame
+            int minigamesToSpawn = 1;
             minigamesToSpawn = Mathf.Min(minigamesToSpawn, remainingMinigamesToday);
 
             for (int i = 0; i < minigamesToSpawn; i++)
@@ -187,9 +230,9 @@ public class MinigameManager : MonoBehaviour
         }
 
         exclamationButton.gameObject.SetActive(true);
-        exclamationButton.interactable = false; // Không cho phép click trực tiếp
+        exclamationButton.interactable = false;
         Graphic graphic = exclamationButton.GetComponent<Graphic>();
-        if (graphic != null) graphic.raycastTarget = false; // Tắt raycast để không nhận click
+        if (graphic != null) graphic.raycastTarget = false;
 
         activeMinigames[selectedMachine] = new MinigameData
         {
@@ -210,7 +253,6 @@ public class MinigameManager : MonoBehaviour
             return;
         }
 
-        // Chọn máy duy nhất trong activeMinigames
         var enumerator = activeMinigames.GetEnumerator();
         if (enumerator.MoveNext())
         {
@@ -231,9 +273,41 @@ public class MinigameManager : MonoBehaviour
             activeMinigames.Remove(machine);
             minigameStartTime = DateTime.UtcNow;
 
-            // Tắt tất cả minigame GameObject khác và bật cái được chọn
+            // Adjust camera orthographic size
+            if (mainCamera != null)
+            {
+                // Disable CameraController to allow free movement
+                if (cameraController != null)
+                {
+                    cameraController.enabled = false;
+                    Debug.Log("Disabled CameraController to allow camera movement");
+                }
+
+                float orthoSizeFactor = CalculateOrthoSizeFactor();
+                mainCamera.orthographicSize = referenceOrthoSize * orthoSizeFactor;
+                Debug.Log($"Applied ortho size factor: {orthoSizeFactor}, New ortho size: {mainCamera.orthographicSize}");
+
+                // Move camera to minigame play position, preserving z
+                Vector3 cameraPosition = minigamePlayPosition;
+                cameraPosition.z = mainCamera.transform.position.z;
+                mainCamera.transform.position = cameraPosition;
+                Debug.Log($"Moved camera to: {cameraPosition}");
+            }
+
+            // Deactivate all other minigame GameObjects
             DeactivateAllMinigameObjects();
+
+            // Move minigame to play position *before* activation
+            Vector3 minigamePosition = minigamePlayPosition;
+            minigamePosition.z = -5f; // Explicitly set z to ensure visibility
+            minigameObject.transform.position = minigamePosition;
+            Debug.Log($"Moved minigame {minigameObject.name} to: {minigamePosition}");
+
+            // Activate the minigame (this triggers Grid.OnEnable)
             minigameObject.SetActive(true);
+
+            // Confirm the position after setting
+            Debug.Log($"Final position of minigame {minigameObject.name} after activation: {minigameObject.transform.position}");
         }
         else
         {
@@ -241,11 +315,55 @@ public class MinigameManager : MonoBehaviour
         }
     }
 
+    public void EndMinigame()
+    {
+        Debug.Log("Ending minigame via MinigameManager.EndMinigame");
+        DeactivateAllMinigameObjects();
+
+        // Explicitly move camera to (0, 0), preserving z
+        if (mainCamera != null)
+        {
+            Vector3 cameraResetPosition = Vector3.zero;
+            cameraResetPosition.z = mainCamera.transform.position.z;
+            mainCamera.transform.position = cameraResetPosition;
+            Debug.Log($"Camera moved to: {cameraResetPosition}");
+
+            // Re-enable CameraController after moving camera back
+            if (cameraController != null)
+            {
+                cameraController.enabled = true;
+                Debug.Log("Re-enabled CameraController after ending minigame");
+            }
+        }
+    }
+
+    private float CalculateOrthoSizeFactor()
+    {
+        float screenWidth = Screen.width;
+        float screenHeight = Screen.height;
+        float screenAspect = screenWidth / screenHeight;
+
+        float referenceAspect = referenceResolution.x / referenceResolution.y;
+
+        // Calculate factor based on height
+        float orthoSizeFactor = (screenHeight / referenceResolution.y) * (screenAspect / referenceAspect);
+
+        // Clamp factor
+        orthoSizeFactor = Mathf.Clamp(orthoSizeFactor, minOrthoSizeFactor, maxOrthoSizeFactor);
+        return orthoSizeFactor;
+    }
+
     private void DeactivateAllMinigameObjects()
     {
         if (match3GameObject != null) match3GameObject.SetActive(false);
         if (whackAMoleGameObject != null) whackAMoleGameObject.SetActive(false);
         if (wireConnectionGameObject != null) wireConnectionGameObject.SetActive(false);
+
+        // Restore original ortho size (but not position, handled in EndMinigame)
+        if (mainCamera != null)
+        {
+            mainCamera.orthographicSize = originalOrthoSize;
+        }
     }
 
     private List<MachineBase> GetAvailableMachines()
@@ -263,13 +381,13 @@ public class MinigameManager : MonoBehaviour
 
     private bool IsMinigameEligibleMachine(MachineBase machine)
     {
-        return machine is Generator || machine is StorageMachine || machine is Canteen;
+        return machine is ResourceExtractor || machine is StoreHouse || machine is Canteen;
     }
 
     private GameObject GetMinigameObject(MachineBase machine)
     {
-        if (machine is Generator) return match3GameObject;
-        if (machine is StorageMachine) return whackAMoleGameObject;
+        if (machine is ResourceExtractor) return match3GameObject;
+        if (machine is StoreHouse) return whackAMoleGameObject;
         if (machine is Canteen) return wireConnectionGameObject;
         return null;
     }

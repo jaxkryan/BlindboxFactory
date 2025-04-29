@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ZLinq;
 using Script.Controller.SaveLoad;
 using Script.Machine;
 using Script.Machine.Machines.Generator;
-using Script.Resources;
 using UnityEngine;
 
 namespace Script.Controller {
@@ -27,10 +27,10 @@ namespace Script.Controller {
         private IEnumerable<Generator> _generators =>
             _registeredMachines.FindMachinesOfType(typeof(Generator)).Cast<Generator>();
         
-        public int GridCapacity => _generators.Select(g => g.Power).Sum();
+        public int GridCapacity => _generators.AsValueEnumerable().Select(g => g.Power).Sum();
 
         public int EnergyUsage =>
-            _registeredMachines.Select(m => m.PowerUse).Sum();
+            _registeredMachines.AsValueEnumerable().Select(m => m.PowerUse).Sum();
         
         private void ResetMachineEnergyUsage(){
             var list = new List<MachineBase>();
@@ -39,8 +39,8 @@ namespace Script.Controller {
                 m.SetMachineHasEnergyForWork(true);
             }
             while (GridCapacity < EnergyUsage) {
-                if (!list.Any()) break;
-                var m = list.First();
+                if (!list.AsValueEnumerable().Any()) break;
+                var m = list.AsValueEnumerable().First();
                 list.Remove(m);
 
                 m.SetMachineHasEnergyForWork(false);

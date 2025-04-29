@@ -118,10 +118,13 @@ public class BlindBoxQueueDisplay : MonoBehaviour
             currentText.gameObject.SetActive(true);
             currentImage.gameObject.SetActive(true);
 
-            BoxData currentBoxData = boxTypeManager.GetBoxData(blindbox.BoxTypeName);
-            currentText.text = $"Box: {blindbox.BoxTypeName} " +
+            if (boxTypeManager != null)
+            {
+                BoxData currentBoxData = boxTypeManager.GetBoxData(blindbox.BoxTypeName);
+                currentText.text = $"Box: {blindbox.BoxTypeName} " +
                 $"\n {blindboxMachine.amount}";
-            currentImage.sprite = currentBoxData.sprite;
+                currentImage.sprite = currentBoxData.sprite;
+            }
         }
     }
 

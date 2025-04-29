@@ -10,13 +10,7 @@ public class AgentBelief {
 
     public Vector3 Location => _observedLocation();
 
-    public bool Evaluate() {
-        
-        var x = _condition();
-        // Debug.Log($"Belief {Name} is {x}");
-        return x;
-    } 
-        
+    public bool Evaluate() =>_condition();
 
     AgentBelief(string name) {
         Name = name;

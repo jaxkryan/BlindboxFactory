@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ZLinq;
 
 public static class EnumerableExtension {
+    public static void ForEach<TEnumerator, T>(this ValueEnumerable<TEnumerator, T> source, Action<T> action) where TEnumerator : struct, IValueEnumerator<T> {
+        foreach (var t in source) { action(t); }
+    }
     public static void ForEach<T>(this IEnumerable<T> source, Action<T> action) {
         foreach (var t in source) { action(t); }
     }

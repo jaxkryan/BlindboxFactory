@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using AYellowpaper.SerializedCollections;
 using BuildingSystem;
 using JetBrains.Annotations;
@@ -87,7 +87,6 @@ namespace Script.HumanResource.Worker {
 
         private void SetBool(int hash, bool value) {
             if (hash == IsWorking) {
-                Debug.LogError("setting working " + value);
                 if (_isWorking == value) return;
                 _isWorking = value;
                 Animator.SetBool(IsWorking, value);
@@ -95,7 +94,6 @@ namespace Script.HumanResource.Worker {
             }
 
             if (hash == IsResting) {
-                Debug.LogError("setting resting " + value);
                 if (_isResting == value) return;
                 _isResting = value;
                 Animator.SetBool(IsResting, value);
@@ -103,7 +101,6 @@ namespace Script.HumanResource.Worker {
             }
 
             if (hash == IsDining) {
-                Debug.LogError("setting dining " + value);
                 if (_isDining == value) return;
                 _isDining = value;
                 Animator.SetBool(IsDining, value);
@@ -148,8 +145,8 @@ namespace Script.HumanResource.Worker {
             var controller = GameController.Instance.MachineController;
 
             if (controller.IsRecoveryMachine(slot.Machine, this.ToWorkerType(), out var recoveries)) {
-                if (recoveries.Any(r => r.Core == CoreType.Happiness)) SetBool(IsResting, true);
-                else if (recoveries.Any(r => r.Core == CoreType.Hunger)) SetBool(IsDining, true);
+                if (recoveries.AsValueEnumerable().Any(r => r.Core == CoreType.Happiness)) SetBool(IsResting, true);
+                else if (recoveries.AsValueEnumerable().Any(r => r.Core == CoreType.Hunger)) SetBool(IsDining, true);
             }
             
             
@@ -249,10 +246,16 @@ namespace Script.HumanResource.Worker {
             if (!_isWorking) {
                 Animator.SetFloat(HorizontalMovement, Agent.velocity.x);
                 Animator.SetFloat(VerticalMovement, Agent.velocity.y);
+                if (_workingClipNames.AsValueEnumerable().Any(c => Animator.GetCurrentAnimatorStateInfo(0).IsName(c))) 
+                    Animator.SetTrigger(OnWorkStateChanged);
             }
+            else if (_workingClipNames.AsValueEnumerable().All(c => !Animator.GetCurrentAnimatorStateInfo(0).IsName(c))) 
+                Animator.SetTrigger(OnWorkStateChanged);
             
             SetOrderInLayer();
         }
+        
+        private static readonly HashSet<string> _workingClipNames = new(){"working_Clip", "eatfront_Clip", "sleep_Clip" };
 
         protected virtual void SetOrderInLayer() {
             if (Machine != null && Machine is MachineBase mb && mb.TryGetComponent<SpriteRenderer>(out var sr)) {
@@ -267,7 +270,7 @@ namespace Script.HumanResource.Worker {
         public virtual SaveData Save() => new SaveData() {
             Name = Name,
             Description = Description,
-            PortraitIndex = GameController.Instance.WorkerController.PortraitSprites.Any(p => p == Portrait)
+            PortraitIndex = GameController.Instance.WorkerController.PortraitSprites.AsValueEnumerable().Any(p => p == Portrait)
                 ? GameController.Instance.WorkerController.PortraitSprites.FirstIndex(p => p == Portrait)
                 : 0,
             Position = new V3(transform.position),
@@ -284,7 +287,7 @@ namespace Script.HumanResource.Worker {
             Name = data.Name;
             _description = data.Description;
             Portrait = GameController.Instance.WorkerController.PortraitSprites.Count >= data.PortraitIndex
-                ? GameController.Instance.WorkerController.PortraitSprites.ElementAtOrDefault(data.PortraitIndex - 1)
+                ? GameController.Instance.WorkerController.PortraitSprites.AsValueEnumerable().ElementAtOrDefault(data.PortraitIndex - 1)
                 : default;
             //NavMesh
             if (TryGetComponent<NavMeshAgent>(out var agent)) {

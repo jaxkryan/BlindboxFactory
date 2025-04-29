@@ -2,19 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
+using ZLinq;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
-using Script.Alert;
 using Script.Controller;
 using Script.Controller.SaveLoad;
 using Script.Gacha.Base;
 using Script.Resources;
 using Script.Utils;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 namespace Script.HumanResource.Administrator {
     [Serializable]
@@ -71,6 +66,7 @@ namespace Script.HumanResource.Administrator {
 #nullable enable
         private List<Mascot> assignedMascots =>
             typeof(MascotController).GetProperties()
+                .AsValueEnumerable()
                 .Where(p => p.PropertyType == typeof(Mascot))
                 .Where(p => ((Mascot?)p.GetValue(this)) != null)
                 .Select(info => (Mascot)info.GetValue(this))
@@ -95,7 +91,7 @@ namespace Script.HumanResource.Administrator {
         }
 
         // Helper method to find where a mascot is currently assigned
-        private MascotType? GetAssignedDepartment([CanBeNull] Mascot mascot) {
+        public MascotType? GetAssignedDepartment([CanBeNull] Mascot mascot) {
             if (mascot == null) return null;
             if (GeneratorMascot == mascot) return MascotType.Generator;
             if (CanteenMascot == mascot) return MascotType.Canteen;
@@ -341,7 +337,7 @@ namespace Script.HumanResource.Administrator {
                 var mData = new MascotData() {
                     Name = mascot.Name,
                     Grade = mascot.Grade,
-                    Policies = mascot.Policies.Select(p => p.Save()).ToList(),
+                    Policies = mascot.Policies.AsValueEnumerable().Select(p => p.Save()).ToList(),
                     PortraitIndex = Portraits.IndexOf(mascot.Portrait)
                 };
                 newSave.MascotsList.Add(mData);

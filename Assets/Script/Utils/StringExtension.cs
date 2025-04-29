@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 
 public static class StringExtension {
     public static int GetFNV1aHash(this string str) {
@@ -114,7 +114,7 @@ public static class StringExtension {
         for (int i = 0; i < args.Length; i++) {
             var arg = args[i];
             if (segments.Count <= i) continue;
-            var seg = segments.ElementAt(i);
+            var seg = segments.AsValueEnumerable().ElementAt(i);
             if (!arg.func()) { str = str.Replace(seg, string.Empty); }
 
             try {

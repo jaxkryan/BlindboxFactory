@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using Script.Controller;
 using Script.Machine.ResourceManager;
 using Script.Resources;
@@ -118,7 +118,7 @@ namespace Script.Machine.Products {
                 if (controller.TryGetAmount(SelectedMaterial.Value, out var currentAmount))
                 {
                     controller.TrySetAmount(SelectedMaterial.Value, currentAmount + SelectedQuantity);
-                    SelectedSprite = materialDropRates.First(m => m.material == SelectedMaterial.Value).materialSprite;
+                    SelectedSprite = materialDropRates.AsValueEnumerable().First(m => m.material == SelectedMaterial.Value).materialSprite;
                     Debug.Log($"Produced {SelectedQuantity} of {SelectedMaterial.Value}");
                 }
                 else
@@ -135,7 +135,7 @@ namespace Script.Machine.Products {
                     if (controller.TryGetAmount(Resource, out var currentAmount))
                     {
                         // Use the smallest quantity as a fallback
-                        int fallbackQuantity = quantityDropRates.OrderBy(q => q.quantity).FirstOrDefault()?.quantity ?? 1;
+                        int fallbackQuantity = quantityDropRates.AsValueEnumerable().OrderBy(q => q.quantity).FirstOrDefault()?.quantity ?? 1;
                         controller.TrySetAmount(Resource, currentAmount + fallbackQuantity);
                         Debug.Log($"Produced {fallbackQuantity} of {Resource} (fallback)");
                     }
@@ -161,7 +161,7 @@ namespace Script.Machine.Products {
             float roll = UnityEngine.Random.value;
             float cumulative = 0f;
 
-            foreach (var materialRate in materialDropRates.OrderBy(m => m.dropRate))
+            foreach (var materialRate in materialDropRates.AsValueEnumerable().OrderBy(m => m.dropRate))
             {
                 cumulative += materialRate.dropRate;
                 if (roll <= cumulative)
@@ -169,7 +169,7 @@ namespace Script.Machine.Products {
                     return materialRate.material;
                 }
             }
-            return materialDropRates.FirstOrDefault()?.material; // Fallback to first material
+            return materialDropRates.AsValueEnumerable().FirstOrDefault()?.material; // Fallback to first material
         }
 
         private int GetRandomQuantity()
@@ -182,7 +182,7 @@ namespace Script.Machine.Products {
             float roll = UnityEngine.Random.value;
             float cumulative = 0f;
 
-            foreach (var quantityRate in quantityDropRates.OrderBy(q => q.quantity))
+            foreach (var quantityRate in quantityDropRates.AsValueEnumerable().OrderBy(q => q.quantity))
             {
                 cumulative += quantityRate.probability;
                 if (roll <= cumulative)
@@ -190,7 +190,7 @@ namespace Script.Machine.Products {
                     return quantityRate.quantity;
                 }
             }
-            return quantityDropRates.FirstOrDefault()?.quantity ?? 1; // Fallback to first quantity or 1
+            return quantityDropRates.AsValueEnumerable().FirstOrDefault()?.quantity ?? 1; // Fallback to first quantity or 1
         }
 
 
@@ -217,7 +217,7 @@ namespace Script.Machine.Products {
             // quantityDropRates = data.QuantityDropRates;
             SelectedMaterial = data.SelectedMaterial;
             SelectedQuantity = data.SelectedQuantity;
-            SelectedSprite = materialDropRates.FirstOrDefault(m => SelectedMaterial != null && m.material == SelectedMaterial.Value)?.materialSprite;
+            SelectedSprite = materialDropRates.AsValueEnumerable().FirstOrDefault(m => SelectedMaterial != null && m.material == SelectedMaterial.Value)?.materialSprite;
         }
 
         public class AddResourceToStorageData : AddToStorageSaveData {

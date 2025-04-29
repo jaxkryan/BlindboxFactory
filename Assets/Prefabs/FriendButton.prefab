@@ -87,6 +87,7 @@ GameObject:
   - component: {fileID: 634973717142278234}
   - component: {fileID: 5069855932515993009}
   - component: {fileID: 8589554931801792335}
+  - component: {fileID: 5453183034598977889}
   - component: {fileID: 7167738378903782791}
   m_Layer: 5
   m_Name: FriendButton
@@ -196,7 +197,33 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 5069855932515993009}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 5453183034598977889}
+        m_TargetAssemblyTypeName: VisitButton, Assembly-CSharp
+        m_MethodName: OnButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &5453183034598977889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5745504798574294501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73b22a848ad8bcc4bb5564a28d357f78, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  userIdToLoad: a_1685120664422829085
+  sceneToLoad: OnlineScene
 --- !u!114 &7167738378903782791
 MonoBehaviour:
   m_ObjectHideFlags: 0

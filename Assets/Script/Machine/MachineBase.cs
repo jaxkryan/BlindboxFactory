@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using Script.Controller;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Worker;
@@ -56,7 +56,7 @@ namespace Script.Machine {
 
         public float ProgressionPerSec {
             get {
-                _progressPerSec = _progressQueue.Average();
+                _progressPerSec = _progressQueue.AsValueEnumerable().Average();
                 return _progressPerSec;
             }
             set => _progressQueue = new Queue<float>(new[] { value });
@@ -125,8 +125,16 @@ namespace Script.Machine {
         [SerializeField] WorkerType _spawnWorkerType;
 
         public IEnumerable<Worker> Workers {
-            get => _slots.Select(s => s.CurrentWorker).Where(w => w is not null);
+            get {
+                var check = _slots.AsValueEnumerable().Select(s => s.CurrentWorker).Where(w => w is not null);
+                if (!_workers.AsValueEnumerable().Intersect(check).TryGetNonEnumeratedCount(out var count1) || !check.TryGetNonEnumeratedCount(out var count2) || count1 != count2) {
+                    _workers = _slots.AsValueEnumerable().Select(s => s.CurrentWorker).Where(w => w is not null).ToList();
+                }
+                return _workers;
+            }
         }
+
+        private List<Worker> _workers = new();
 
         public virtual void AddWorker(Worker worker, MachineSlot slot) {
             if (!IsWorkable) {
@@ -134,35 +142,35 @@ namespace Script.Machine {
                 return;
             }
 
-            if (Workers.Count() >= Slots.Count()) {
+            if (Workers.AsValueEnumerable().Count() >= Slots.AsValueEnumerable().Count()) {
                 Debug.LogWarning($"Machine({name}) is full.");
                 return;
             }
 
-            if (Workers.Contains(worker)) {
+            if (Workers.AsValueEnumerable().Contains(worker)) {
                 string str = "";
                 if (worker is MonoBehaviour monoWorker) str = $"({monoWorker.name})";
                 Debug.LogWarning($"Worker{str} is already working on machine({str}).");
                 return;
             }
 
-            if (Slots.All(s => s != slot)) { Debug.LogWarning($"Slots don't belong to machine({name})."); }
+            if (Slots.AsValueEnumerable().All(s => s != slot)) { Debug.LogWarning($"Slots don't belong to machine({name})."); }
 
             slot.SetCurrentWorker(worker);
             onWorkerChanged?.Invoke();
         }
 
-        public virtual void AddWorker(Worker worker) => AddWorker(worker, Slots.First(s => s.CurrentWorker == null));
+        public virtual void AddWorker(Worker worker) => AddWorker(worker, Slots.AsValueEnumerable().First(s => s.CurrentWorker == null));
 
         public virtual void RemoveWorker(Worker worker) {
-            if (!Workers.Contains(worker)) {
+            if (!Workers.AsValueEnumerable().Contains(worker)) {
                 string str = "";
                 if (worker is MonoBehaviour monoWorker) str = $"({monoWorker.name})";
                 Debug.LogWarning($"Worker{str} is not working on machine({str}).");
                 return;
             }
 
-            Slots.Where(s => s.CurrentWorker?.Equals(worker) ?? false).ForEach(s => s.SetCurrentWorker());
+            Slots.AsValueEnumerable().Where(s => s.CurrentWorker?.Equals(worker) ?? false).ForEach(s => s.SetCurrentWorker());
             onWorkerChanged?.Invoke();
         }
 
@@ -227,8 +235,8 @@ namespace Script.Machine {
         public event Action onWorkerChanged = delegate { };
 
         private void UpdateWorkDetails() {
-            WorkDetails.Where(d => d.CanExecute()).ForEach(d => d.Start());
-            WorkDetails.Where(d => !d.CanExecute()).ForEach(d => d.Stop());
+            WorkDetails.AsValueEnumerable().Where(d => d.CanExecute()).ForEach(d => d.Start());
+            WorkDetails.AsValueEnumerable().Where(d => !d.CanExecute()).ForEach(d => d.Stop());
         }
 
         private void UpdateWorkDetails(ProductBase value) => UpdateWorkDetails();
@@ -256,6 +264,7 @@ namespace Script.Machine {
             _progressPerSecTimer = new CountdownTimer(1);
             _resourceManager = new(this);
             _product?.SetParent(this);
+            //Debug.LogError("Placed");
         }
 
         protected virtual  void OnEnable() {
@@ -293,15 +302,15 @@ namespace Script.Machine {
 
             _progressPerSecTimer.OnTimerStop += () => {
                 var diff = 0f;
-                if (_progressQueue.Any()) {
-                    var last = _progressQueue.Last();
+                if (_progressQueue.AsValueEnumerable().Any()) {
+                    var last = _progressQueue.AsValueEnumerable().Last();
                     if (CurrentProgress < _lastProgress)
                         diff = CurrentProgress + (MaxProgress - _lastProgress);
                     else diff = CurrentProgress - _lastProgress;
                     //Debug.Log($"Diff: {diff}. Queue: [{ string.Join(", ", _progressQueue)}]");
                 }
 
-                if (_progressQueue.All(p => p == 0f)) _progressQueue.Clear();
+                if (_progressQueue.AsValueEnumerable().All(p => p == 0f)) _progressQueue.Clear();
                 _progressQueue.Enqueue(diff);
                 _lastProgress = _currentProgress;
                 if (_progressQueue.Count > 50) _progressQueue.Dequeue();
