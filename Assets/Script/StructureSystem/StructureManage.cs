@@ -146,7 +146,7 @@ public class StructureManage : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[HandleBuildableSelection] No object found at the clicked position.");
+            //Debug.LogWarning("[HandleBuildableSelection] No object found at the clicked position.");
         }
     }
 
