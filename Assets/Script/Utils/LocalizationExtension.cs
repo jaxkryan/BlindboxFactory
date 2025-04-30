@@ -13,42 +13,42 @@ namespace Script.Utils
             // MachineProgressionPolicy
             ["IncreaseAllMachinesProgressionSpeed"] = new Dictionary<int, string>
             {
-                [0] = "Increase All Machines Progression Speed by {0}%",
-                [1] = "Tăng tốc độ tiến triển của tất cả máy móc lên {0}%"
+                [0] = "Increase All Machines Progression Speed {0}",
+                [1] = "Tăng tốc độ tiến triển của tất cả máy móc {0}"
             },
             ["IncreaseMachineProgressionSpeed"] = new Dictionary<int, string>
             {
-                [0] = "Increase {0} Progression Speed by {1}%",
-                [1] = "Tăng tốc độ tiến triển của {0} lên {1}%"
+                [0] = "Increase {0} Progression Speed {1}",
+                [1] = "Tăng tốc độ tiến triển của {0} {1}"
             },
             // CoreChangeOnWorkPolicy
             ["DecreaseAllWorkersHunger"] = new Dictionary<int, string>
             {
-                [0] = "Decrease All Workers Hunger by {0}%",
-                [1] = "Giảm độ đói của tất cả công nhân xuống {0}%"
+                [0] = "Decrease All Workers Hunger {0}",
+                [1] = "Giảm độ đói của tất cả công nhân {0}"
             },
             ["IncreaseAllWorkersCore"] = new Dictionary<int, string>
             {
-                [0] = "Increase All Workers {0} by {1}%",
-                [1] = "Tăng {0} của tất cả công nhân lên {1}%"
+                [0] = "Increase All Workers {0} {1}",
+                [1] = "Tăng {0} của tất cả công nhân {1}"
             },
             // IncreaseMachineResourceGainPolicy
             ["IncreaseAllResourcesGain"] = new Dictionary<int, string>
             {
-                [0] = "Increase all resources gain for Resource Extractor Machines by {0}%",
-                [1] = "Tăng lượng tài nguyên thu được cho các máy khai thác tài nguyên lên {0}%"
+                [0] = "Increase all resources gain for Resource Extractor Machines {0}",
+                [1] = "Tăng lượng tài nguyên thu được cho các máy khai thác tài nguyên {0}"
             },
             // StorageModificationPolicy
             ["IncreaseAllStoragesCapacity"] = new Dictionary<int, string>
             {
-                [0] = "Increase All Storages Capacity by {0}%",
-                [1] = "Tăng dung lượng của tất cả kho lưu trữ lên {0}%"
+                [0] = "Increase All Storages Capacity {0}",
+                [1] = "Tăng dung lượng của tất cả kho lưu trữ {0}"
             },
             // IncreaseGeneratorPowerPolicy
             ["IncreaseAllGeneratorCapacity"] = new Dictionary<int, string>
             {
-                [0] = "Increase All Generator Capacity by {0}%",
-                [1] = "Tăng dung lượng của tất cả máy phát điện lên {0}%"
+                [0] = "Increase All Generator Capacity {0}",
+                [1] = "Tăng dung lượng của tất cả máy phát điện {0}"
             }
         };
 

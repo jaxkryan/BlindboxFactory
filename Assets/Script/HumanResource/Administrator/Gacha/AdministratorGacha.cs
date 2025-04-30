@@ -45,10 +45,10 @@ namespace Script.HumanResource.Administrator
 
             // Randomize portrait
             if (PortraitRandomizer.UseGachaRequirements) PortraitRandomizer.SetRequirement(setting.portraitRequirements.Compose());
-            admin.Portrait = PortraitRandomizer.Pull();
+            admin.Portrait = PortraitRandomizer.PullByMascotName(admin.Name.FirstName);
 
             // Assign buffs using PolicyGacha
-            admin.Policies = PolicyGacha.GeneratePoliciesForMascot(grade);
+            admin.Policies = PolicyGacha.GeneratePoliciesForMascot(grade).ToList();
             Debug.Log($"Assigned {admin.Policies.Count()} policies to {grade} mascot");
 
             Pulls++;
@@ -79,10 +79,10 @@ namespace Script.HumanResource.Administrator
 
             // Randomize portrait
             if (PortraitRandomizer.UseGachaRequirements) PortraitRandomizer.SetRequirement(setting.portraitRequirements.Compose());
-            admin.Portrait = PortraitRandomizer.Pull();
+            admin.Portrait = PortraitRandomizer.PullByMascotName(admin.Name.FirstName);
 
             // Assign buffs using PolicyGacha
-            admin.Policies = PolicyGacha.GeneratePoliciesForMascot(grade);
+            admin.Policies = PolicyGacha.GeneratePoliciesForMascot(grade).ToList();
             Debug.Log($"Assigned {admin.Policies.Count()} policies to {grade} mascot");
 
             Pulls++;

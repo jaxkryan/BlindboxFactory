@@ -12,7 +12,7 @@ public class PlayerData
     public PlayerData(string userId)
     {
         Id = userId;
-        PlayerName = Social.localUser.userName == null ? Social.localUser.userName : "local_user";
+        PlayerName = Social.localUser.userName != null ? Social.localUser.userName : "local_user";
         FirstLogin = DateTime.Now;
         LastLogin = DateTime.Now;
     }

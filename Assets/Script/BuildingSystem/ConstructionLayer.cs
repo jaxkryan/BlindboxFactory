@@ -9,6 +9,7 @@ using Script.Controller;
 using Script.HumanResource.Worker;
 using ZLinq;
 using Script.Machine.Machines.Canteen;
+using Script.Utils;
 
 namespace BuildingSystem {
     public class ConstructionLayer : TilemapLayer {
@@ -112,7 +113,10 @@ namespace BuildingSystem {
             else { _storedBuildables[buildable.BuildableType] = 1; }
             
             Remove(worldCoords);
+            onStoredBuilding?.Invoke();
         }
+
+        public static event Action onStoredBuilding = delegate { };
 
         public void Sell(Vector3 worldCoords) {
             if (!TryGetBuildable(worldCoords, out var buildable)) return;
@@ -261,6 +265,27 @@ namespace BuildingSystem {
 
             //Debug.LogWarning($"{workers.Count} workers found for machine {machine.name}");
             return workers;
+        }
+
+        public SaveData Save()
+            => new SaveData() {
+                StoredBuilding = _storedBuildables.ToDictionary(k => k.Key.Name, v => v.Value),
+            };
+
+        public void Load(SaveData saveData) {
+            var controller = GameController.Instance.MachineController;
+            foreach (var pair in saveData.StoredBuilding) {
+                var prefab = controller.Buildables.Find(b => b.Name == pair.Key);
+
+                if (_storedBuildables.TryGetValue(prefab, out var amount)) {
+                    _storedBuildables.AddOrUpdate(prefab, amount + pair.Value);
+                }
+                _storedBuildables.TryAdd(prefab, pair.Value);
+            }
+        }
+
+        public class SaveData {
+            public Dictionary<string, int> StoredBuilding;
         }
     }
 }

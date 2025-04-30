@@ -1,5 +1,6 @@
 ﻿using Script.Utils;
 using System;
+using Script.Gacha.Base;
 using Unity.Cinemachine;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -25,7 +26,7 @@ namespace Script.HumanResource.Administrator {
         }
 
         [TextArea]
-        [SerializeField] protected string _description;
+        [SerializeField] protected string _description = "";
         public abstract void OnAssign();
         public virtual void OnDismiss() { ResetValues();}
         public virtual void OnUpdate(float deltaTime) {}
@@ -34,23 +35,25 @@ namespace Script.HumanResource.Administrator {
         public virtual SaveData Save() =>
              new SaveData()
              {
+                 Grade = Grade,
                  Type = this.GetType().Name,
                  Name = _name,
-                 Description = _description,
+                 Description = _description ?? "",
                  DescriptionKey = _descriptionKey,
                  DescriptionArgs = _descriptionArgs
              };
 
         public virtual void Load(SaveData data)
         {
+            Grade = data.Grade;
             _name = data.Name;
-            _description = data.Description;
+            _description = data.Description ?? "";
             _descriptionKey = data.DescriptionKey;
             _descriptionArgs = data.DescriptionArgs;
         }
 
-        public class SaveData
-        {
+        public class SaveData {
+            public Grade Grade;
             public string Type;
             public string Name;
             public string Description;

@@ -4,6 +4,7 @@ using MyBox;
 using Script.Controller;
 using Script.Machine;
 using Script.Resources;
+using Script.Utils;
 using UnityEngine;
 
 namespace Script.HumanResource.Administrator.Policies
@@ -110,6 +111,29 @@ namespace Script.HumanResource.Administrator.Policies
 
             var controller = GameController.Instance.MachineController;
             controller.onMachineAdded -= ApplyBonus; // Hủy đăng ký sự kiện
+        }
+
+        public override SaveData Save() {
+            var data = base.Save().CastToSubclass<StorageModificationSaveData, SaveData>();
+            if (data is null) return base.Save();
+
+            data.Additives = new(Additives);
+            data.Multiplier = new (Multiplier);
+            return data;
+        }
+
+        public override void Load(SaveData data) {
+            base.Load(data);
+            
+            if (data is not StorageModificationSaveData coreData) return;
+
+            Additives = coreData.Additives;
+            Multiplier = coreData.Multiplier;
+        }
+
+        public class StorageModificationSaveData : SaveData {
+            public V2 Additives;
+            public V2 Multiplier;
         }
     }
 }

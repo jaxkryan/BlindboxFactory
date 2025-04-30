@@ -1,3 +1,4 @@
+using System;
 using Script.Controller;
 using Script.Resources;
 using TMPro;
@@ -17,6 +18,9 @@ public class RetailUI : MonoBehaviour
     [SerializeField] TMP_Text RecevingNumber;
     [SerializeField] Slider SellingStuffSlider;
     [SerializeField] Button ConfirmButton;
+    
+    public static event Action onSellResources = delegate { };
+    public static event Action onSellBlindbox = delegate { };
 
     int mutiply = 1;
 
@@ -60,6 +64,7 @@ public class RetailUI : MonoBehaviour
             }
         }
         SellingStuffSlider.value = 0; // Reset slider after selling
+        RetailUI.onSellResources?.Invoke();
     }
 
     private void SellingBB(BoxTypeName box)
@@ -76,6 +81,7 @@ public class RetailUI : MonoBehaviour
             }
         }
         SellingStuffSlider.value = 0; // Reset slider after selling
+        RetailUI.onSellBlindbox?.Invoke();
     }
 
     private void UpdateText(float number)
