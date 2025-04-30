@@ -1,5 +1,7 @@
 using Firebase.Database;
 using Firebase.Extensions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -48,16 +50,28 @@ public class VisitButtonSpawner : MonoBehaviour
         FirebaseDatabase.DefaultInstance.GetReference(path).GetValueAsync().ContinueWithOnMainThread(task =>
         {
             string playerName = "Guest"; // Default if missing or error
+            Debug.Log($"[LoadPlayerName] Getting data from path: {path}");
 
             if (task.IsCompletedSuccessfully)
             {
                 DataSnapshot snapshot = task.Result;
+                Debug.Log($"[LoadPlayerName] Task completed successfully. Exists: {snapshot.Exists}, Value: {snapshot.Value}");
+
                 if (snapshot.Exists && snapshot.Value != null)
                 {
-                    var json = snapshot.GetRawJsonValue();
                     try
                     {
-                        PlayerData data = JsonUtility.FromJson<PlayerData>(json);
+                        // Firebase data might return a stringified JSON
+                        string jsonString = snapshot.Value.ToString();
+                        Debug.Log($"[LoadPlayerName] Retrieved stored string: {jsonString}");
+
+                        // Parse the stringified JSON into a JObject
+                        JObject jObject = JObject.Parse(jsonString);
+
+                        // Deserialize the inner object (PlayerData)
+                        PlayerData data = jObject.ToObject<PlayerData>();
+                        Debug.Log($"[LoadPlayerName] Parsed PlayerName: {data.PlayerName}");
+
                         if (!string.IsNullOrEmpty(data.PlayerName))
                         {
                             playerName = data.PlayerName;
@@ -65,14 +79,24 @@ public class VisitButtonSpawner : MonoBehaviour
                     }
                     catch (System.Exception e)
                     {
-                        Debug.LogWarning($"Failed to parse PlayerData for {userId}: {e.Message}");
+                        Debug.LogWarning($"[LoadPlayerName] Failed to parse PlayerData: {e.Message}");
                     }
                 }
+                else
+                {
+                    Debug.LogWarning($"[LoadPlayerName] Snapshot does not exist or value is null.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[LoadPlayerName] Task failed: {task.Exception?.Message}");
             }
 
+            Debug.Log($"[LoadPlayerName] Final PlayerName: {playerName}");
             CreateVisitButton(userId, playerName);
         });
     }
+
 
     void CreateVisitButton(string userId, string playerName)
     {
@@ -82,6 +106,7 @@ public class VisitButtonSpawner : MonoBehaviour
         if (visitButton != null)
         {
             visitButton.userIdToLoad = userId;
+            visitButton.userNameToLoad = playerName;
             visitButton.sceneToLoad = sceneToLoad;
         }
 
@@ -90,14 +115,5 @@ public class VisitButtonSpawner : MonoBehaviour
         {
             buttonText.text = $"{playerName}";
         }
-    }
-
-    [System.Serializable]
-    public class PlayerData
-    {
-        public string Id;
-        public string PlayerName;
-        public string FirstLogin;
-        public string LastLogin;
     }
 }
