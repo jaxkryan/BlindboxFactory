@@ -31,6 +31,7 @@ public class Grids : MonoBehaviour
 
     private Dictionary<PieceType, GameObject> piecePrefabDict;
     private GamePiece[,] pieces;
+    private GameObject[,] backgroundTiles; // Array to store background tiles
 
     private bool inverse = false;
 
@@ -48,8 +49,9 @@ public class Grids : MonoBehaviour
 
     // -------------------- Unity Lifecycle --------------------
 
-   private void Awake()
+    private void Awake()
     {
+        // Initialize the piece prefab dictionary
         piecePrefabDict = new Dictionary<PieceType, GameObject>(piecePrefabs.Length);
         for (int i = 0; i < piecePrefabs.Length; i++)
         {
@@ -59,7 +61,20 @@ public class Grids : MonoBehaviour
             }
         }
 
+        // Initialize the pieces array
         pieces = new GamePiece[xDim, yDim];
+        backgroundTiles = new GameObject[xDim, yDim]; // Initialize the background tiles array
+
+        // Spawn background tiles
+        for (int x = 0; x < xDim; x++)
+        {
+            for (int y = 0; y < yDim; y++)
+            {
+                SpawnBackgroundTile(x, y);
+            }
+        }
+
+        // Spawn empty pieces
         for (int x = 0; x < xDim; x++)
         {
             for (int y = 0; y < yDim; y++)
@@ -73,7 +88,7 @@ public class Grids : MonoBehaviour
 
     private void OnEnable()
     {
-        // Recalculate boardOrigin and reposition pieces when the GameObject is enabled
+        // Recalculate boardOrigin and reposition pieces and background tiles when the GameObject is enabled
         CenterGridOnParent();
         RepositionPieces();
     }
@@ -100,11 +115,20 @@ public class Grids : MonoBehaviour
         {
             for (int y = 0; y < yDim; y++)
             {
+                // Reposition pieces
                 if (pieces[x, y] != null)
                 {
                     Vector2 newPos = GetWorldPosition(x, y);
                     pieces[x, y].transform.position = new Vector3(newPos.x, newPos.y, -5f);
                     Debug.Log($"Repositioned piece at ({x}, {y}) to {pieces[x, y].transform.position}");
+                }
+
+                // Reposition background tiles
+                if (backgroundTiles[x, y] != null)
+                {
+                    Vector2 newPos = GetWorldPosition(x, y);
+                    backgroundTiles[x, y].transform.position = new Vector3(newPos.x, newPos.y, 0f); // Background at z = 0 (behind pieces)
+                    Debug.Log($"Repositioned background tile at ({x}, {y}) to {backgroundTiles[x, y].transform.position}");
                 }
             }
         }
@@ -115,15 +139,34 @@ public class Grids : MonoBehaviour
         return new Vector2(boardOrigin.x + x * tileSize, boardOrigin.y + y * tileSize);
     }
 
+    private void SpawnBackgroundTile(int x, int y)
+    {
+        if (backgroundPrefab == null)
+        {
+            Debug.LogWarning("BackgroundPrefab is not assigned in the Inspector!");
+            return;
+        }
+
+        // Instantiate the background tile and parent it to this GameObject (the Grid)
+        GameObject backgroundTile = Instantiate(backgroundPrefab, transform);
+
+        // Set the background tile's position relative to the boardOrigin
+        Vector2 worldPos = GetWorldPosition(x, y);
+        backgroundTile.transform.position = new Vector3(worldPos.x, worldPos.y, 0f); // z = 0 to place behind pieces
+
+        // Store the background tile in the array
+        backgroundTiles[x, y] = backgroundTile;
+    }
+
     private GamePiece SpawnNewPiece(int x, int y, PieceType type)
     {
         // Instantiate the piece and parent it to this GameObject (the Grid)
         GameObject pieceObject = Instantiate(piecePrefabDict[type], transform);
-        
+
         // Set the piece's position relative to the boardOrigin
         Vector2 worldPos = GetWorldPosition(x, y);
         pieceObject.transform.position = new Vector3(worldPos.x, worldPos.y, -5f); // Set z to -5 to match Match3Panel
-        
+
         GamePiece piece = pieceObject.GetComponent<GamePiece>();
         piece.Init(x, y, this, type);
         pieces[x, y] = piece;
@@ -514,7 +557,7 @@ public class Grids : MonoBehaviour
 
     public void ResetBoard()
     {
-        // Clear the existing board
+        // Clear the existing board (pieces only, not background tiles)
         for (int x = 0; x < xDim; x++)
         {
             for (int y = 0; y < yDim; y++)
@@ -534,7 +577,7 @@ public class Grids : MonoBehaviour
             StartCoroutine(HideResetText());
         }
 
-        // Recreate the board
+        // Recreate the board (pieces only)
         for (int x = 0; x < xDim; x++)
         {
             for (int y = 0; y < yDim; y++)
