@@ -1,5 +1,6 @@
 using Firebase.Database;
 using Firebase.Extensions;
+using GooglePlayGames;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TMPro;
@@ -19,6 +20,13 @@ public class VisitButtonSpawner : MonoBehaviour
 
     void LoadAllUserIds()
     {
+        foreach (Transform child in contentParent.transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        string currentUserId = PlayGamesPlatform.Instance.GetUserId();
+
         FirebaseDatabase.DefaultInstance.GetReference("users").GetValueAsync().ContinueWithOnMainThread(task =>
         {
             if (task.IsCompletedSuccessfully)
@@ -29,6 +37,12 @@ public class VisitButtonSpawner : MonoBehaviour
                     foreach (var childSnapshot in snapshot.Children)
                     {
                         string userId = childSnapshot.Key;
+
+                        if (userId == currentUserId)
+                        {
+                            continue;
+                        }
+
                         LoadPlayerNameAndCreateButton(userId);
                     }
                 }
