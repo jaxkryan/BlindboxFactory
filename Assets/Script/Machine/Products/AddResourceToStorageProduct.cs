@@ -119,7 +119,7 @@ namespace Script.Machine.Products {
                 {
                     controller.TrySetAmount(SelectedMaterial.Value, currentAmount + SelectedQuantity);
                     SelectedSprite = materialDropRates.AsValueEnumerable().First(m => m.material == SelectedMaterial.Value).materialSprite;
-                    Debug.Log($"Produced {SelectedQuantity} of {SelectedMaterial.Value}");
+                    //Debug.Log($"Produced {SelectedQuantity} of {SelectedMaterial.Value}");
                 }
                 else
                 {

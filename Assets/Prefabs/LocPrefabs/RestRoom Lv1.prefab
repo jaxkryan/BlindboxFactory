@@ -329,7 +329,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _position: {x: 0, y: 0, z: 0}
-  _powerUse: 0
+  _powerUse: 40
   _isClosed: 0
   _slots:
   - {fileID: 2282207177503725550}
@@ -352,7 +352,7 @@ MonoBehaviour:
     - rid: 7910668972540035224
       type: {class: WorkerCoreRefillProduct, ns: Script.Machine.Products, asm: Assembly-CSharp}
       data:
-        _maxProgress: 100
+        _maxProgress: 10
         _resourceUse: []
         _core: 0
         _amount: 5
