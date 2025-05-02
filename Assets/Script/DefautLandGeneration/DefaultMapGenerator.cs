@@ -15,11 +15,35 @@ public class DefaultMapGenerator : MonoBehaviour
     public int size = 32;
     public int portalsize = 3;
 
+    private Transform groundSideContainer;
+
     void Start()
     {
         GenerateDefaultMap();
         var tilePos = tilemap.gameObject.transform.position;
         SpawnGroundSides();
+    }
+
+    void OnEnable()
+    {
+        if (GameController.Instance != null)
+        {
+            GameController.Instance.onSave += SpawnGroundSides;
+            GameController.Instance.onLoad += SpawnGroundSides;
+        }
+        else
+        {
+            Debug.LogWarning("GameController.Instance is null in OnEnable.");
+        }
+    }
+
+    void OnDisable()
+    {
+        if (GameController.Instance != null)
+        {
+            GameController.Instance.onSave -= SpawnGroundSides;
+            GameController.Instance.onLoad -= SpawnGroundSides;
+        }
     }
 
     void GenerateDefaultMap()
@@ -58,6 +82,18 @@ public class DefaultMapGenerator : MonoBehaviour
 
     void SpawnGroundSides()
     {
+        if (groundSideContainer == null)
+        {
+            groundSideContainer = new GameObject("GroundSides").transform;
+            groundSideContainer.parent = this.transform;
+        }
+
+        // Destroy previous ground side objects
+        foreach (Transform child in groundSideContainer)
+        {
+            Destroy(child.gameObject);
+        }
+
         Vector3 leftMost;
         Vector3 rightMost;
 
@@ -67,23 +103,18 @@ public class DefaultMapGenerator : MonoBehaviour
             return;
         }
 
-        // Lấy giới hạn của tilemap (các ô có tile)
         BoundsInt bounds = tilemap.cellBounds;
         float minX = float.MaxValue;
         float maxX = float.MinValue;
         Vector3Int leftMostCell = Vector3Int.zero;
         Vector3Int rightMostCell = Vector3Int.zero;
 
-        // Duyệt qua tất cả các ô trong tilemap
         foreach (Vector3Int cellPos in bounds.allPositionsWithin)
         {
-            // Kiểm tra xem ô có tile không
             if (tilemap.HasTile(cellPos))
             {
-                // Chuyển đổi tọa độ lưới sang tọa độ thế giới
                 Vector3 worldPos = tilemap.CellToWorld(cellPos) + tilemap.tileAnchor;
 
-                // Cập nhật tọa độ x nhỏ nhất và lớn nhất
                 if (worldPos.x < minX)
                 {
                     minX = worldPos.x;
@@ -97,14 +128,13 @@ public class DefaultMapGenerator : MonoBehaviour
             }
         }
 
-        // Nếu không tìm thấy tile nào
         if (minX == float.MaxValue || maxX == float.MinValue)
         {
             Debug.LogWarning("No tiles found in the tilemap!");
             return;
         }
 
-        // Chuyển đổi tọa độ lưới của các ô biên sang tọa độ thế giới
+
         leftMost = tilemap.CellToWorld(leftMostCell) + tilemap.tileAnchor;
         rightMost = tilemap.CellToWorld(rightMostCell) + tilemap.tileAnchor;
 
@@ -112,21 +142,25 @@ public class DefaultMapGenerator : MonoBehaviour
         leftMost.y = (float)(leftMost.y - 0.25);
         rightMost.y = (float)(rightMost.y - 0.25);
 
-        GameObject leftGround = Instantiate(leftGroundPrefab, leftMost, Quaternion.identity, this.transform);
-        GameObject rightGround = Instantiate(rightGroundPrefab, rightMost, Quaternion.identity, this.transform);
+        GameObject leftGround = Instantiate(leftGroundPrefab, leftMost, Quaternion.identity, groundSideContainer);
+        GameObject rightGround = Instantiate(rightGroundPrefab, rightMost, Quaternion.identity, groundSideContainer);
 
         float distancelr = Vector3.Distance(leftMost, rightMost);
         float distance = distancelr/2;
-        float ratio = distance / leftGround.GetComponent<Renderer>().bounds.size.x;
+
+        float distanceRight = Vector3.Distance(Vector3.zero, rightMost);
+        float distanceLeft = Vector3.Distance(Vector3.zero, leftMost);
+        float ratioRight = distanceRight / rightGround.GetComponent<Renderer>().bounds.size.x;
+        float ratioLeft = distanceLeft / leftGround.GetComponent<Renderer>().bounds.size.x;
 
         Vector3 newScale = leftGround.transform.localScale;
-        newScale.x = ratio;
-        newScale.y = ratio; 
+        newScale.x = ratioLeft;
+        newScale.y = ratioLeft; 
         leftGround.transform.localScale = newScale;
 
         newScale = rightGround.transform.localScale;
-        newScale.x = ratio;
-        newScale.y = ratio; 
+        newScale.x = ratioRight;
+        newScale.y = ratioRight; 
         rightGround.transform.localScale = newScale;
 
     }
