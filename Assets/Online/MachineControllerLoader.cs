@@ -15,9 +15,9 @@ public class MachineControllerLoader : MonoBehaviour
 
     void Start()
     {
-        if (!string.IsNullOrEmpty(UserIdHolder.UserId))
+        if (!string.IsNullOrEmpty(UserHolder.UserId))
         {
-            userId = UserIdHolder.UserId;
+            userId = UserHolder.UserId;
         }
 
         LoadMachineControllerData(userId);
@@ -38,7 +38,6 @@ public class MachineControllerLoader : MonoBehaviour
                 if (snapshot.Exists && snapshot.Value != null)
                 {
                     string jsonString = snapshot.GetRawJsonValue();
-                    Debug.Log("Raw JSON First 100 chars: " + jsonString.Substring(0, Mathf.Min(100, jsonString.Length)));
 
                     if (!string.IsNullOrEmpty(jsonString))
                     {
@@ -49,7 +48,7 @@ public class MachineControllerLoader : MonoBehaviour
                             if (jsonString.StartsWith("\"") && jsonString.EndsWith("\""))
                             {
                                 correctedJson = JsonConvert.DeserializeObject<string>(jsonString);
-                                Debug.Log("Corrected JSON First 100 chars: " + correctedJson.Substring(0, Mathf.Min(100, correctedJson.Length)));
+                                //Debug.Log("Corrected JSON First 100 chars: " + correctedJson.Substring(0, Mathf.Min(100, correctedJson.Length)));
                             }
 
                             // Parse JSON into a JObject
