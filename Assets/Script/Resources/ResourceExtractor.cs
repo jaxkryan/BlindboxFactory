@@ -45,8 +45,8 @@ namespace Script.Machine
 
             if (IsWorkable)
             {
-                ProgressionPerSec = 19f;
-                IncreaseProgress(ProgressionPerSec * Time.deltaTime);
+                //ProgressionPerSec = 19f;
+                //IncreaseProgress(ProgressionPerSec * Time.deltaTime);
             }
         }
 

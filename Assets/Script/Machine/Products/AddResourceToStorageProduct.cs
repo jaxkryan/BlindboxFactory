@@ -49,7 +49,7 @@ namespace Script.Machine.Products {
             new QuantityDropRate { quantity = 5, probability = 0.02f }
         };
 
-        public override float MaxProgress => 100f;
+        public override float MaxProgress => 5f;
         public override List<ResourceUse> ResourceUse => new List<ResourceUse>(); // No resources consumed
 
         public Resource? SelectedMaterial { get; private set; }
@@ -119,7 +119,7 @@ namespace Script.Machine.Products {
                 {
                     controller.TrySetAmount(SelectedMaterial.Value, currentAmount + SelectedQuantity);
                     SelectedSprite = materialDropRates.AsValueEnumerable().First(m => m.material == SelectedMaterial.Value).materialSprite;
-                    Debug.Log($"Produced {SelectedQuantity} of {SelectedMaterial.Value}");
+                    //Debug.Log($"Produced {SelectedQuantity} of {SelectedMaterial.Value}");
                 }
                 else
                 {

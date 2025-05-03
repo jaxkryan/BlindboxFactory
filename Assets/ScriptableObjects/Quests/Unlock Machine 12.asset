@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da321e9aa28f4dfb88d58ddfcb6f0b5e, type: 3}
+  m_Name: Unlock Machine 12
+  m_EditorClassIdentifier: 
+  Name: Unlock Box Product Machine Level 3
+  Description: Unlock Box Product Machine Level 3
+  Preconditions: []
+  Objectives:
+  - {fileID: 11400000, guid: 98cad861e96732c409e0968be65bdadd, type: 2}
+  Rewards:
+  - rid: 3978049751486562434
+  references:
+    version: 2
+    RefIds:
+    - rid: 3978049751486562434
+      type: {class: UnlockMachineQuestReward, ns: Script.Quest, asm: Assembly-CSharp}
+      data:
+        _machine:
+        - {fileID: 11400000, guid: 60d16e0286dea334380a70f0bac73dbf, type: 2}

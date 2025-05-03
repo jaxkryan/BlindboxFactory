@@ -124,7 +124,7 @@ namespace Script.Controller {
                 if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                     || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) {
                     // Initialize defaults if no save data
-                    foreach (BoxTypeName btn in Enum.GetValues(typeof(BoxTypeName))) { _boxAmount[btn] = 100; }
+                    foreach (BoxTypeName btn in Enum.GetValues(typeof(BoxTypeName))) { _boxAmount[btn] = 0; }
 
                     return;
                 }

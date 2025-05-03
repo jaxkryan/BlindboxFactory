@@ -116,6 +116,7 @@ public class MinigameLevel : MonoBehaviour
 
     public virtual void OnPieceClear(GamePiece piece)
     {
+        AudioManager.Instance.PlaySfx("minigameSfx");
         currentScore += piece.score;
 
         ColorPiece colorPiece = piece.GetComponent<ColorPiece>();

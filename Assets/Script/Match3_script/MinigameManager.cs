@@ -16,7 +16,6 @@ public class MinigameManager : MonoBehaviour
     [SerializeField] private float minigameInterval = 3f * 3600f; // 3 hours
     [SerializeField] private float maxInactiveTime = 20f * 60f; // 20 minutes
     [SerializeField] private float minigameSpawnChance = 0.3f; // 30% chance
-    [SerializeField] private Button minigameTriggerButton; // Single minigame trigger button
     [SerializeField] private GameObject match3GameObject;
     [SerializeField] private GameObject whackAMoleGameObject;
     [SerializeField] private GameObject wireConnectionGameObject;
@@ -52,18 +51,6 @@ public class MinigameManager : MonoBehaviour
 
         // Register events
         machineController.onMachineAdded += OnMachineAdded;
-
-        // Set up MinigameTriggerButton
-        if (minigameTriggerButton != null)
-        {
-            minigameTriggerButton.gameObject.SetActive(false);
-            minigameTriggerButton.onClick.RemoveAllListeners();
-            minigameTriggerButton.onClick.AddListener(OnMinigameTriggerButtonClicked);
-        }
-        else
-        {
-            Debug.LogWarning("MinigameTriggerButton not assigned in Inspector!");
-        }
 
         // Set up camera
         if (mainCamera == null)
@@ -121,13 +108,6 @@ public class MinigameManager : MonoBehaviour
         CheckDailyReset();
         SpawnMinigames();
         UpdateActiveMinigames();
-
-        if (minigameTriggerButton != null)
-        {
-            bool hasActiveMinigames = activeMinigames.Count > 0;
-            minigameTriggerButton.gameObject.SetActive(hasActiveMinigames);
-            minigameTriggerButton.interactable = hasActiveMinigames;
-        }
     }
 
     private void CheckDailyReset()
@@ -142,8 +122,6 @@ public class MinigameManager : MonoBehaviour
 
     private void CheckExistingMachinesForMinigames()
     {
-        if (activeMinigames.Count > 0) return;
-
         foreach (var machine in machineController.Machines)
         {
             if (remainingMinigamesToday <= 0) break;
@@ -156,7 +134,6 @@ public class MinigameManager : MonoBehaviour
                     remainingMinigamesToday--;
                     lastMinigameTime = DateTime.UtcNow;
                     Debug.Log($"Minigame spawned at startup for machine: {machine.name}");
-                    break;
                 }
             }
         }
@@ -165,23 +142,25 @@ public class MinigameManager : MonoBehaviour
     private void SpawnMinigames()
     {
         if (remainingMinigamesToday <= 0) return;
-        if (activeMinigames.Count > 0) return;
 
         DateTime currentTime = DateTime.UtcNow;
         float elapsedTime = (float)(currentTime - lastMinigameTime).TotalSeconds;
 
         if (elapsedTime >= minigameInterval)
         {
-            int minigamesToSpawn = 1;
-            minigamesToSpawn = Mathf.Min(minigamesToSpawn, remainingMinigamesToday);
+            int availableMachinesCount = GetAvailableMachines().Count;
+            int minigamesToSpawn = Mathf.Min(availableMachinesCount, remainingMinigamesToday);
 
             for (int i = 0; i < minigamesToSpawn; i++)
             {
                 SpawnRandomMinigame();
             }
 
-            lastMinigameTime = currentTime;
-            remainingMinigamesToday -= minigamesToSpawn;
+            if (minigamesToSpawn > 0)
+            {
+                lastMinigameTime = currentTime;
+                remainingMinigamesToday -= minigamesToSpawn;
+            }
         }
     }
 
@@ -200,7 +179,7 @@ public class MinigameManager : MonoBehaviour
 
     private void OnMachineAdded(MachineBase machine)
     {
-        if (remainingMinigamesToday > 0 && IsMinigameEligibleMachine(machine) && activeMinigames.Count == 0)
+        if (remainingMinigamesToday > 0 && IsMinigameEligibleMachine(machine))
         {
             float roll = Random.value;
             if (roll <= minigameSpawnChance)
@@ -230,9 +209,13 @@ public class MinigameManager : MonoBehaviour
         }
 
         exclamationButton.gameObject.SetActive(true);
-        exclamationButton.interactable = false;
+        exclamationButton.interactable = true; // Enable interaction
         Graphic graphic = exclamationButton.GetComponent<Graphic>();
-        if (graphic != null) graphic.raycastTarget = false;
+        if (graphic != null) graphic.raycastTarget = true;
+
+        // Add click listener to the exclamation button
+        exclamationButton.onClick.RemoveAllListeners();
+        exclamationButton.onClick.AddListener(() => StartMinigame(selectedMachine, minigameObject));
 
         activeMinigames[selectedMachine] = new MinigameData
         {
@@ -245,31 +228,13 @@ public class MinigameManager : MonoBehaviour
         Debug.Log($"Minigame event spawned at machine: {selectedMachine.name} (Type: {selectedMachine.GetType().Name}, Minigame: {minigameType})");
     }
 
-    private void OnMinigameTriggerButtonClicked()
-    {
-        if (activeMinigames.Count == 0)
-        {
-            Debug.LogWarning("No active minigames to trigger!");
-            return;
-        }
-
-        var enumerator = activeMinigames.GetEnumerator();
-        if (enumerator.MoveNext())
-        {
-            var pair = enumerator.Current;
-            MachineBase machine = pair.Key;
-            GameObject minigameObject = pair.Value.MinigameObject;
-            Debug.Log($"MinigameTriggerButton clicked, starting minigame for machine: {machine.name}, GameObject: {minigameObject.name}");
-            StartMinigame(machine, minigameObject);
-        }
-    }
-
     private void StartMinigame(MachineBase machine, GameObject minigameObject)
     {
         if (activeMinigames.ContainsKey(machine))
         {
             Debug.Log($"Activating minigame GameObject: {minigameObject.name} for machine: {machine.name}");
             activeMinigames[machine].ExclamationButton.gameObject.SetActive(false);
+            activeMinigames[machine].ExclamationButton.onClick.RemoveAllListeners(); // Clean up listeners
             activeMinigames.Remove(machine);
             minigameStartTime = DateTime.UtcNow;
 
@@ -335,6 +300,9 @@ public class MinigameManager : MonoBehaviour
                 Debug.Log("Re-enabled CameraController after ending minigame");
             }
         }
+
+        // After ending a minigame, check if more can be spawned
+        SpawnMinigames();
     }
 
     private float CalculateOrthoSizeFactor()
@@ -419,11 +387,18 @@ public class MinigameManager : MonoBehaviour
         {
             activeMinigames.Remove(key);
         }
+
+        // Check if more minigames can be spawned after removing timed-out ones
+        if (toRemove.Count > 0)
+        {
+            SpawnMinigames();
+        }
     }
 
     private void CancelMinigame(MachineBase machine, MinigameData data)
     {
         data.ExclamationButton.gameObject.SetActive(false);
+        data.ExclamationButton.onClick.RemoveAllListeners(); // Clean up listeners
         Debug.Log($"Minigame cancelled at machine: {machine.name} due to timeout.");
     }
 }

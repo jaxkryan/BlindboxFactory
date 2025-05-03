@@ -230,6 +230,7 @@ public class GachaRevealPanelUI : MonoBehaviour
 
     private void ShowSummaryScreen()
     {
+        AudioManager.Instance.PlaySfx("button");
         // Hide reveal UI elements
         _cardImage.gameObject.SetActive(false);
         _portraitImage.gameObject.SetActive(false);
