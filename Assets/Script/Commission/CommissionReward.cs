@@ -8,14 +8,26 @@ namespace Script.Controller.Commission {
         public override void Grant() {
             var boxController = GameController.Instance.BoxController;
             var resourceController = GameController.Instance.ResourceController;
-            if (resourceController.TryGetAmount(Resource.Gold, out var amount)) {
-                resourceController.TrySetAmount(Resource.Gold, amount + _commission.Price);
-            }
-            _commission.Items.ForEach(i => {
-                if (boxController.TryGetAmount(i.Key, out var amount)) {
-                    boxController.TrySetAmount(i.Key, amount - i.Value);
+            foreach (var i in _commission.Items)
+            {
+                if (boxController.TryGetAmount(i.Key, out var bAmount))
+                {
+                    if (bAmount < i.Value)
+                        return;
+
+                    boxController.TrySetAmount(i.Key, bAmount - i.Value);
                 }
-            });
+                else
+                {
+                    return;
+                }
+            }
+
+
+            if (resourceController.TryGetAmount(Resource.Gold, out var rAmount))
+            {
+                resourceController.TrySetAmount(Resource.Gold, rAmount + _commission.Price);
+            }
         }
     }
 }

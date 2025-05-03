@@ -109,11 +109,12 @@ namespace Script.UI.Mission {
             if (_availableCommissionRefreshHours < 0) _availableCommissionRefreshHours = controller.AvailableCommissionRefreshHours;
 
             if (!_availableCommissions.Any() || _lastAvailableCommissionUpdate <
-                DateTime.Now.AddHours(-_availableCommissionRefreshHours)) {
+                DateTime.Now.AddHours(-_availableCommissionRefreshHours))
+            {
                 _availableCommissions = controller.CreateCommissions();
                 _lastAvailableCommissionUpdate = DateTime.Now;
             }
-            
+
             foreach (var available in _availableCommissions)
             {
                 var go = Instantiate(_availableCommissionPanel.ItemPrefab.gameObject, _contentHolder.transform);
@@ -125,6 +126,7 @@ namespace Script.UI.Mission {
                 ui.GetComponentInChildren<Button>().onClick.AddListener(() =>
                 {
                     controller.TryAddCommission(available);
+                    _availableCommissions.Remove(available);
                     if (_openCommissionPanelWhenSelectNewCommission) OpenCommissionPanel(); 
                 });
             }
