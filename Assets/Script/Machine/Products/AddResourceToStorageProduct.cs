@@ -49,7 +49,7 @@ namespace Script.Machine.Products {
             new QuantityDropRate { quantity = 5, probability = 0.02f }
         };
 
-        public override float MaxProgress => 100f;
+        public override float MaxProgress => 5f;
         public override List<ResourceUse> ResourceUse => new List<ResourceUse>(); // No resources consumed
 
         public Resource? SelectedMaterial { get; private set; }

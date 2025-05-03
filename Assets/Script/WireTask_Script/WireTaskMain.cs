@@ -8,9 +8,9 @@ public class WireTaskMain : MonoBehaviour
     public static WireTaskMain Instance;
 
     public int switchCount;
-    public GameObject winText;
+    [SerializeField] private GameObject invisPanel; // Panel to show on game end (win or lose)
+    [SerializeField] private TextMeshProUGUI resultText; // Text to display "Success!" or "Failed!"
     [SerializeField] private GameObject connectWiresText; // Text to display "Connect the wires"
-    [SerializeField] private GameObject returnToMinigameButton; // Button to return to minigame
     [SerializeField] private WireTaskGeneration leftWireTaskGeneration; // Reference to WireTaskGeneration for left wires
     [SerializeField] private WireTaskGeneration rightWireTaskGeneration; // Reference to WireTaskGeneration for right wires
     [SerializeField] private TextMeshProUGUI timerText; // TextMeshPro to display remaining time
@@ -18,42 +18,43 @@ public class WireTaskMain : MonoBehaviour
     private float textDisplayDuration = 2f; // Duration to show the "Connect the wires" text
     private float timer = 0f; // Tracks elapsed time
     private bool isTimerRunning = false; // Tracks if timer is active
+    private bool gameOver = false; // Tracks if the game has ended (win or lose)
     private const float timeLimit = 15f; // 15-second time limit
-    private bool completedInTime = false; // Tracks if completed within 15s
 
     private void Awake()
     {
         Instance = this;
 
-        // Ensure winText and return button are inactive at the start
-        if (winText != null)
+        // Ensure UI elements are inactive at the start
+        if (invisPanel != null)
         {
-            winText.SetActive(false);
+            invisPanel.SetActive(false);
         }
-        if (returnToMinigameButton != null)
-        {
-            returnToMinigameButton.SetActive(false);
-        }
-        else
-        {
-            //Debug.LogWarning("ReturnToMinigameButton not assigned in Inspector!");
-        }
+        //else
+        //{
+        //    Debug.LogWarning("InvisPanel not assigned in Inspector!");
+        //}
+
+        //if (resultText == null)
+        //{
+        //    Debug.LogWarning("ResultText (TextMeshProUGUI) not assigned in Inspector!");
+        //}
 
         // Check WireTaskGeneration references
-        if (leftWireTaskGeneration == null)
-        {
-            //Debug.LogWarning("LeftWireTaskGeneration not assigned in Inspector!");
-        }
-        if (rightWireTaskGeneration == null)
-        {
-            //Debug.LogWarning("RightWireTaskGeneration not assigned in Inspector!");
-        }
+        //if (leftWireTaskGeneration == null)
+        //{
+        //    Debug.LogWarning("LeftWireTaskGeneration not assigned in Inspector!");
+        //}
+        //if (rightWireTaskGeneration == null)
+        //{
+        //    Debug.LogWarning("RightWireTaskGeneration not assigned in Inspector!");
+        //}
 
         // Check TextMeshPro reference
-        if (timerText == null)
-        {
-            //Debug.LogWarning("TimerText (TextMeshProUGUI) not assigned in Inspector!");
-        }
+        //if (timerText == null)
+        //{
+        //    Debug.LogWarning("TimerText (TextMeshProUGUI) not assigned in Inspector!");
+        //}
     }
 
     private void OnEnable()
@@ -71,8 +72,10 @@ public class WireTaskMain : MonoBehaviour
             if (timer >= timeLimit)
             {
                 isTimerRunning = false;
+                gameOver = true; // Mark game as over
                 UpdateTimerDisplay(); // Ensure timer shows 0.0 when time's up
-                //Debug.Log("Time's up! No gem reward.");
+                HandleTimeUp(); // Handle time-up scenario
+                //Debug.Log("Time's up! Game over.");
             }
         }
     }
@@ -91,17 +94,13 @@ public class WireTaskMain : MonoBehaviour
         // Reset timer and game state
         timer = 0f;
         isTimerRunning = true;
-        completedInTime = false;
+        gameOver = false; // Reset game over state
         UpdateTimerDisplay(); // Initialize timer display
 
         // Reset UI elements
-        if (winText != null)
+        if (invisPanel != null)
         {
-            winText.SetActive(false);
-        }
-        if (returnToMinigameButton != null)
-        {
-            returnToMinigameButton.SetActive(false);
+            invisPanel.SetActive(false);
         }
 
         // Show "Connect the wires" text and hide after a delay
@@ -110,28 +109,28 @@ public class WireTaskMain : MonoBehaviour
             connectWiresText.SetActive(true);
             Invoke(nameof(HideConnectWiresText), textDisplayDuration);
         }
-        else
-        {
-            //Debug.LogWarning("ConnectWiresText not assigned in Inspector!");
-        }
+        //else
+        //{
+        //    Debug.LogWarning("ConnectWiresText not assigned in Inspector!");
+        //}
 
         // Randomize the wires
         if (leftWireTaskGeneration != null)
         {
             leftWireTaskGeneration.RandomizeWires();
         }
-        else
-        {
-            //Debug.LogWarning("LeftWireTaskGeneration reference is null, cannot randomize wires!");
-        }
+        //else
+        //{
+        //    Debug.LogWarning("LeftWireTaskGeneration reference is null, cannot randomize wires!");
+        //}
         if (rightWireTaskGeneration != null)
         {
             rightWireTaskGeneration.RandomizeWires();
         }
-        else
-        {
-            //Debug.LogWarning("RightWireTaskGeneration reference is null, cannot randomize wires!");
-        }
+        //else
+        //{
+        //    Debug.LogWarning("RightWireTaskGeneration reference is null, cannot randomize wires!");
+        //}
 
         // Reset all wires
         Wire[] wires = FindObjectsOfType<Wire>();
@@ -153,11 +152,32 @@ public class WireTaskMain : MonoBehaviour
 
     public void SwitchChange(int points)
     {
+        // Prevent further interactions if game is over
+        if (gameOver)
+        {
+            return;
+        }
+
         oncount += points;
-        //Debug.Log($"SwitchChange called - points: {points}, oncount: {oncount}");
+
+        AudioManager.Instance.PlaySfx("electric");
         if (oncount == switchCount)
         {
             EndGame();
+        }
+    }
+
+    private void HandleTimeUp()
+    {
+        // Show the panel and set lose text
+        if (invisPanel != null)
+        {
+            invisPanel.SetActive(true);
+        }
+        if (resultText != null)
+        {
+            resultText.text = "Failed!";
+            resultText.color = Color.red; // Set text color to red for "Failed!"
         }
     }
 
@@ -165,30 +185,22 @@ public class WireTaskMain : MonoBehaviour
     {
         // Stop the timer
         isTimerRunning = false;
+        gameOver = true; // Mark game as over
         UpdateTimerDisplay(); // Update display one last time
 
-        // Check if completed within time limit
-        completedInTime = timer <= timeLimit;
-
-        // Show win text and return button
-        if (winText != null)
+        // Show the panel and set win text
+        if (invisPanel != null)
         {
-            winText.SetActive(true);
+            invisPanel.SetActive(true);
         }
-        if (returnToMinigameButton != null)
+        if (resultText != null)
         {
-            returnToMinigameButton.SetActive(true);
+            resultText.text = "Success!";
+            resultText.color = Color.green; // Set text color to green for "Success!"
         }
 
-        // Award gems only if completed in time
-        if (completedInTime)
-        {
-            AddGemsToResources();
-        }
-        else
-        {
-            //Debug.Log("Task completed after 15 seconds, no gems awarded.");
-        }
+        // Award gems since the task was completed in time
+        AddGemsToResources();
     }
 
     private void AddGemsToResources()
@@ -202,19 +214,19 @@ public class WireTaskMain : MonoBehaviour
                 {
                     //Debug.Log($"Added {newGems - currentGems} Gems. New total: {newGems}");
                 }
-                else
-                {
-                    //Debug.LogWarning("Failed to set Gem amount in ResourceController.");
-                }
+                //else
+                //{
+                //    Debug.LogWarning("Failed to set Gem amount in ResourceController.");
+                //}
             }
-            else
-            {
-                //Debug.LogWarning("Failed to get current Gem amount from ResourceController.");
-            }
+            //else
+            //{
+            //    Debug.LogWarning("Failed to get current Gem amount from ResourceController.");
+            //}
         }
-        else
-        {
-            //Debug.LogWarning("GameController or ResourceController is not available.");
-        }
+        //else
+        //{
+        //    Debug.LogWarning("GameController or ResourceController is not available.");
+        //}
     }
 }

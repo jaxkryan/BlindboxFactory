@@ -82,7 +82,7 @@ namespace BuildingSystem {
 
             // Invoke built event
             if (itemObject) { onItemBuilt?.Invoke(itemObject); }
-
+            AudioManager.Instance.PlaySfx("place");
             return itemObject;
         }
         

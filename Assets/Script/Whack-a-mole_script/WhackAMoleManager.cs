@@ -103,6 +103,8 @@ public class WhackAMoleManager : MonoBehaviour
 
     public void AddScore(Mole.MoleType type)
     {
+
+        AudioManager.Instance.PlaySfx("minigameSfx");
         score++;
         scoreText.text = score.ToString();
 
