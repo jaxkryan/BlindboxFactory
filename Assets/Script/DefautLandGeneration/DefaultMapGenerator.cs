@@ -15,13 +15,19 @@ public class DefaultMapGenerator : MonoBehaviour
     public int size = 32;
     public int portalsize = 3;
 
+    public GameObject cloudPrefab;
+    public float cloudSpacing = 2f;
+    public int cloudLayers = 2;
+
     private Transform groundSideContainer;
+    private Transform cloudContainer;
 
     void Start()
     {
         GenerateDefaultMap();
         var tilePos = tilemap.gameObject.transform.position;
         SpawnGroundSides();
+        SpawnCloudsAroundMap();
     }
 
     void OnEnable()
@@ -30,6 +36,8 @@ public class DefaultMapGenerator : MonoBehaviour
         {
             GameController.Instance.onSave += SpawnGroundSides;
             GameController.Instance.onLoad += SpawnGroundSides;
+            GameController.Instance.onSave += SpawnCloudsAroundMap;
+            GameController.Instance.onLoad += SpawnCloudsAroundMap;
         }
         else
         {
@@ -164,4 +172,104 @@ public class DefaultMapGenerator : MonoBehaviour
         rightGround.transform.localScale = newScale;
 
     }
+
+    void SpawnCloudsAroundMap()
+    {
+
+        if (tilemap == null || cloudPrefab == null)
+        {
+            Debug.LogError("Tilemap or CloudPrefab is not assigned.");
+            return;
+        }
+
+        if (cloudContainer != null)
+        {
+            Destroy(cloudContainer.gameObject);
+        }
+        else
+        {
+            cloudContainer = new GameObject("Clouds").transform;
+            cloudContainer.parent = this.transform;
+        }
+
+
+        if (tilemap == null || cloudPrefab == null)
+        {
+            Debug.LogError("Tilemap or CloudPrefab is not assigned.");
+            return;
+        }
+
+        BoundsInt bounds = tilemap.cellBounds;
+        Vector3Int topCell = Vector3Int.zero;
+        Vector3Int bottomCell = Vector3Int.zero;
+        Vector3Int leftCell = Vector3Int.zero;
+        Vector3Int rightCell = Vector3Int.zero;
+
+        float maxY = float.MinValue;
+        float minY = float.MaxValue;
+        float minX = float.MaxValue;
+        float maxX = float.MinValue;
+
+        foreach (Vector3Int pos in bounds.allPositionsWithin)
+        {
+            if (!tilemap.HasTile(pos)) continue;
+            Vector3 worldPos = tilemap.CellToWorld(pos) + tilemap.tileAnchor;
+
+            if (worldPos.y > maxY)
+            {
+                maxY = worldPos.y;
+                topCell = pos;
+            }
+            if (worldPos.y < minY)
+            {
+                minY = worldPos.y;
+                bottomCell = pos;
+            }
+            if (worldPos.x < minX)
+            {
+                minX = worldPos.x;
+                leftCell = pos;
+            }
+            if (worldPos.x > maxX)
+            {
+                maxX = worldPos.x;
+                rightCell = pos;
+            }
+        }
+
+        Vector3 top = tilemap.CellToWorld(topCell) + tilemap.tileAnchor;
+        top.x -= 0.5f;
+        Vector3 bottom = tilemap.CellToWorld(bottomCell) + tilemap.tileAnchor;
+        bottom.y -= 0.5f;
+        bottom.x -= 0.5f;
+        Vector3 left = tilemap.CellToWorld(leftCell) + tilemap.tileAnchor;
+        //left.y -= 0.5f;
+        left.x -= 1;
+        Vector3 right = tilemap.CellToWorld(rightCell) + tilemap.tileAnchor;
+        right.y -= 0.5f;
+
+        SpawnCloudsAlongLine(top, left, cloudContainer.transform);
+        SpawnCloudsAlongLine(left, bottom, cloudContainer.transform);
+        SpawnCloudsAlongLine(bottom, right, cloudContainer.transform);
+        SpawnCloudsAlongLine(right, top, cloudContainer.transform);
+    }
+
+    void SpawnCloudsAlongLine(Vector3 start, Vector3 end, Transform parent)
+    {
+        float distance = Vector3.Distance(start, end);
+        int cloudCount = Mathf.CeilToInt((distance / cloudSpacing) * 3);
+
+        for (int i = 0; i <= cloudCount; i++)
+        {
+            float t = i / (float)cloudCount;
+
+            Vector3 pos = Vector3.Lerp(start, end, t);
+            //Vector3 directionToCenter = (Vector3.zero - pos).normalized;
+
+            //Quaternion rotation = Quaternion.LookRotation(Vector3.forward, -directionToCenter);
+            //Instantiate(cloudPrefab, pos, rotation, parent);
+            Instantiate(cloudPrefab, pos, Quaternion.identity, parent);
+        }
+    }
+
 }

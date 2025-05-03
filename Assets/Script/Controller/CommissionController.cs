@@ -214,11 +214,17 @@ namespace Script.Controller {
 
         public void UpdateCommissions() {
             if (_log) Debug.Log("[Commission] Updating commissions...");
-            Commissions.Where(c => c.IsFulfilled(out _)).ToList().ForEach(c => {
+
+            var fulfilled = Commissions.Where(c => c.IsFulfilled(out _)).ToList();
+
+            foreach (var c in fulfilled)
+            {
+                if (!c.IsFulfilled(out _)) continue;
                 TryRemoveCommission(c);
                 c.Reward.Grant();
                 onCommissionCompleted?.Invoke(c);
-            });
+            }
+
 
             _commissions.Where(c => c.ExpireDate <= DateTime.Now).ToList().ForEach(TryRemoveCommission);
 

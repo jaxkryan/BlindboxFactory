@@ -10,7 +10,7 @@ public class TutorialManager : MonoBehaviour
     public DialogueManager dialogueManager;
     public float clickRadius = 90f;
     public RectTransform characterRect;
-
+    public RectTransform clickCircle;
     private int currentStep = -1;
     private bool waitingForClick = false;
 
@@ -37,14 +37,17 @@ public class TutorialManager : MonoBehaviour
             {
                 Vector2 localMousePos;
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    overlay.parent as RectTransform,
+                    clickCircle.parent as RectTransform,
                     Input.mousePosition,
                     null,
                     out localMousePos
                 );
 
+                Vector2 center = clickCircle.anchoredPosition;
+                float radius = overlay.rect.width * 0.5f * overlay.localScale.x;
                 float distance = Vector2.Distance(localMousePos, overlay.anchoredPosition);
-                if (distance <= clickRadius)
+
+                if (distance <= radius)
                 {
                     OnClickOverlay();
                 }
@@ -86,7 +89,7 @@ public class TutorialManager : MonoBehaviour
                 null,
                 out localPoint
             );
-            localPoint.y -= 50f; // offset nếu muốn
+            localPoint.y -= 30f; // offset nếu muốn
             Debug.Log("[Tutorial] ✅ Attached to targetButton.");
         }
 
@@ -130,7 +133,10 @@ public class TutorialManager : MonoBehaviour
         overlay.anchoredPosition = localPoint;
         overlay.localScale = step.enableOverlayScale ? step.overlayScale : Vector3.one;
         overlay.gameObject.SetActive(true);
+        // Sau khi gán overlay.localScale, gán luôn cho clickCircle nếu có
+        clickCircle.localScale = step.enableOverlayScale ? step.overlayScale : Vector3.one;
 
+        
         // === Nhân vật & thoại ===
         characterRect.anchoredPosition = step.characterPosition;
         characterRect.gameObject.SetActive(true);

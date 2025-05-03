@@ -1,6 +1,8 @@
 using BuildingSystem.Models;
+using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -11,6 +13,9 @@ public class OnlineMachineBuilder : MonoBehaviour
 
 
     MachineControllerLoader machineControllerLoader;
+
+    public static Func<Vector3, int> SortingOrder = (worldCoords)
+            => Mathf.FloorToInt(-worldCoords.y * 100) + Mathf.FloorToInt(worldCoords.x * 10);
     public void BuildFromFirebaseData(List<MachineControllerLoader.MachineBaseData> machines)
     {
         foreach (var machine in machines)
@@ -43,6 +48,9 @@ public class OnlineMachineBuilder : MonoBehaviour
 
                 // Try to get the SpriteRenderer from the prefab
                 SpriteRenderer originalRenderer = prefab.GetComponent<SpriteRenderer>();
+
+                int sortingOrder = SortingOrder.Invoke(instance.transform.position);
+                instance.GetComponent<SpriteRenderer>().sortingOrder = sortingOrder;
                 if (originalRenderer != null)
                 {
                     spriteRenderer.sprite = originalRenderer.sprite;
