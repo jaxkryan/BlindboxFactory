@@ -14,11 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Extending Land 4
   Description: Extending land
-  State: 0
   Preconditions:
-  - {fileID: 11400000, guid: 94237f09c800fdd46a7075a2c5480532, type: 2}
+  - {fileID: 11400000, guid: cd6844bc60b18394ead3fe5f38686c38, type: 2}
   Objectives:
-  - {fileID: 11400000, guid: 85fe369d80d3d8240bb8ee93369b721a, type: 2}
+  - {fileID: 11400000, guid: 98cad861e96732c409e0968be65bdadd, type: 2}
   Rewards:
   - rid: 7204602187029151839
   references:
@@ -28,6 +27,5 @@ MonoBehaviour:
       type: {class: NewLandQuestReward, ns: Script.Quest, asm: Assembly-CSharp}
       data:
         Data:
-        - Tile: {fileID: 11400000, guid: 09fc4ff7de6892943863443b02f3bb4f, type: 2}
-          Extend: 2
+        - Extend: 2
           ExtendDirection: 0
