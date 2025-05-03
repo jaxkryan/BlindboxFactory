@@ -26367,9 +26367,9 @@ MonoBehaviour:
   noInternetText: {fileID: 1269690694}
   retryButton: {fileID: 544039715}
   exitButton: {fileID: 1975952714}
-  testUrl: 8.8.8.8
+  testUrl: https://www.google.com
   checkInterval: 8
-  pingTimeout: 2000
+  requestTimeout: 5
 --- !u!114 &585134272
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -56234,6 +56234,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1255520129}
   m_CullTransparentMesh: 1
+--- !u!1 &1255720631
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1255720632}
+  m_Layer: 0
+  m_Name: GroundSides
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1255720632
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255720631}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1261788317
 GameObject:
   m_ObjectHideFlags: 0
@@ -67012,7 +67043,7 @@ MonoBehaviour:
         Value: 0
       - Key: 2
         Value: 0
-    _wareHouseMaxAmount: 100000000
+    _wareHouseMaxAmount: 0
   WorkerController:
     PortraitSprites: []
     WorkerPrefabs:
@@ -67063,7 +67094,7 @@ MonoBehaviour:
     _resourceAmount:
       _serializedList:
       - Key: 0
-        Value: 10000
+        Value: 18000
       - Key: 1
         Value: 450
       - Key: 2
@@ -67119,6 +67150,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 62e1464598e9e664e9f0a91b373b81b9, type: 2}
     - {fileID: 11400000, guid: aedc4f110c0b2374a855777aa709a7cd, type: 2}
     - {fileID: 11400000, guid: d36decee3151a644fabce36bf10781d7, type: 2}
+    - {fileID: 11400000, guid: 04bcc00d3f263924da726a606d3f6ea6, type: 2}
   WorkerSpawner:
     SpawnLocations:
     - {fileID: 1046686387}
@@ -67133,7 +67165,7 @@ MonoBehaviour:
     Id: 
     PlayerName: 
   HasSaveTimer: 0
-  _enableCloudSave: 0
+  _enableCloudSave: 1
   MinutesBetweenSave: 5
   _maxSavesCount: 10
   _log: 0
@@ -69361,7 +69393,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6556769138559607295, guid: 8912897d74df11649a60dab256c6b7a7, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8446597148194228434, guid: 8912897d74df11649a60dab256c6b7a7, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -82831,6 +82863,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1891934587}
   m_CullTransparentMesh: 1
+--- !u!1 &1898032070
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1898032071}
+  m_Layer: 0
+  m_Name: GroundSides
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1898032071
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1898032070}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1903445114
 GameObject:
   m_ObjectHideFlags: 0
@@ -96126,3 +96189,5 @@ SceneRoots:
   - {fileID: 1765825906}
   - {fileID: 1361091017}
   - {fileID: 781351157}
+  - {fileID: 1255720632}
+  - {fileID: 1898032071}

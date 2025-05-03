@@ -2,20 +2,18 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Net.NetworkInformation;
-using System.Threading.Tasks;
+using UnityEngine.Networking;
 
 public class InternetConnectionChecker : MonoBehaviour
 {
     public static InternetConnectionChecker Instance;
-
     [SerializeField] private GameObject noInternetPanel; // Panel for no internet notification
     [SerializeField] private TextMeshProUGUI noInternetText; // Text to display "No Internet Connection"
     [SerializeField] private Button retryButton; // Button to retry connection
     [SerializeField] private Button exitButton; // Button to exit the game
-    [SerializeField] private string testUrl = "8.8.8.8"; // Google's DNS server for ping test
+    [SerializeField] private string testUrl = "https://www.google.com"; // URL to test connectivity
     [SerializeField] private float checkInterval = 10f; // How often to check internet (in seconds)
-    [SerializeField] private int pingTimeout = 2000; // Timeout for ping in milliseconds
+    [SerializeField] private float requestTimeout = 5f; // Timeout for HTTP request in seconds
 
     private bool isConnected = false; // Current connection status
     private bool isChecking = false; // Prevent multiple checks at the same time
@@ -100,38 +98,31 @@ public class InternetConnectionChecker : MonoBehaviour
             yield break;
         }
 
-        // Perform a more thorough check by pinging a server
-        yield return StartCoroutine(PingServer());
+        // Perform an HTTP request to verify connectivity
+        yield return StartCoroutine(CheckHttpConnection());
     }
 
-    private IEnumerator PingServer()
+    private IEnumerator CheckHttpConnection()
     {
-        // Use Task.Run to run the ping on a separate thread since Ping can block
-        bool pingSuccess = false;
-        Task<bool> pingTask = Task.Run(() =>
+        using (UnityWebRequest request = UnityWebRequest.Head(testUrl))
         {
-            try
-            {
-                using (System.Net.NetworkInformation.Ping ping = new System.Net.NetworkInformation.Ping())
-                {
-                    PingReply reply = ping.Send(testUrl, pingTimeout);
-                    return reply != null && reply.Status == IPStatus.Success;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        });
+            request.timeout = Mathf.CeilToInt(requestTimeout);
 
-        // Wait for the ping to complete
-        while (!pingTask.IsCompleted)
-        {
-            yield return null;
+            // Send the request
+            yield return request.SendWebRequest();
+
+            // Check the result
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                isConnected = true;
+            }
+            else
+            {
+                isConnected = false;
+                Debug.LogWarning($"Internet check failed: {request.error}");
+            }
         }
 
-        pingSuccess = pingTask.Result;
-        isConnected = pingSuccess;
         isChecking = false;
     }
 
@@ -160,7 +151,6 @@ public class InternetConnectionChecker : MonoBehaviour
 
     private void OnExitButtonClicked()
     {
-
         // Exit the game
         Application.Quit();
 
@@ -170,3 +160,4 @@ public class InternetConnectionChecker : MonoBehaviour
 #endif
     }
 }
+

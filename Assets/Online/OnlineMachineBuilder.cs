@@ -1,8 +1,8 @@
 using BuildingSystem.Models;
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor.Rendering;
+// using Unity.VisualScripting;
+// using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -10,10 +10,7 @@ public class OnlineMachineBuilder : MonoBehaviour
 {
     [SerializeField] private Tilemap tilemap; // Your isometric tilemap
     [SerializeField] private List<BuildableItem> buildableItems; // Assign your BuildableItem list here
-
-
     MachineControllerLoader machineControllerLoader;
-
     public static Func<Vector3, int> SortingOrder = (worldCoords)
             => Mathf.FloorToInt(-worldCoords.y * 100) + Mathf.FloorToInt(worldCoords.x * 10);
     public void BuildFromFirebaseData(List<MachineControllerLoader.MachineBaseData> machines)

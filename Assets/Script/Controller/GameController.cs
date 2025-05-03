@@ -24,14 +24,14 @@ using UnityEngine.Tilemaps;
 namespace Script.Controller {
     [RequireComponent(typeof(UnityMainThreadDispatcher))]
     public class GameController : PersistentSingleton<GameController> {
+        public ResourceController ResourceController = new();
+        public QuestController QuestController = new();
         public MachineController MachineController = new();
         public BoxController BoxController = new();
         public WorkerController WorkerController = new();
         public ShardController ShardController = new();
         public MascotController MascotController = new();
-        public ResourceController ResourceController = new();
         public PowerGridController PowerGridController = new();
-        public QuestController QuestController = new();
         public CommissionController CommissionController = new();
         public DailyMissionController DailyMissionController = new();
         public WorkerSpawner WorkerSpawner = new();

@@ -18,45 +18,49 @@ public class VisitButtonSpawner : MonoBehaviour
         LoadAllUserIds();
     }
 
-    void LoadAllUserIds()
+void LoadAllUserIds()
+{
+    foreach (Transform child in contentParent.transform)
     {
-        foreach (Transform child in contentParent.transform)
-        {
-            Destroy(child.gameObject);
-        }
+        Destroy(child.gameObject);
+    }
 
-        string currentUserId = PlayGamesPlatform.Instance.GetUserId();
+    string currentUserId = PlayGamesPlatform.Instance.GetUserId();
+    Debug.Log($"[LoadAllUserIds] Current User ID: {currentUserId}");
 
-        FirebaseDatabase.DefaultInstance.GetReference("users").GetValueAsync().ContinueWithOnMainThread(task =>
+    FirebaseDatabase.DefaultInstance.GetReference("users").GetValueAsync().ContinueWithOnMainThread(task =>
+    {
+        if (task.IsCompletedSuccessfully)
         {
-            if (task.IsCompletedSuccessfully)
+            DataSnapshot snapshot = task.Result;
+            if (snapshot.Exists)
             {
-                DataSnapshot snapshot = task.Result;
-                if (snapshot.Exists)
+                foreach (var childSnapshot in snapshot.Children)
                 {
-                    foreach (var childSnapshot in snapshot.Children)
+                    string userId = childSnapshot.Key;
+                    Debug.Log($"[LoadAllUserIds] Checking User ID: {userId}, Current User ID: {currentUserId}, Equal: {userId == currentUserId}");
+
+                    if (userId == currentUserId)
                     {
-                        string userId = childSnapshot.Key;
-
-                        if (userId == currentUserId)
-                        {
-                            continue;
-                        }
-
-                        LoadPlayerNameAndCreateButton(userId);
+                        Debug.Log($"[LoadAllUserIds] Skipping Current User ID: {userId}");
+                        continue;
                     }
-                }
-                else
-                {
-                    Debug.LogWarning("No users found in database.");
+
+                    LoadPlayerNameAndCreateButton(userId);
                 }
             }
             else
             {
-                Debug.LogError("Failed to retrieve users: " + task.Exception);
+                Debug.LogWarning("No users found in database.");
             }
-        });
-    }
+        }
+        else
+        {
+            Debug.LogError("Failed to retrieve users: " + task.Exception);
+        }
+    });
+}
+
 
     void LoadPlayerNameAndCreateButton(string userId)
     {
