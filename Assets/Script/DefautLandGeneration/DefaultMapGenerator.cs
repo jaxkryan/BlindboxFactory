@@ -186,18 +186,8 @@ public class DefaultMapGenerator : MonoBehaviour
         {
             Destroy(cloudContainer.gameObject);
         }
-        else
-        {
             cloudContainer = new GameObject("Clouds").transform;
             cloudContainer.parent = this.transform;
-        }
-
-
-        if (tilemap == null || cloudPrefab == null)
-        {
-            Debug.LogError("Tilemap or CloudPrefab is not assigned.");
-            return;
-        }
 
         BoundsInt bounds = tilemap.cellBounds;
         Vector3Int topCell = Vector3Int.zero;
