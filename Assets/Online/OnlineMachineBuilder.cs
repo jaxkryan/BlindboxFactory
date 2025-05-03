@@ -48,9 +48,6 @@ public class OnlineMachineBuilder : MonoBehaviour
 
                 // Try to get the SpriteRenderer from the prefab
                 SpriteRenderer originalRenderer = prefab.GetComponent<SpriteRenderer>();
-
-                int sortingOrder = SortingOrder.Invoke(instance.transform.position);
-                instance.GetComponent<SpriteRenderer>().sortingOrder = sortingOrder;
                 if (originalRenderer != null)
                 {
                     spriteRenderer.sprite = originalRenderer.sprite;
@@ -59,6 +56,12 @@ public class OnlineMachineBuilder : MonoBehaviour
                 else
                 {
                     Debug.LogWarning($"Prefab {machine.PrefabName} has no SpriteRenderer.");
+                }
+
+                SpriteRenderer renderer = instance.GetComponent<SpriteRenderer>();
+                if (renderer != null)
+                {
+                    renderer.sortingOrder = SortingOrder.Invoke(instance.transform.position);
                 }
 
                 // Add Animator component (optional)
