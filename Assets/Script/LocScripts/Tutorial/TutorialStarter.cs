@@ -20,13 +20,14 @@ public class TutorialStarter : MonoBehaviour
         if (!hasCompletedTutorial)
         {
             tutorialManager.StartTutorial();
-            
+            Debug.Log("start tuto"+ hasCompletedTutorial);
         }
         else
         {
             if (tutorialCanvas != null)
             {
                 tutorialCanvas.SetActive(false);  // ✅ Tắt canvas nếu đã xong
+                Debug.Log("finish tuto"+ hasCompletedTutorial);
             }
         }
     }
