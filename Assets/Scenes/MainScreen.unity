@@ -43965,7 +43965,7 @@ MonoBehaviour:
   portal: {fileID: 718226436}
   size: 32
   portalsize: 4
-  cloudPrefab: {fileID: 0}
+  cloudPrefab: {fileID: 1844273536}
   cloudSpacing: 2
   cloudLayers: 2
 --- !u!1 &954818534
@@ -65651,8 +65651,6 @@ MonoBehaviour:
         Value: 0
       - Key: Canteen 3
         Value: 0
-      - Key: Electric 1
-        Value: 1
       - Key: Electric 3
         Value: 0
       - Key: WareHouse 1
@@ -65681,6 +65679,8 @@ MonoBehaviour:
         Value: 1
       - Key: Electric 2
         Value: 0
+      - Key: Electric 1
+        Value: 1
     _recoverMachines:
       _serializedList:
       - Key:
@@ -65826,7 +65826,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 62e1464598e9e664e9f0a91b373b81b9, type: 2}
     - {fileID: 11400000, guid: aedc4f110c0b2374a855777aa709a7cd, type: 2}
     - {fileID: 11400000, guid: d36decee3151a644fabce36bf10781d7, type: 2}
-    - {fileID: 11400000, guid: 62e1464598e9e664e9f0a91b373b81b9, type: 2}
+    - {fileID: 11400000, guid: d36decee3151a644fabce36bf10781d7, type: 2}
   WorkerSpawner:
     SpawnLocations:
     - {fileID: 1046686387}
@@ -78558,6 +78558,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1842138965}
   m_CullTransparentMesh: 1
+--- !u!1 &1844273536 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2578511673769847561, guid: f464f6fffc5d5d14cbeef9691cc9c8a9, type: 3}
+  m_PrefabInstance: {fileID: 187763800}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1845176355
 GameObject:
   m_ObjectHideFlags: 0
@@ -87597,9 +87602,9 @@ RectTransform:
   - {fileID: 1061212720}
   m_Father: {fileID: 468817817}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 103.89045, y: -104.4185}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 207.7809, y: 208.837}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2059968722
