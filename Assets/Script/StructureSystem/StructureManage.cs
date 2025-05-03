@@ -157,7 +157,7 @@ public class StructureManage : MonoBehaviour
         // Adjust target position to be slightly lower in the camera view
         targetCameraPosition = new Vector3(targetPosition.x, targetPosition.y + 2f, mainCamera.transform.position.z);
         isMovingCamera = true;
-        mainCamera.orthographicSize = 2f;
+        mainCamera.orthographicSize = 4f;
     }
 
     private bool IsPointerOverUI()

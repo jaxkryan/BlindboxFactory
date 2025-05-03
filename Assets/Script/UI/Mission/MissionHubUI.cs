@@ -108,7 +108,12 @@ namespace Script.UI.Mission {
             ActivePanelName = nameof(AvailableCommissionPanel);
             if (_availableCommissionRefreshHours < 0) _availableCommissionRefreshHours = controller.AvailableCommissionRefreshHours;
 
-            _availableCommissions = controller.CreateCommissions();
+            if (!_availableCommissions.Any() || _lastAvailableCommissionUpdate <
+                DateTime.Now.AddHours(-_availableCommissionRefreshHours))
+            {
+                _availableCommissions = controller.CreateCommissions();
+                _lastAvailableCommissionUpdate = DateTime.Now;
+            }
 
             foreach (var available in _availableCommissions)
             {
@@ -121,6 +126,7 @@ namespace Script.UI.Mission {
                 ui.GetComponentInChildren<Button>().onClick.AddListener(() =>
                 {
                     controller.TryAddCommission(available);
+                    _availableCommissions.Remove(available);
                     if (_openCommissionPanelWhenSelectNewCommission) OpenCommissionPanel(); 
                 });
             }
