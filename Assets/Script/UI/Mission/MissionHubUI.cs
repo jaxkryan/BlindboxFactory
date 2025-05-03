@@ -108,12 +108,8 @@ namespace Script.UI.Mission {
             ActivePanelName = nameof(AvailableCommissionPanel);
             if (_availableCommissionRefreshHours < 0) _availableCommissionRefreshHours = controller.AvailableCommissionRefreshHours;
 
-            if (!_availableCommissions.Any() || _lastAvailableCommissionUpdate <
-                DateTime.Now.AddHours(-_availableCommissionRefreshHours)) {
-                _availableCommissions = controller.CreateCommissions();
-                _lastAvailableCommissionUpdate = DateTime.Now;
-            }
-            
+            _availableCommissions = controller.CreateCommissions();
+
             foreach (var available in _availableCommissions)
             {
                 var go = Instantiate(_availableCommissionPanel.ItemPrefab.gameObject, _contentHolder.transform);
