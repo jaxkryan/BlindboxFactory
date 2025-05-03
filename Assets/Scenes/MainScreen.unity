@@ -17365,11 +17365,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2650499241654718113, guid: 596ce0eebc6361146ab18899dbf54508, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -28.234558
+      value: -28.234497
       objectReference: {fileID: 0}
     - target: {fileID: 2650499241654718113, guid: 596ce0eebc6361146ab18899dbf54508, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -6.593445
+      value: -6.593506
       objectReference: {fileID: 0}
     - target: {fileID: 3608227180401077932, guid: 596ce0eebc6361146ab18899dbf54508, type: 3}
       propertyPath: m_IsActive
@@ -50631,7 +50631,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 228.83884, y: 654.9696}
+  m_AnchoredPosition: {x: 192, y: 626}
   m_SizeDelta: {x: 290.7583, y: 144.0336}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1164310515
@@ -61332,6 +61332,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1412226728}
   m_CullTransparentMesh: 1
+--- !u!1 &1422399543
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1422399544}
+  m_Layer: 0
+  m_Name: GroundSides
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1422399544
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1422399543}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1424763452
 GameObject:
   m_ObjectHideFlags: 0
@@ -68024,7 +68055,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6556769138559607295, guid: 8912897d74df11649a60dab256c6b7a7, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -94359,3 +94390,4 @@ SceneRoots:
   - {fileID: 921116709}
   - {fileID: 1659383143}
   - {fileID: 280964054}
+  - {fileID: 1422399544}
