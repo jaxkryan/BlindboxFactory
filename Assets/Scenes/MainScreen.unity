@@ -10847,11 +10847,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 267021976}
   m_CullTransparentMesh: 1
---- !u!1 &268175191 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2371292876330627733, guid: d9b5d2c194bebfc4886c4cccd891a8c5, type: 3}
-  m_PrefabInstance: {fileID: 328327183}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &269586709
 GameObject:
   m_ObjectHideFlags: 0
@@ -25442,7 +25437,7 @@ PrefabInstance:
     - target: {fileID: 1746034460315627790, guid: bbec986c22ac2be44959212c84d91de1, type: 3}
       propertyPath: steps.Array.data[0].onStepStart.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 268175191}
+      objectReference: {fileID: 1586484038}
     - target: {fileID: 1746034460315627790, guid: bbec986c22ac2be44959212c84d91de1, type: 3}
       propertyPath: steps.Array.data[11].onStepComplete.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
       value: 1
@@ -25466,6 +25461,10 @@ PrefabInstance:
     - target: {fileID: 1746034460315627790, guid: bbec986c22ac2be44959212c84d91de1, type: 3}
       propertyPath: steps.Array.data[0].onStepStart.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1746034460315627790, guid: bbec986c22ac2be44959212c84d91de1, type: 3}
+      propertyPath: steps.Array.data[0].onStepStart.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: TenPull
       objectReference: {fileID: 0}
     - target: {fileID: 1746034460315627790, guid: bbec986c22ac2be44959212c84d91de1, type: 3}
       propertyPath: steps.Array.data[30].onStepComplete.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -25512,6 +25511,10 @@ PrefabInstance:
       value: IsTutorialCompleted
       objectReference: {fileID: 0}
     - target: {fileID: 1746034460315627790, guid: bbec986c22ac2be44959212c84d91de1, type: 3}
+      propertyPath: steps.Array.data[0].onStepStart.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: AdminGachaPanelUI, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1746034460315627790, guid: bbec986c22ac2be44959212c84d91de1, type: 3}
       propertyPath: steps.Array.data[11].onStepComplete.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: TutorialStarter, Assembly-CSharp
       objectReference: {fileID: 0}
@@ -25530,6 +25533,10 @@ PrefabInstance:
     - target: {fileID: 1746034460315627790, guid: bbec986c22ac2be44959212c84d91de1, type: 3}
       propertyPath: steps.Array.data[31].onStepComplete.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: TutorialStarter, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1746034460315627790, guid: bbec986c22ac2be44959212c84d91de1, type: 3}
+      propertyPath: steps.Array.data[0].onStepStart.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 1746034460315627790, guid: bbec986c22ac2be44959212c84d91de1, type: 3}
       propertyPath: steps.Array.data[11].onStepComplete.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -65853,7 +65860,7 @@ MonoBehaviour:
     _resourceAmount:
       _serializedList:
       - Key: 0
-        Value: 1000
+        Value: 10000
       - Key: 1
         Value: 450
       - Key: 2
@@ -65923,7 +65930,7 @@ MonoBehaviour:
     Id: 
     PlayerName: 
   HasSaveTimer: 0
-  _enableCloudSave: 1
+  _enableCloudSave: 0
   MinutesBetweenSave: 5
   _maxSavesCount: 10
   _log: 0
