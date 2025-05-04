@@ -26,34 +26,31 @@ public class TutorialManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
-            
             var step = steps[currentStep];
 
             if (step.clickOverlay)
             {
                 OnClickOverlay();
             }
-            else
+            else if (!step.isAttachButton && !step.isAttachName)
             {
                 Vector2 localMousePos;
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    clickCircle.parent as RectTransform,
+                    overlay.parent as RectTransform,
                     Input.mousePosition,
                     null,
                     out localMousePos
                 );
 
-                Vector2 center = clickCircle.anchoredPosition;
-                float radius = overlay.rect.width * 0.5f * overlay.localScale.x;
                 float distance = Vector2.Distance(localMousePos, overlay.anchoredPosition);
-
-                if (distance <= radius)
+                if (distance <= clickRadius)
                 {
                     OnClickOverlay();
                 }
             }
         }
     }
+
 
     public bool IsWaitingForClick()
     {
@@ -77,23 +74,77 @@ public class TutorialManager : MonoBehaviour
         }
 
         TutorialStep step = steps[currentStep];
-        Vector2 localPoint = step.overlayCenterPosition; // mặc định nếu không có attach nào
+        Vector2 localPoint = step.overlayCenterPosition;
 
-        // ==== ƯU TIÊN 1: ATTACH BUTTON ====
+        // === ATTACH BUTTON ===
         if (step.isAttachButton && step.targetButton != null)
         {
+            if (!step.hasHookedButton)
+            {
+                // Nếu có targetButton
+                if (step.targetButton != null)
+                {
+                    var slider = step.targetButton.GetComponent<UnityEngine.UI.Slider>();
+                    if (slider != null)
+                    {
+                        slider.onValueChanged.AddListener((value) =>
+                        {
+                            if (!step.isClickedButton)
+                            {
+                                step.isClickedButton = true;
+                                OnClickOverlay();
+                            }
+                        });
+                    }
+                    else
+                    {
+                        var button = step.targetButton.GetComponent<UnityEngine.UI.Button>();
+                        if (button != null)
+                        {
+                            button.onClick.AddListener(() =>
+                            {
+                                if (!step.isClickedButton)
+                                {
+                                    step.isClickedButton = true;
+                                    OnClickOverlay();
+                                }
+                            });
+                        }
+                    }
+                }
+                else if (!string.IsNullOrEmpty(step.targetObjectName))
+                {
+                    // Thử tìm lại nếu targetButton bị null nhưng có tên
+                    GameObject found = GameObject.Find(step.targetObjectName);
+                    if (found != null)
+                    {
+                        var slider = found.GetComponent<UnityEngine.UI.Slider>();
+                        if (slider != null)
+                        {
+                            slider.onValueChanged.AddListener((value) =>
+                            {
+                                if (!step.isClickedButton)
+                                {
+                                    step.isClickedButton = true;
+                                    OnClickOverlay();
+                                }
+                            });
+                        }
+                    }
+                }
+
+            }
+
+            // Gán vị trí như bình thường
             Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(null, step.targetButton.position);
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                overlay.parent as RectTransform,
-                screenPos,
-                null,
-                out localPoint
+                overlay.parent as RectTransform, screenPos, null, out localPoint
             );
-            localPoint.y -= 30f; // offset nếu muốn
-            Debug.Log("[Tutorial] ✅ Attached to targetButton.");
+            localPoint.y -= 20f;
         }
 
-        // ==== ƯU TIÊN 2: ATTACH NAME ====
+
+        // === ATTACH BY NAME ===
         if (step.isAttachName && !string.IsNullOrEmpty(step.targetObjectName))
         {
             GameObject found = GameObject.Find(step.targetObjectName);
@@ -104,45 +155,38 @@ public class TutorialManager : MonoBehaviour
                 {
                     Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(null, target.position);
                     RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                        overlay.parent as RectTransform,
-                        screenPos,
-                        null,
-                        out localPoint
+                        overlay.parent as RectTransform, screenPos, null, out localPoint
                     );
                     localPoint.y -= 50f;
+
+                    // Nếu có Button thì gán tương tự
+                    var button = target.GetComponent<UnityEngine.UI.Button>();
+                    if (button != null)
+                    {
+                        button.onClick.AddListener(() =>
+                        {
+                            step.isClickedButton = true;
+                            OnClickOverlay();
+                        });
+
+
+                    }
+
                     Debug.Log($"[Tutorial] ✅ Found by name: {step.targetObjectName}");
                 }
-                else
-                {
-                    Debug.LogWarning($"[Tutorial] ⚠️ Object found but no RectTransform: {step.targetObjectName}");
-                }
             }
-            else
-            {
-                Debug.LogWarning($"[Tutorial] ❌ Cannot find object by name: {step.targetObjectName}");
-            }
-            
-        }
-        else
-        {
-            Debug.LogWarning($"[Tutorial] ❌ not attatch or null: {step.targetObjectName}");
         }
 
-        // === Gán vị trí overlay sau khi tính ===
         step.overlayCenterPosition = localPoint;
         overlay.anchoredPosition = localPoint;
         overlay.localScale = step.enableOverlayScale ? step.overlayScale : Vector3.one;
         overlay.gameObject.SetActive(true);
-        // Sau khi gán overlay.localScale, gán luôn cho clickCircle nếu có
-        clickCircle.localScale = step.enableOverlayScale ? step.overlayScale : Vector3.one;
 
-        
-        // === Nhân vật & thoại ===
         characterRect.anchoredPosition = step.characterPosition;
         characterRect.gameObject.SetActive(true);
         dialogueManager.StartDialogue(step.dialogueText, step.characterSprite);
 
-        // === Bắt đầu bước ===
+        step.isClickedButton = false; // reset mỗi bước
         step.onStepStart?.Invoke();
         waitingForClick = true;
     }
@@ -152,8 +196,16 @@ public class TutorialManager : MonoBehaviour
     {
         if (!waitingForClick) return;
 
+        var step = steps[currentStep];
+
+        if ((step.isAttachButton || step.isAttachName) && !step.isClickedButton)
+        {
+            Debug.Log("[Tutorial] ⛔ Step requires clicking button first!");
+            return;
+        }
+
         waitingForClick = false;
-        steps[currentStep].onStepComplete?.Invoke();
+        step.onStepComplete?.Invoke();
         StartCoroutine(WaitAndNextStep(0.5f));
     }
 
