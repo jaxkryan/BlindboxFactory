@@ -230,7 +230,7 @@ namespace Script.Controller {
 
             var ui = Object.FindFirstObjectByType<MissionHubUI>(FindObjectsInactive.Include);
 
-            if (ui && _alertWhenCommissionEmpty) {
+            if (ui && _alertWhenCommissionEmpty && GameController.Instance.CompletedTutorial) {
                 if (Commissions.Count == 0 && ui.ActivePanelName != nameof(AvailableCommissionPanel) && !IgnoreEmptyCommissions /*&& ui.ActivePanelName != nameof(CommissionPanel)*/) {
                     new GameAlert.Builder(AlertType.Notification)
                         .WithHeader("Commissions Fulfilled!")

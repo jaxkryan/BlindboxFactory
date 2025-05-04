@@ -10,6 +10,8 @@ using Script.HumanResource.Worker;
 using ZLinq;
 using Script.Machine.Machines.Canteen;
 using Script.Utils;
+using UnityEngine.UI;
+using UnityEditor.Build.Reporting;
 
 namespace BuildingSystem {
     public class ConstructionLayer : TilemapLayer {
@@ -106,7 +108,8 @@ namespace BuildingSystem {
 
         public void Stored(Vector3 worldCoords) {
             if (!TryGetBuildable(worldCoords, out var buildable)) return;
-            
+
+            if (IsStorageExceed(buildable)) return;
             if (_storedBuildables.ContainsKey(buildable.BuildableType)) {
                 _storedBuildables[buildable.BuildableType]++;
             }
@@ -120,13 +123,40 @@ namespace BuildingSystem {
 
         public void Sell(Vector3 worldCoords) {
             if (!TryGetBuildable(worldCoords, out var buildable)) return;
-            
+
+            if (IsStorageExceed(buildable)) return;
+
             GameController.Instance.ResourceController.TryGetAmount(Script.Resources.Resource.Gold,
                 out long amount);
             GameController.Instance.ResourceController.TrySetAmount(Script.Resources.Resource.Gold,
                 amount + buildable.BuildableType.Cost / 2);
             
             Remove(worldCoords);
+        }
+
+        public bool IsStorageExceed(Buildable buildable)
+        {
+            if (buildable.GameObject.CompareTag("StoreHouse"))
+            {
+                var amountB = buildable.GameObject.GetComponent<StoreHouse>().boxamount;
+                var amountR = buildable.GameObject.GetComponent<StoreHouse>().resorceamount;
+                GameController.Instance.ResourceController.TryGetData(Script.Resources.Resource.Gummy, out var resourceData, out var currentAmountR);
+                GameController.Instance.BoxController.TryGetWarehouseMaxAmount(out var boxMax);
+                long boxCurrent = GameController.Instance.BoxController.GetTotalBlindBoxAmount();
+                if (amountR < currentAmountR - resourceData.MaxAmount || amountB < boxMax - boxCurrent)
+                {
+                    ShortNotification.Instance?.ShowNotification("Cannot sell or store: StoreHouse limit exceeded!");
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
         }
         
         private bool TryGetBuildable(Vector3 worldCoords, out Buildable buildable) {
@@ -153,7 +183,7 @@ namespace BuildingSystem {
                 _collisionLayer.SetCollisions(buildable, false);
                 UnRegisterBuildableCollisionSpace(buildable);
             }
-            
+
             if (buildable.GameObject.TryGetComponent<MachineBase>(out var machine))
                 GameController.Instance.MachineController.RemoveMachine(machine);
 
