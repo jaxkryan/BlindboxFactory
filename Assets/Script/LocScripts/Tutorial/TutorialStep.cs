@@ -11,7 +11,8 @@ public class TutorialStep
     public Vector2 overlayCenterPosition;
     public bool enableOverlayScale = false;
     public Vector3 overlayScale = Vector3.one;
-
+    public bool isClickedButton = false;
+    public bool hasHookedButton = false;
     public Vector2 characterPosition;
     public bool isAttachButton = false;
     public RectTransform targetButton;
