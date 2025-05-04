@@ -138,27 +138,35 @@ namespace BuildingSystem {
         {
             if (buildable.GameObject.CompareTag("StoreHouse"))
             {
-                var amountB = buildable.GameObject.GetComponent<StoreHouse>().boxamount;
-                var amountR = buildable.GameObject.GetComponent<StoreHouse>().resorceamount;
+                var storeHouse = buildable.GameObject.GetComponent<StoreHouse>();
+                var removedBoxAmount = storeHouse.boxamount;
+                var removedResourceAmount = storeHouse.resorceamount;
+
                 GameController.Instance.ResourceController.TryGetData(Script.Resources.Resource.Gummy, out var resourceData, out var currentAmountR);
-                GameController.Instance.BoxController.TryGetWarehouseMaxAmount(out var boxMax);
+                GameController.Instance.BoxController.TryGetWarehouseMaxAmount(out var currentBoxMax);
                 long boxCurrent = GameController.Instance.BoxController.GetTotalBlindBoxAmount();
-                if (amountR < currentAmountR - resourceData.MaxAmount || amountB < boxMax - boxCurrent)
+
+                long newBoxMax = currentBoxMax - removedBoxAmount;
+                long newResourceMax = resourceData.MaxAmount - removedResourceAmount;
+
+                Debug.Log("Current Resource Amount: " + currentAmountR);
+                Debug.Log("New Resource Max After Removal: " + newResourceMax);
+                Debug.Log("Current Box Amount: " + boxCurrent);
+                Debug.Log("New Box Max After Removal: " + newBoxMax);
+
+                if (currentAmountR > newResourceMax || boxCurrent > newBoxMax)
                 {
-                    ShortNotification.Instance?.ShowNotification("Cannot sell or store: StoreHouse limit exceeded!");
+                    ShortNotification.Instance?.ShowNotification("Cannot remove: StoreHouse contains stored items exceeding future capacity!");
                     return true;
                 }
-                else
-                {
-                    return false;
-                }
-            }
-            else
-            {
+
                 return false;
             }
+
+            return false;
         }
-        
+
+
         private bool TryGetBuildable(Vector3 worldCoords, out Buildable buildable) {
             var coords = _tilemap.WorldToCell(worldCoords);
             foreach (var building in _buildables)
