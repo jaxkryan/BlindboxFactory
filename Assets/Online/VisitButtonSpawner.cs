@@ -15,10 +15,26 @@ public class VisitButtonSpawner : MonoBehaviour
 
     void Start()
     {
-        LoadAllUserIds();
+        if (GooglePlayManager.Instance != null)
+        {
+            if (GooglePlayManager.Instance.IsSignedIn)
+            {
+                UpdatePlayerList();
+            }
+            else
+            {
+                GooglePlayManager.Instance.OnSignInComplete += UpdatePlayerList;
+            }
+        }
     }
 
-void LoadAllUserIds()
+    private void UpdatePlayerList()
+    {
+        LoadAllUserIds();
+        GooglePlayManager.Instance.OnSignInComplete -= UpdatePlayerList;
+    }
+
+    void LoadAllUserIds()
 {
     foreach (Transform child in contentParent.transform)
     {
