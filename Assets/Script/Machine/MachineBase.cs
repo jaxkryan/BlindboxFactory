@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using Script.Controller;
 using Script.Controller.SaveLoad;
 using Script.HumanResource.Worker;
@@ -16,6 +16,7 @@ namespace Script.Machine {
         public virtual Vector3 Position { get => _position; set => _position = value; }
         [SerializeField] private Vector3 _position;
         public virtual string PrefabName { get; set; }
+        
 
         public int PowerUse {
             get => _powerUse;
@@ -55,7 +56,7 @@ namespace Script.Machine {
 
         public float ProgressionPerSec {
             get {
-                _progressPerSec = _progressQueue.Average();
+                _progressPerSec = _progressQueue.AsValueEnumerable().Average();
                 return _progressPerSec;
             }
             set => _progressQueue = new Queue<float>(new[] { value });
@@ -80,6 +81,7 @@ namespace Script.Machine {
         }
 
         public event Action<bool> onMachineCloseStatusChanged = delegate { };
+        public event Action onMachineDestroyed = delegate { };
         [SerializeField] private bool _isClosed;
 
         public IEnumerable<MachineSlot> Slots {
@@ -94,8 +96,10 @@ namespace Script.Machine {
             set {
                 _currentProgress = value;
                 if (!(CurrentProgress >= MaxProgress && MaxProgress > 0f)) return;
-                CurrentProgress -= MaxProgress;
-                CreateProduct();
+                if (CurrentProgress > MaxProgress) {
+                    CurrentProgress -= MaxProgress;
+                    CreateProduct();
+                }
             }
         }
 
@@ -121,8 +125,16 @@ namespace Script.Machine {
         [SerializeField] WorkerType _spawnWorkerType;
 
         public IEnumerable<Worker> Workers {
-            get => _slots.Select(s => s.CurrentWorker).Where(w => w is not null);
+            get {
+                var check = _slots.AsValueEnumerable().Select(s => s.CurrentWorker).Where(w => w is not null);
+                if (!_workers.AsValueEnumerable().Intersect(check).TryGetNonEnumeratedCount(out var count1) || !check.TryGetNonEnumeratedCount(out var count2) || count1 != count2) {
+                    _workers = _slots.AsValueEnumerable().Select(s => s.CurrentWorker).Where(w => w is not null).ToList();
+                }
+                return _workers;
+            }
         }
+
+        private List<Worker> _workers = new();
 
         public virtual void AddWorker(Worker worker, MachineSlot slot) {
             if (!IsWorkable) {
@@ -130,35 +142,35 @@ namespace Script.Machine {
                 return;
             }
 
-            if (Workers.Count() >= Slots.Count()) {
+            if (Workers.AsValueEnumerable().Count() >= Slots.AsValueEnumerable().Count()) {
                 Debug.LogWarning($"Machine({name}) is full.");
                 return;
             }
 
-            if (Workers.Contains(worker)) {
+            if (Workers.AsValueEnumerable().Contains(worker)) {
                 string str = "";
                 if (worker is MonoBehaviour monoWorker) str = $"({monoWorker.name})";
                 Debug.LogWarning($"Worker{str} is already working on machine({str}).");
                 return;
             }
 
-            if (Slots.All(s => s != slot)) { Debug.LogWarning($"Slots don't belong to machine({name})."); }
+            if (Slots.AsValueEnumerable().All(s => s != slot)) { Debug.LogWarning($"Slots don't belong to machine({name})."); }
 
             slot.SetCurrentWorker(worker);
             onWorkerChanged?.Invoke();
         }
 
-        public virtual void AddWorker(Worker worker) => AddWorker(worker, Slots.First(s => s.CurrentWorker == null));
+        public virtual void AddWorker(Worker worker) => AddWorker(worker, Slots.AsValueEnumerable().First(s => s.CurrentWorker == null));
 
         public virtual void RemoveWorker(Worker worker) {
-            if (!Workers.Contains(worker)) {
+            if (!Workers.AsValueEnumerable().Contains(worker)) {
                 string str = "";
                 if (worker is MonoBehaviour monoWorker) str = $"({monoWorker.name})";
                 Debug.LogWarning($"Worker{str} is not working on machine({str}).");
                 return;
             }
 
-            Slots.Where(s => s.CurrentWorker?.Equals(worker) ?? false).ForEach(s => s.SetCurrentWorker());
+            Slots.AsValueEnumerable().Where(s => s.CurrentWorker?.Equals(worker) ?? false).ForEach(s => s.SetCurrentWorker());
             onWorkerChanged?.Invoke();
         }
 
@@ -223,8 +235,8 @@ namespace Script.Machine {
         public event Action onWorkerChanged = delegate { };
 
         private void UpdateWorkDetails() {
-            WorkDetails.Where(d => d.CanExecute()).ForEach(d => d.Start());
-            WorkDetails.Where(d => !d.CanExecute()).ForEach(d => d.Stop());
+            WorkDetails.AsValueEnumerable().Where(d => d.CanExecute()).ForEach(d => d.Start());
+            WorkDetails.AsValueEnumerable().Where(d => !d.CanExecute()).ForEach(d => d.Stop());
         }
 
         private void UpdateWorkDetails(ProductBase value) => UpdateWorkDetails();
@@ -252,39 +264,53 @@ namespace Script.Machine {
             _progressPerSecTimer = new CountdownTimer(1);
             _resourceManager = new(this);
             _product?.SetParent(this);
+            //Debug.LogError("Placed");
         }
 
-        private void OnEnable() {
+        protected virtual  void OnEnable() {
+            GameController.Instance.PowerGridController.RegisterMachine(this);
             ResourceUse?.ForEach(r => r.Start(this, _resourceManager));
             UpdateWorkDetails();
             SubscribeWorkDetails();
             WorkDetails.ForEach(d => d.Start());
+
+            GameController.Instance.BuildNavMesh();
         }
 
-        private void OnValidate() { WorkDetails.ForEach(d => d.Machine = this); }
+        protected virtual void OnValidate() { WorkDetails.ForEach(d => d.Machine = this); }
 
-        private void OnDisable() {
+        protected virtual void OnDisable() {
+            GameController.Instance.PowerGridController.UnregisterMachine(this);
             ResourceUse?.ForEach(r => r.Stop());
             UpdateWorkDetails();
             UnsubscribeWorkDetails();
             WorkDetails.ForEach(d => d.Stop());
+
+            if (!_isQuiting)GameController.Instance.BuildNavMesh();
         }
 
+        private void OnDestroy() {
+            onMachineDestroyed?.Invoke();
+        }
+
+        protected bool _isQuiting { get; private set; } = false;
+
+        protected virtual void OnApplicationQuit() => _isQuiting = true;
 
         protected virtual void Start() {
             #region Progression
 
             _progressPerSecTimer.OnTimerStop += () => {
                 var diff = 0f;
-                if (_progressQueue.Any()) {
-                    var last = _progressQueue.Last();
+                if (_progressQueue.AsValueEnumerable().Any()) {
+                    var last = _progressQueue.AsValueEnumerable().Last();
                     if (CurrentProgress < _lastProgress)
                         diff = CurrentProgress + (MaxProgress - _lastProgress);
                     else diff = CurrentProgress - _lastProgress;
                     //Debug.Log($"Diff: {diff}. Queue: [{ string.Join(", ", _progressQueue)}]");
                 }
 
-                if (_progressQueue.All(p => p == 0f)) _progressQueue.Clear();
+                if (_progressQueue.AsValueEnumerable().All(p => p == 0f)) _progressQueue.Clear();
                 _progressQueue.Enqueue(diff);
                 _lastProgress = _currentProgress;
                 if (_progressQueue.Count > 50) _progressQueue.Dequeue();
@@ -314,16 +340,16 @@ namespace Script.Machine {
 
         protected virtual void Update() {
             _progressPerSecTimer?.Tick(Time.deltaTime);
-            WorkDetails.ForEach(d => d.Update(Time.deltaTime));
+            foreach (var d in WorkDetails) d.Update(Time.deltaTime);
             UpdateWorkDetails();
         }
 
         public virtual MachineBaseData Save() => new MachineBaseData() {
                 PrefabName = PrefabName,
                 Position = new(Position),
-                PowerUse = _powerUse,
+                // PowerUse = _powerUse,
                 ResourceManager = _resourceManager.ToSaveData(),
-                HasEnergyForWork = HasEnergyForWork,
+                // HasEnergyForWork = HasEnergyForWork,
                 HasTimer = _progressPerSecTimer is not null && _progressPerSecTimer != default,
                 TimerTime = _progressPerSecTimer?.Time ?? 0f * _progressPerSecTimer?.Progress ?? 1f,
                 TimerCurrentTime = _progressPerSecTimer?.Time ?? 0f,
@@ -331,27 +357,27 @@ namespace Script.Machine {
                 IsClosed = _isClosed,
                 CurrentProgress = _currentProgress,
                 LastProgress = _lastProgress,
-                WorkDetails = _workDetails.Select(w => w.Save()).ToList(),
+                // WorkDetails = _workDetails.Select(w => w.Save()).ToList(),
                 Product = _product.Save(),
                 PlacedTime = _placedTime,
-                SpawnWorkers = _spawnWorkers,
-                SpawnWorkerType = _spawnWorkerType,
+                // SpawnWorkers = _spawnWorkers,
+                // SpawnWorkerType = _spawnWorkerType,
             };
 
         public virtual void Load(MachineBaseData data) {
-            _workDetails.Clear();
-            foreach (var w in data.WorkDetails) {
-                var workDetail = (WorkDetail)Activator.CreateInstance(w.Type);
-                workDetail.Load(w);
-                workDetail.Machine = this;
-                _workDetails.Add(workDetail);
-            }
+            // _workDetails.Clear();
+            // foreach (var w in data.WorkDetails) {
+            //     var workDetail = (WorkDetail)Activator.CreateInstance(w.Type);
+            //     workDetail.Load(w);
+            //     workDetail.Machine = this;
+            //     _workDetails.Add(workDetail);
+            // }
 
             PrefabName = data.PrefabName;
             Position = data.Position;
-            PowerUse = data.PowerUse;
+            // PowerUse = data.PowerUse;
             _resourceManager = data.ResourceManager.ToResourceManager(this);
-            HasEnergyForWork = data.HasEnergyForWork;
+            // HasEnergyForWork = data.HasEnergyForWork;
             if (data.HasTimer) {
                 _progressPerSecTimer = new CountdownTimer(data.TimerTime);
                 _progressPerSecTimer.Time = data.TimerCurrentTime;
@@ -362,8 +388,8 @@ namespace Script.Machine {
             CurrentProgress = data.CurrentProgress;
             _lastProgress = data.LastProgress;
             _placedTime = data.PlacedTime;
-            _spawnWorkers = data.SpawnWorkers;
-            _spawnWorkerType = data.SpawnWorkerType;
+            // _spawnWorkers = data.SpawnWorkers;
+            // _spawnWorkerType = data.SpawnWorkerType;
             var pType = Type.GetType(data.Product.Type);
             if (pType != null
                 && pType.IsSubclassOf(typeof(ProductBase))

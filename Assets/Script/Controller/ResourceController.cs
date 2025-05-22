@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ZLinq;
 using AYellowpaper.SerializedCollections;
-using MyBox;
-using Newtonsoft.Json;
 using Script.Alert;
 using Script.Controller.SaveLoad;
 using Script.Resources;
@@ -60,47 +59,47 @@ namespace Script.Controller {
         public event Action<Resource, long, long> onResourceAmountChanged = delegate { };
         public event Action<Resource, ResourceData> onResourceDataChanged = delegate { };
         
-        public bool TryGetConversionRate(ResourceConversionPair resourceConversionPair, out List<(Resource
-            ConversionNode, float Rate)> conversionPath, bool tryFindExchange = true)
-            => _resourceConversion.TryGetConversionRates(resourceConversionPair, out conversionPath, tryFindExchange);
+        //public bool TryGetConversionRate(ResourceConversionPair resourceConversionPair, out List<(Resource
+        //    ConversionNode, float Rate)> conversionPath, bool tryFindExchange = true)
+        //    => _resourceConversion.TryGetConversionRates(resourceConversionPair, out conversionPath, tryFindExchange);
 
-        public bool TryGetConversionRate(Resource from, Resource to, out List<(Resource
-            ConversionNode, float Rate)> conversionPath, bool tryFindExchange = true)
-            => _resourceConversion.TryGetConversionRates(from, to, out conversionPath, tryFindExchange);
+        //public bool TryGetConversionRate(Resource from, Resource to, out List<(Resource
+        //    ConversionNode, float Rate)> conversionPath, bool tryFindExchange = true)
+        //    => _resourceConversion.TryGetConversionRates(from, to, out conversionPath, tryFindExchange);
 
-        public bool TryConversion(ResourceConversionPair resourceConversionPair, long amount, out long result,
-            bool tryFindingExchangeRate = true, bool roundDownEachConversion = true)
-            => _resourceConversion.TryConversion(resourceConversionPair, amount, out result, tryFindingExchangeRate,
-                roundDownEachConversion);
+        //public bool TryConversion(ResourceConversionPair resourceConversionPair, long amount, out long result,
+        //    bool tryFindingExchangeRate = true, bool roundDownEachConversion = true)
+        //    => _resourceConversion.TryConversion(resourceConversionPair, amount, out result, tryFindingExchangeRate,
+        //        roundDownEachConversion);
 
-        public bool TryConversion(Resource from,
-            Resource to, long amount, out long result, bool tryFindingExchangeRate = true,
-            bool roundDownEachConversion = true)
-            => _resourceConversion.TryConversion(from, to, amount, out result, tryFindingExchangeRate,
-                roundDownEachConversion);
+        //public bool TryConversion(Resource from,
+        //    Resource to, long amount, out long result, bool tryFindingExchangeRate = true,
+        //    bool roundDownEachConversion = true)
+        //    => _resourceConversion.TryConversion(from, to, amount, out result, tryFindingExchangeRate,
+        //        roundDownEachConversion);
 
         public override void OnAwake() {
             base.OnAwake();
 
-            Enum.GetValues(typeof(Resource)).Cast<Resource>()
+            Enum.GetValues(typeof(Resource)).Cast<Resource>().AsValueEnumerable()
                 .Where(r => !_resourceAmount.ContainsKey(r) && _resourceData.ContainsKey(r))
                 .ForEach(r => _resourceAmount.TryAdd(r, 0));
 
-            _resourceConversion.Where(r => r.Key.From == r.Key.To)
-                .Select(r => r.Key).ToList()
-                .ForEach(_resourceConversion.Remove);
+            //_resourceConversion.Where(r => r.Key.From == r.Key.To)
+            //    .Select(r => r.Key).ToList()
+            //    .ForEach(_resourceConversion.Remove);
         }
 
-        public override void OnValidate() {
-            base.OnValidate();
+        //public override void OnValidate() {
+        //    base.OnValidate();
 
 
-            foreach (var conversion in _resourceConversion) {
-                if (conversion.Key.From != conversion.Key.To) continue;
-                var ex = new ArgumentException($"Cannot convert from {conversion.Key.From} to {conversion.Key.To}");
-                Debug.LogException(ex);
-            }
-        }
+        //    foreach (var conversion in _resourceConversion) {
+        //        if (conversion.Key.From != conversion.Key.To) continue;
+        //        var ex = new ArgumentException($"Cannot convert from {conversion.Key.From} to {conversion.Key.To}");
+        //        Debug.LogException(ex);
+        //    }
+        //}
 
         public bool TryGetAllResourceAmounts(out Dictionary<Resource, long> resourceAmounts)
         {
@@ -121,15 +120,15 @@ namespace Script.Controller {
             // }
             
             try {
-                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                       || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
 
-                _resourceConversion = new(data.ResourceConversion);
+                //_resourceConversion = new(data.ResourceConversion);
                 _resourceData = new(data.ResourceData);
                 _resourceAmount = new(data.ResourceAmount);
                     try {
-                        _resourceAmount.ForEach(r => onResourceAmountChanged?.Invoke(r.Key, 0, r.Value));
-                        _resourceData.ForEach(r => onResourceDataChanged?.Invoke(r.Key, r.Value));
+                        _resourceAmount.ToList().ForEach(r => onResourceAmountChanged?.Invoke(r.Key, r.Value, r.Value));
+                        _resourceData.ToList().ForEach(r => onResourceDataChanged?.Invoke(r.Key, r.Value));
                     }
                     catch (System.Exception e) {
                         Debug.LogException(e);
@@ -149,7 +148,7 @@ namespace Script.Controller {
 
         public override void Save(SaveManager saveManager) {
             var newSave = new SaveData() {
-                ResourceConversion =  _resourceConversion,
+                //ResourceConversion =  _resourceConversion,
                 ResourceData = _resourceData,
                 ResourceAmount = _resourceAmount
             };
@@ -157,8 +156,8 @@ namespace Script.Controller {
             
             try {
                 var serialized = SaveManager.Serialize(newSave);
-                saveManager.SaveData.AddOrUpdate(this.GetType().Name, serialized, (key, oldValue) => serialized);
-                // if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                saveManager.AddOrUpdate(this.GetType().Name, serialized);
+                // if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                 //     || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
                 //     saveManager.SaveData.TryAdd(this.GetType().Name,
                 //         SaveManager.Serialize(newSave));
@@ -194,13 +193,13 @@ namespace Script.Controller {
                 while (number / index >= 1000) index *= 1000;
                 var i = index;
                 while (i > 1) {
-                    var max = numberIndex.Keys.Max();
+                    var max = numberIndex.Keys.AsValueEnumerable().Max();
                     if (i > max) {
                         i /= max;
                         abbreviation = numberIndex[max] += abbreviation;
                     }
                     else {
-                        var key = numberIndex.First().Key;
+                        var key = numberIndex.AsValueEnumerable().First().Key;
                         var x = key;
                         do {
                             x *= 10;
@@ -227,7 +226,7 @@ namespace Script.Controller {
         }
         
         public class SaveData{
-            public Dictionary<ResourceConversionPair, float> ResourceConversion;
+            //public Dictionary<ResourceConversionPair, float> ResourceConversion;
             public Dictionary<Resource, ResourceData> ResourceData;
             public Dictionary<Resource, long> ResourceAmount;
             

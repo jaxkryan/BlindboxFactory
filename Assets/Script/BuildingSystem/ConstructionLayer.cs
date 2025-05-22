@@ -2,16 +2,16 @@ using System;
 using BuildingSystem.Models;
 using Exception;
 using System.Collections.Generic;
+using System.Linq;
 using Script.Machine;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Users;
-using UnityEngine.Tilemaps;
 using Script.Controller;
 using Script.HumanResource.Worker;
-using System.Linq;
+using ZLinq;
 using Script.Machine.Machines.Canteen;
+using Script.Utils;
+using UnityEngine.UI;
+using UnityEditor.Build.Reporting;
 
 namespace BuildingSystem {
     public class ConstructionLayer : TilemapLayer {
@@ -31,7 +31,7 @@ namespace BuildingSystem {
                     out long currentMoney);
                 // Ensure we have enough currency before proceeding
                 if (currentMoney < itemCost) {
-                    Debug.Log("Not enough money to build this item!" + currentMoney + "   /   " + itemCost);
+                    //Debug.Log("Not enough money to build this item!" + currentMoney + "   /   " + itemCost);
                     return null;
                 }
 
@@ -44,7 +44,6 @@ namespace BuildingSystem {
             var coords = _tilemap.WorldToCell(worldCoords);
 
             Vector3 tilemapPosition = _tilemap.GetCellCenterLocal(coords);
-            Debug.Log($"Tilemap Center Position: {tilemapPosition}");
 
             if (item.gameObject != null) {
                 itemObject = Instantiate(
@@ -85,7 +84,7 @@ namespace BuildingSystem {
 
             // Invoke built event
             if (itemObject) { onItemBuilt?.Invoke(itemObject); }
-
+            AudioManager.Instance.PlaySfx("place");
             return itemObject;
         }
         
@@ -109,18 +108,24 @@ namespace BuildingSystem {
 
         public void Stored(Vector3 worldCoords) {
             if (!TryGetBuildable(worldCoords, out var buildable)) return;
-            
+
+            if (IsStorageExceed(buildable)) return;
             if (_storedBuildables.ContainsKey(buildable.BuildableType)) {
                 _storedBuildables[buildable.BuildableType]++;
             }
             else { _storedBuildables[buildable.BuildableType] = 1; }
             
             Remove(worldCoords);
+            onStoredBuilding?.Invoke();
         }
+
+        public static event Action onStoredBuilding = delegate { };
 
         public void Sell(Vector3 worldCoords) {
             if (!TryGetBuildable(worldCoords, out var buildable)) return;
-            
+
+            if (IsStorageExceed(buildable)) return;
+
             GameController.Instance.ResourceController.TryGetAmount(Script.Resources.Resource.Gold,
                 out long amount);
             GameController.Instance.ResourceController.TrySetAmount(Script.Resources.Resource.Gold,
@@ -128,7 +133,40 @@ namespace BuildingSystem {
             
             Remove(worldCoords);
         }
-        
+
+        public bool IsStorageExceed(Buildable buildable)
+        {
+            if (buildable.GameObject.CompareTag("StoreHouse"))
+            {
+                var storeHouse = buildable.GameObject.GetComponent<StoreHouse>();
+                var removedBoxAmount = storeHouse.boxamount;
+                var removedResourceAmount = storeHouse.resorceamount;
+
+                GameController.Instance.ResourceController.TryGetData(Script.Resources.Resource.Gummy, out var resourceData, out var currentAmountR);
+                GameController.Instance.BoxController.TryGetWarehouseMaxAmount(out var currentBoxMax);
+                long boxCurrent = GameController.Instance.BoxController.GetTotalBlindBoxAmount();
+
+                long newBoxMax = currentBoxMax - removedBoxAmount;
+                long newResourceMax = resourceData.MaxAmount - removedResourceAmount;
+
+                Debug.Log("Current Resource Amount: " + currentAmountR);
+                Debug.Log("New Resource Max After Removal: " + newResourceMax);
+                Debug.Log("Current Box Amount: " + boxCurrent);
+                Debug.Log("New Box Max After Removal: " + newBoxMax);
+
+                if (currentAmountR > newResourceMax || boxCurrent > newBoxMax)
+                {
+                    ShortNotification.Instance?.ShowNotification("Cannot remove: StoreHouse contains stored items exceeding future capacity!");
+                    return true;
+                }
+
+                return false;
+            }
+
+            return false;
+        }
+
+
         private bool TryGetBuildable(Vector3 worldCoords, out Buildable buildable) {
             var coords = _tilemap.WorldToCell(worldCoords);
             foreach (var building in _buildables)
@@ -153,7 +191,7 @@ namespace BuildingSystem {
                 _collisionLayer.SetCollisions(buildable, false);
                 UnRegisterBuildableCollisionSpace(buildable);
             }
-            
+
             if (buildable.GameObject.TryGetComponent<MachineBase>(out var machine))
                 GameController.Instance.MachineController.RemoveMachine(machine);
 
@@ -167,13 +205,12 @@ namespace BuildingSystem {
 
         private void RemoveBuildingWorker(MachineBase machine)
         {
-            Debug.LogWarning("Removing Worker");
-            List<Worker> worker = GameController.Instance.WorkerSpawner.FindSpawnedWorkers(machine).ToList();
-            if (worker != null)
-            {
-                if(worker.Count > 0)
+            var worker = GameController.Instance.WorkerSpawner.FindSpawnedWorkers(machine);
+            if (worker != null) {
+                var workers = worker.AsValueEnumerable();
+                if(workers.Count() > 0)
                 {
-                    foreach(Worker w in worker)
+                    foreach(Worker w in workers)
                     {
                         GameController.Instance.WorkerSpawner.RemoveWorker(w);
                     }
@@ -215,17 +252,17 @@ namespace BuildingSystem {
         public List<Worker> FindWorkersByMachine(MachineBase machine)
         {
             int number = machine.SpawnWorkers;
-            Debug.LogWarning("Finding Worker");
 
             // Find Wokers in the machine
-            List<Worker> workers = machine.Workers.ToList();
+            var workers = machine.Workers.ToList();
 
             if (workers.Count < number)
             {
                 number -= workers.Count;
 
                 // Find Resting Workers
-                List<Worker> restingWorkers = GameController.Instance.WorkerController.WorkerList
+                var restingWorkers = GameController.Instance.WorkerController.WorkerList
+                    .AsValueEnumerable()
                     .SelectMany(k => k.Value)
                     .Where(w => w.Machine == null)
                     .Take(number)
@@ -238,6 +275,7 @@ namespace BuildingSystem {
                 if (number > 0)
                 {
                     List<Worker> coreUpdateWorkers = GameController.Instance.WorkerController.WorkerList
+                        .AsValueEnumerable()
                         .SelectMany(k => k.Value)
                         .Where(w => w.Machine is Canteen || w.Machine is RestRoom)
                         .Take(number)
@@ -263,8 +301,29 @@ namespace BuildingSystem {
                 }
             }
 
-            Debug.LogWarning($"{workers.Count} workers found for machine {machine.name}");
+            //Debug.LogWarning($"{workers.Count} workers found for machine {machine.name}");
             return workers;
+        }
+
+        public SaveData Save()
+            => new SaveData() {
+                StoredBuilding = _storedBuildables.ToDictionary(k => k.Key.Name, v => v.Value),
+            };
+
+        public void Load(SaveData saveData) {
+            var controller = GameController.Instance.MachineController;
+            foreach (var pair in saveData.StoredBuilding) {
+                var prefab = controller.Buildables.Find(b => b.Name == pair.Key);
+
+                if (_storedBuildables.TryGetValue(prefab, out var amount)) {
+                    _storedBuildables.AddOrUpdate(prefab, amount + pair.Value);
+                }
+                _storedBuildables.TryAdd(prefab, pair.Value);
+            }
+        }
+
+        public class SaveData {
+            public Dictionary<string, int> StoredBuilding;
         }
     }
 }

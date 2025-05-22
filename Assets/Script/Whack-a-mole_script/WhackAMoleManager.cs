@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Script.Controller; // For GameController and ResourceController
+using Script.Resources; // For Resource enum
 
 public class WhackAMoleManager : MonoBehaviour
 {
@@ -10,6 +12,7 @@ public class WhackAMoleManager : MonoBehaviour
     [SerializeField] private TMPro.TextMeshProUGUI timeText;
     [SerializeField] private TMPro.TextMeshProUGUI scoreText;
     [SerializeField] private GameObject playButton;
+    [SerializeField] private GameObject returnToMinigameButton; // New button for returning to minigame
 
     private float timeRemaining = 15f;
     private int score = 0;
@@ -21,11 +24,25 @@ public class WhackAMoleManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+
+        // Ensure the return button is inactive at the start
+        if (returnToMinigameButton != null)
+        {
+            returnToMinigameButton.SetActive(false);
+        }
+        else
+        {
+            //Debug.LogWarning("ReturnToMinigameButton not assigned in Inspector!");
+        }
     }
 
     public void StartGame()
     {
         playButton.SetActive(false);
+        if (returnToMinigameButton != null)
+        {
+            returnToMinigameButton.SetActive(false); // Ensure return button is hidden during gameplay
+        }
         timeRemaining = 15f;
         score = 0;
         playing = true;
@@ -70,7 +87,7 @@ public class WhackAMoleManager : MonoBehaviour
             if (timeRemaining <= 0)
             {
                 timeRemaining = 0;
-                EndGame();
+                GameOver();
             }
             int minutes = (int)timeRemaining / 60;
             int seconds = (int)timeRemaining % 60;
@@ -84,9 +101,10 @@ public class WhackAMoleManager : MonoBehaviour
         }
     }
 
-
     public void AddScore(Mole.MoleType type)
     {
+
+        AudioManager.Instance.PlaySfx("minigameSfx");
         score++;
         scoreText.text = score.ToString();
 
@@ -105,10 +123,9 @@ public class WhackAMoleManager : MonoBehaviour
         // Kết thúc trò chơi khi đạt điểm mục tiêu
         if (score >= targetScore)
         {
-            EndGame();
+            CompleteGame();
         }
     }
-
 
     public void OnMoleHidden(Mole mole)
     {
@@ -119,13 +136,77 @@ public class WhackAMoleManager : MonoBehaviour
     {
         playing = false;
         playButton.SetActive(true);
+        if (returnToMinigameButton != null)
+        {
+            returnToMinigameButton.SetActive(true);
+        }
         StopAllCoroutines();
     }
 
-    private void EndGame()
+    private void CompleteGame()
     {
         playing = false;
         playButton.SetActive(true);
+        if (returnToMinigameButton != null)
+        {
+            returnToMinigameButton.SetActive(true);
+        }
         StopAllCoroutines();
+        Reward();
+    }
+
+    private void Reward()
+    {
+        if (GameController.Instance != null && GameController.Instance.ResourceController != null)
+        {
+            // Add 15 Gems
+            if (GameController.Instance.ResourceController.TryGetAmount(Resource.Gem, out long currentGems))
+            {
+                long newGems = currentGems + 15;
+                if (!GameController.Instance.ResourceController.TrySetAmount(Resource.Gem, newGems))
+                {
+                    //Debug.LogWarning("Failed to set Gem amount in ResourceController.");
+                }
+                else
+                {
+                    //Debug.Log($"Added 15 Gems. New total: {newGems}");
+                }
+            }
+            else
+            {
+                //Debug.LogWarning("Failed to get current Gem amount from ResourceController.");
+            }
+
+            // List of material resources to update
+            Resource[] materials = { Resource.Diamond, Resource.Cloud, Resource.Rainbow, Resource.Gummy, Resource.Ruby, Resource.Star };
+
+            foreach (Resource material in materials)
+            {
+                if (GameController.Instance.ResourceController.TryGetAmount(material, out long currentAmount))
+                {
+                    // Calculate 5% to 10% of current amount
+                    float randomPercentage = Random.Range(0.05f, 0.10f);
+                    long additionalAmount = (long)(currentAmount * randomPercentage);
+                    long newAmount = currentAmount + additionalAmount;
+
+                    if (!GameController.Instance.ResourceController.TrySetAmount(material, newAmount))
+                    {
+                        //Debug.LogWarning($"Failed to set {material} amount in ResourceController.");
+                    }
+                    else
+                    {
+                        //Debug.Log($"Added {additionalAmount} {material}. New total: {newAmount}");
+                    }
+                }
+                else
+                {
+                    //Debug.LogWarning($"Failed to get current {material} amount from ResourceController.");
+                }
+            }
+        }
+        else
+        {
+            //Debug.LogWarning("GameController or ResourceController is not available.");
+        }
     }
 }

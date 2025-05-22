@@ -8,6 +8,7 @@ public class Wire : MonoBehaviour
     public Transform wireEnd; // End of the wire that moves
 
     private bool isDragging = false;
+    private bool isConnected = false; // Track connection state
 
     public Color wireColor = Color.white; // Default wire color
     public Color connectedColor = Color.green; // Color when connected
@@ -27,11 +28,20 @@ public class Wire : MonoBehaviour
         // Set the initial color
         lineRenderer.startColor = wireColor;
         lineRenderer.endColor = wireColor;
+
+        // Ensure light is off at start
+        if (lightOn != null)
+        {
+            lightOn.SetActive(false);
+        }
     }
 
     private void OnMouseDown()
     {
-        isDragging = true;
+        if (!isConnected) // Only allow dragging if not connected
+        {
+            isDragging = true;
+        }
     }
 
     private void OnMouseDrag()
@@ -67,13 +77,17 @@ public class Wire : MonoBehaviour
 
     private void OnMouseUp()
     {
-        isDragging = false;
-        wireEnd.position = wireStart.position; // Reset if no connection
-        UpdateWire();
+        if (!isConnected) // Only reset position if not connected
+        {
+            isDragging = false;
+            wireEnd.position = wireStart.position; // Reset if no connection
+            UpdateWire();
+        }
     }
 
-    void Done()
+    public void Done()
     {
+        isConnected = true;
         lightOn.SetActive(true);
         isDragging = false;
 
@@ -81,7 +95,31 @@ public class Wire : MonoBehaviour
         lineRenderer.startColor = connectedColor;
         lineRenderer.endColor = connectedColor;
 
-        Destroy(this);
+        // Snap the wire to the connection point
+        UpdateWire();
+    }
+
+    public void Reset()
+    {
+        if (isConnected)
+        {
+            isConnected = false;
+        }
+
+        isDragging = false;
+        wireEnd.position = wireStart.position; // Reset wire position
+        lineRenderer.SetPosition(0, wireStart.position);
+        lineRenderer.SetPosition(1, wireStart.position);
+
+        // Reset wire color
+        lineRenderer.startColor = wireColor;
+        lineRenderer.endColor = wireColor;
+
+        // Hide the light
+        if (lightOn != null)
+        {
+            lightOn.SetActive(false);
+        }
     }
 
     void UpdateWire()

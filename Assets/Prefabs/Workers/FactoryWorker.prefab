@@ -187,7 +187,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 4451395542604640335}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.00001
+  m_Radius: 0.25
   m_Speed: 4
   m_Acceleration: 1000
   avoidancePriority: 50
@@ -234,6 +234,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c53ba2f967c40cb9e80bbb29dee4b32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _agentUpdateInterval: 15
+  AgentUpdateOrder: 0
   _current: 
   _log: 0
   WorkMachineSensor: {fileID: 5459140429585887110}
@@ -262,15 +264,11 @@ MonoBehaviour:
       Value: 100
     - Key: 1
       Value: 100
-    - Key: 2
-      Value: 100
   _startingCores:
     _serializedList:
     - Key: 0
       Value: 30
     - Key: 1
-      Value: 30
-    - Key: 2
       Value: 30
   _currentCores:
     _serializedList: []

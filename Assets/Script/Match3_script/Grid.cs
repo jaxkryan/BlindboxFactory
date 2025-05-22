@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using System.IO; // For file I/O
 
 public class Grids : MonoBehaviour
 {
@@ -32,6 +31,7 @@ public class Grids : MonoBehaviour
 
     private Dictionary<PieceType, GameObject> piecePrefabDict;
     private GamePiece[,] pieces;
+    private GameObject[,] backgroundTiles; // Array to store background tiles
 
     private bool inverse = false;
 
@@ -45,31 +45,13 @@ public class Grids : MonoBehaviour
     private float halfX;
 
     public TextMeshProUGUI resetText;
-
-    // -------------------- Save/Load Data Classes --------------------
-
-    [System.Serializable]
-    public class GridSaveData
-    {
-        public int xDim;
-        public int yDim;
-        public List<PieceSaveData> pieces;
-    }
-
-    [System.Serializable]
-    public class PieceSaveData
-    {
-        public int x;
-        public int y;
-        public PieceType type;
-        public int color; // Stores the color as an int (corresponding to ColorPiece.ColorType)
-    }
-
+    [SerializeField] private float tileSize = 0.3f;
 
     // -------------------- Unity Lifecycle --------------------
 
     private void Awake()
     {
+        // Initialize the piece prefab dictionary
         piecePrefabDict = new Dictionary<PieceType, GameObject>(piecePrefabs.Length);
         for (int i = 0; i < piecePrefabs.Length; i++)
         {
@@ -79,29 +61,20 @@ public class Grids : MonoBehaviour
             }
         }
 
-        // Get screen width dynamically
-        float screenWidth = Camera.main.orthographicSize * 2 * Screen.width / Screen.height;
+        // Initialize the pieces array
+        pieces = new GamePiece[xDim, yDim];
+        backgroundTiles = new GameObject[xDim, yDim]; // Initialize the background tiles array
 
-        float tileHeight = 7.5f / yDim; // Height should be 3/4 of the screen
-        float tileWidth = screenWidth / (xDim + 2); // Add margin on left & right
-
-        float tileSize = Mathf.Min(tileWidth, tileHeight); // Ensure square tiles
-
-        boardOrigin = new Vector2(-((xDim - 1) * tileSize) / 2, -5 + tileSize / 2); // Center and align bottom
-
-        halfX = (xDim * tileSize) / 2.0f;
-
-        // Create backgrounds
+        // Spawn background tiles
         for (int x = 0; x < xDim; x++)
         {
             for (int y = 0; y < yDim; y++)
             {
-                GameObject bg = Instantiate(backgroundPrefab, GetWorldPosition(x, y), Quaternion.identity, transform);
-                bg.transform.localScale = new Vector3(tileSize, tileSize, 1);
+                SpawnBackgroundTile(x, y);
             }
         }
 
-        pieces = new GamePiece[xDim, yDim];
+        // Spawn empty pieces
         for (int x = 0; x < xDim; x++)
         {
             for (int y = 0; y < yDim; y++)
@@ -110,44 +83,94 @@ public class Grids : MonoBehaviour
             }
         }
 
-        // Try to load a saved game state if one exists.
-        LoadGame();
-
         StartCoroutine(Fill());
     }
 
-    private void OnApplicationPause(bool pause)
+    private void OnEnable()
     {
-        if (pause)
+        // Recalculate boardOrigin and reposition pieces and background tiles when the GameObject is enabled
+        CenterGridOnParent();
+        RepositionPieces();
+    }
+
+    private void CenterGridOnParent()
+    {
+        // Calculate the total size of the grid
+        float gridWidth = xDim * tileSize;
+        float gridHeight = yDim * tileSize;
+
+        // Center the grid by offsetting boardOrigin from the GameObject's position
+        Vector2 parentPosition = transform.position;
+        boardOrigin = new Vector2(
+            parentPosition.x - (gridWidth / 2f) + (tileSize / 2f), // Center horizontally
+            parentPosition.y - (gridHeight / 2f) + (tileSize / 2f)  // Center vertically
+        );
+        Debug.Log($"Centered grid: boardOrigin set to {boardOrigin} for parent position {parentPosition}");
+    }
+
+    private void RepositionPieces()
+    {
+        // Reposition all existing pieces based on the updated boardOrigin
+        for (int x = 0; x < xDim; x++)
         {
-            SaveGame();
+            for (int y = 0; y < yDim; y++)
+            {
+                // Reposition pieces
+                if (pieces[x, y] != null)
+                {
+                    Vector2 newPos = GetWorldPosition(x, y);
+                    pieces[x, y].transform.position = new Vector3(newPos.x, newPos.y, -5f);
+                    Debug.Log($"Repositioned piece at ({x}, {y}) to {pieces[x, y].transform.position}");
+                }
+
+                // Reposition background tiles
+                if (backgroundTiles[x, y] != null)
+                {
+                    Vector2 newPos = GetWorldPosition(x, y);
+                    backgroundTiles[x, y].transform.position = new Vector3(newPos.x, newPos.y, 0f); // Background at z = 0 (behind pieces)
+                    Debug.Log($"Repositioned background tile at ({x}, {y}) to {backgroundTiles[x, y].transform.position}");
+                }
+            }
         }
     }
 
-    private void OnApplicationQuit()
-    {
-        SaveGame();
-    }
-
-    // -------------------- Grid Utility Methods --------------------
-
     public Vector2 GetWorldPosition(int x, int y)
     {
-        float tileHeight = 7.5f / yDim;
-        float screenWidth = Camera.main.orthographicSize * 2 * Screen.width / Screen.height;
-        float tileWidth = screenWidth / (xDim + 2);
-        float tileSize = Mathf.Min(tileWidth, tileHeight);
-
         return new Vector2(boardOrigin.x + x * tileSize, boardOrigin.y + y * tileSize);
     }
 
-    public GamePiece SpawnNewPiece(int x, int y, PieceType type)
+    private void SpawnBackgroundTile(int x, int y)
     {
-        GameObject newPiece = Instantiate(piecePrefabDict[type], GetWorldPosition(x, y), Quaternion.identity, transform);
-        newPiece.transform.localScale = new Vector3(0.19f, 0.19f, 1); // Scale the tile properly
-        pieces[x, y] = newPiece.GetComponent<GamePiece>();
-        pieces[x, y].Init(x, y, this, type);
-        return pieces[x, y];
+        if (backgroundPrefab == null)
+        {
+            Debug.LogWarning("BackgroundPrefab is not assigned in the Inspector!");
+            return;
+        }
+
+        // Instantiate the background tile and parent it to this GameObject (the Grid)
+        GameObject backgroundTile = Instantiate(backgroundPrefab, transform);
+
+        // Set the background tile's position relative to the boardOrigin
+        Vector2 worldPos = GetWorldPosition(x, y);
+        backgroundTile.transform.position = new Vector3(worldPos.x, worldPos.y, 0f); // z = 0 to place behind pieces
+
+        // Store the background tile in the array
+        backgroundTiles[x, y] = backgroundTile;
+    }
+
+    private GamePiece SpawnNewPiece(int x, int y, PieceType type)
+    {
+        // Instantiate the piece and parent it to this GameObject (the Grid)
+        GameObject pieceObject = Instantiate(piecePrefabDict[type], transform);
+
+        // Set the piece's position relative to the boardOrigin
+        Vector2 worldPos = GetWorldPosition(x, y);
+        pieceObject.transform.position = new Vector3(worldPos.x, worldPos.y, -5f); // Set z to -5 to match Match3Panel
+
+        GamePiece piece = pieceObject.GetComponent<GamePiece>();
+        piece.Init(x, y, this, type);
+        pieces[x, y] = piece;
+        return piece;
     }
 
     // -------------------- Game Logic Methods --------------------
@@ -265,9 +288,6 @@ public class Grids : MonoBehaviour
 
                 StartCoroutine(Fill());
                 level.OnMove();
-
-                // Save game state after a successful swap.
-                SaveGame();
             }
             else
             {
@@ -535,9 +555,9 @@ public class Grids : MonoBehaviour
         return false;
     }
 
-    private void ResetBoard()
+    public void ResetBoard()
     {
-        // Clear the existing board
+        // Clear the existing board (pieces only, not background tiles)
         for (int x = 0; x < xDim; x++)
         {
             for (int y = 0; y < yDim; y++)
@@ -557,7 +577,7 @@ public class Grids : MonoBehaviour
             StartCoroutine(HideResetText());
         }
 
-        // Recreate the board
+        // Recreate the board (pieces only)
         for (int x = 0; x < xDim; x++)
         {
             for (int y = 0; y < yDim; y++)
@@ -575,77 +595,13 @@ public class Grids : MonoBehaviour
         resetText.gameObject.SetActive(false);
     }
 
+    public void ResetGame()
+    {
+        gameOver = false;
+    }
+
     public void GameOver()
     {
         gameOver = true;
     }
-
-    // -------------------- Save/Load Methods --------------------
-
-    public void SaveGame()
-    {
-        GridSaveData saveData = new GridSaveData();
-        saveData.xDim = xDim;
-        saveData.yDim = yDim;
-        saveData.pieces = new List<PieceSaveData>();
-
-        for (int x = 0; x < xDim; x++)
-        {
-            for (int y = 0; y < yDim; y++)
-            {
-                PieceSaveData pData = new PieceSaveData();
-                pData.x = x;
-                pData.y = y;
-                pData.type = pieces[x, y].Type; // Assumes your GamePiece has a public property "Type"
-
-                // If the piece is colored, save its color
-                if (pieces[x, y].IsColored())
-                {
-                    pData.color = (int)pieces[x, y].ColorComponent.Color;
-                }
-                saveData.pieces.Add(pData);
-            }
-        }
-
-        string json = JsonUtility.ToJson(saveData);
-        string path = Application.persistentDataPath + "/grid_save.json";
-        System.IO.File.WriteAllText(path, json);
-        Debug.Log("Game saved to: " + path);
-    }
-
-
-    public void LoadGame()
-    {
-        string path = Application.persistentDataPath + "/grid_save.json";
-        if (System.IO.File.Exists(path))
-        {
-            string json = System.IO.File.ReadAllText(path);
-            GridSaveData saveData = JsonUtility.FromJson<GridSaveData>(json);
-
-            if (saveData.xDim != xDim || saveData.yDim != yDim)
-            {
-                Debug.LogError("Saved grid dimensions do not match current grid dimensions.");
-                return;
-            }
-
-            foreach (PieceSaveData pData in saveData.pieces)
-            {
-                // Replace the existing piece with the saved piece.
-                Destroy(pieces[pData.x, pData.y].gameObject);
-                GamePiece newPiece = SpawnNewPiece(pData.x, pData.y, pData.type);
-
-                // If the piece should have a color, set it using the saved value.
-                if (newPiece.IsColored())
-                {
-                    newPiece.ColorComponent.SetColor((ColorPiece.ColorType)pData.color);
-                }
-            }
-            Debug.Log("Game loaded from: " + path);
-        }
-        else
-        {
-            Debug.Log("No saved game found at " + path);
-        }
-    }
-
 }

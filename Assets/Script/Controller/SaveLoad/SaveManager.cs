@@ -2,22 +2,23 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using ZLinq;
 using System.Threading.Tasks;
 using Firebase;
 using Firebase.Database;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Script.Alert;
+using Script.Utils;
 using UnityEngine;
 using UnityEngine.Android;
+using System.Linq;
 
 namespace Script.Controller.SaveLoad
 {
     public class SaveManager
     {
-        public ConcurrentDictionary<string, string> SaveData { get; private set; } = new();
-
+        private ConcurrentDictionary<string, string> _saveData = new();
+        private string _playerId;
         private DatabaseReference dbRef;
 
         public string Path { get; init; }
@@ -34,11 +35,13 @@ namespace Script.Controller.SaveLoad
         }
 
         [CanBeNull] public string _currentSavePath;
+
         public string CurrentLoadPath
         {
             get => _currentLoadPath ?? FilePath;
             private set => _currentLoadPath = value;
         }
+
         [CanBeNull] public string _currentLoadPath;
 
         public SaveManager(int maxSaves = 10) : this(Application.persistentDataPath, maxSaves: maxSaves) { }
@@ -48,28 +51,27 @@ namespace Script.Controller.SaveLoad
             Path = path;
             _fileName = fileName;
             MaxSaves = maxSaves;
+            _playerId = "local_user";
             InitializeFirebase();
         }
 
-        private bool _isFirebaseInitialized;
+        public SaveManager(string playerId)
+        {
+            _playerId = playerId;
+            InitializeFirebase();
+        }
+
+        private bool _isFirebaseInitialized = false;
+        private Task _firebaseInitTask;
 
         private void InitializeFirebase()
         {
-            _isFirebaseInitialized = false;
-            FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
-            {
-                if (task.IsFaulted)
-                {
-                    Debug.LogError($"Firebase initialization failed: {task.Exception}");
-                    _isFirebaseInitialized = false;
-                    dbRef = null;
-                    return;
-                }
-
+            FirebaseDatabase.DefaultInstance.SetPersistenceEnabled(false);
+            _firebaseInitTask = FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task => {
                 var dependencyStatus = task.Result;
                 if (dependencyStatus == DependencyStatus.Available)
                 {
-                    FirebaseApp.LogLevel = Firebase.LogLevel.Verbose; // Tăng mức log để debug
+                    FirebaseApp.LogLevel = Firebase.LogLevel.Debug;
                     dbRef = FirebaseDatabase.DefaultInstance.RootReference;
                     _isFirebaseInitialized = true;
                     Debug.Log("Firebase initialized successfully.");
@@ -77,16 +79,31 @@ namespace Script.Controller.SaveLoad
                 else
                 {
                     Debug.LogError($"Could not resolve all Firebase dependencies: {dependencyStatus}");
-                    _isFirebaseInitialized = false;
                     dbRef = null;
+                    _isFirebaseInitialized = false;
                 }
             });
         }
+
+        private async Task EnsureFirebaseInitialized()
+        {
+            if (!_isFirebaseInitialized)
+            {
+                await _firebaseInitTask;
+            }
+
+            if (!_isFirebaseInitialized)
+            {
+                throw new InvalidOperationException("Firebase initialization failed.");
+            }
+
+            dbRef.Child("users").KeepSynced(true);
+        }
+
         private static JsonSerializerSettings Settings
         {
             get => new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All };
         }
-
 
         public static string Serialize<TSource>(TSource data)
         {
@@ -99,59 +116,73 @@ namespace Script.Controller.SaveLoad
             return JsonConvert.DeserializeObject<TSource>(data, Settings);
         }
 
-        public async Task EnsureFirebaseInitialized()
-        {
-            if (_isFirebaseInitialized) return;
-
-            int timeoutSeconds = 10;
-            float startTime = Time.time;
-            while (!_isFirebaseInitialized && Time.time - startTime < timeoutSeconds)
-            {
-                await Task.Delay(100); // Chờ 100ms trước khi kiểm tra lại
-            }
-
-            if (!_isFirebaseInitialized)
-            {
-                Debug.LogError("Firebase initialization timed out.");
-            }
-        }
 #warning implement encryption
         private static string Encrypt(string data) => data;
         private static string Decrypt(string coded) => coded;
 
+        public void AddOrUpdate(string key, string value)
+            => _saveData.AddOrUpdate(key, value, (_, _) => value);
+
+        public bool TryGetValue(string key, out string value)
+            => _saveData.TryGetValue(key, out value);
+
         public async Task SaveToFirebase()
         {
-            await EnsureFirebaseInitialized();
-
-            if (!_isFirebaseInitialized || dbRef == null)
+            try
             {
-                Debug.LogError("Firebase is not initialized. Cannot save data.");
-                return;
+                await EnsureFirebaseInitialized();
+                string json = JsonConvert.SerializeObject(_saveData.AsValueEnumerable().ToDictionary(p => p.Key, p => p.Value));
+                if (_log) Debug.Log("Json fr: " + json);
+                await dbRef.Child("users").Child(_playerId).SetRawJsonValueAsync(json);
+                if (_log) Debug.Log($"Data saved to Firebase for player: {_playerId}");
             }
-
-            // Kiểm tra đăng nhập Google Play
-            if (!GooglePlayManager.Instance.IsSignedIn || string.IsNullOrEmpty(GooglePlayManager.Instance.UserId))
+            catch (System.Exception e)
             {
-                Debug.LogError("Google Play user is not signed in or UserId is empty. Cannot save data.");
-                return;
+                Debug.LogException(new System.Exception($"[Cannot save] Error saving to Firebase", e));
             }
-
-            string userId = GooglePlayManager.Instance.UserId; // Lấy Google Play ID
-            string json = JsonConvert.SerializeObject(SaveData);
-            Debug.Log("Json fr: " + json);
-            var saveTask = dbRef.Child("users").Child(userId).SetRawJsonValueAsync(json).ContinueWith(task =>
-            {
-                if (task.IsFaulted)
-                {
-                    Debug.LogError($"Error: Failed to save data to Firebase: {task.Exception}");
-                }
-                else if (task.IsCompleted)
-                {
-                    Debug.Log($"Data saved to Firebase for user: {userId}");
-                }
-            });
-            await saveTask;
         }
+
+        public async Task LoadFromFirebase()
+        {
+            try
+            {
+                await EnsureFirebaseInitialized();
+                var snapshot = await dbRef.Child("users").Child(_playerId).GetValueAsync();
+                if (!snapshot.Exists)
+                {
+                    if (_log) Debug.Log($"No save data found in Firebase for player: {_playerId}");
+                    return;
+                }
+
+
+                string json = snapshot.GetRawJsonValue();
+                if (string.IsNullOrEmpty(json))
+                {
+                    Debug.LogWarning("Firebase data is empty or invalid.");
+                    return;
+                }
+
+                var saveData = Deserialize<Dictionary<string, string>>(json);
+                if (saveData == null)
+                {
+                    Debug.LogError("Failed to deserialize Firebase data.");
+                    return;
+                }
+
+                foreach (var key in saveData.Keys)
+                {
+                    if (!saveData.TryGetValue(key, out var value) || value is null) continue;
+                    AddOrUpdate(key, value);
+                }
+
+                if (_log) Debug.Log($"Data loaded successfully from Firebase for player: {_playerId}");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogException(new System.Exception($"[Cannot load] Error loading from Firebase", e));
+            }
+        }
+
         private string IncludeTimeStamp()
         {
             var startTime = GameController.Instance.SessionStartTime;
@@ -182,16 +213,20 @@ namespace Script.Controller.SaveLoad
 
                 CurrentSavePath = FilePath;
 
-                using (var file = System.IO.File.Open(CurrentSavePath, FileMode.OpenOrCreate)) { }
+                using (var file = System.IO.File.Open(CurrentSavePath, FileMode.OpenOrCreate))
+                {
+                    file.Close();
+                }
 
                 if (_log) Debug.Log($"Saving data to: {CurrentSavePath}");
-                var str = Serialize(SaveData);
+                var str = Serialize(_saveData.AsValueEnumerable().ToDictionary(p => p.Key, p => p.Value));
                 if (_log) Debug.Log($"Serialized data: {str}");
 
                 await using (StreamWriter sw = new StreamWriter(FilePath, false))
                 {
                     await sw.WriteAsync(Encrypt(str));
                     await sw.FlushAsync();
+                    sw.Close();
                     if (_log) Debug.Log("Data saved successfully.");
                 }
             }
@@ -204,14 +239,13 @@ namespace Script.Controller.SaveLoad
         private void RemoveOldSaves()
         {
             var filePaths = GetAllSavePaths();
-            while (filePaths.Count >= MaxSaves && filePaths.Count > 0)
-            {
-                var removingFilePath = filePaths.ElementAtOrDefault(filePaths.Count - 1);
-                if (string.IsNullOrEmpty(removingFilePath))
-                {
+            while (filePaths.Count >= MaxSaves && filePaths.Count > 0) {
+                var removingFilePath = filePaths.AsValueEnumerable().ElementAtOrDefault(filePaths.Count - 1);
+                if (string.IsNullOrEmpty(removingFilePath)) {
                     Debug.LogError($"{nameof(removingFilePath)} is empty");
                     break;
                 }
+
                 RemoveSave(removingFilePath);
                 filePaths.Remove(removingFilePath);
             }
@@ -219,18 +253,22 @@ namespace Script.Controller.SaveLoad
 
         private void RemoveSave(string path)
         {
-            if (File.Exists(path)) { File.Delete(path); }
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
             else Debug.LogError($"Cannot remove file because it doesn't exist: {path}");
         }
 
-        private List<string> GetAllSavePaths()
-        {
-            var parts = _fileName.Split('.').ToList();
-            var name = parts.ElementAtOrDefault(0) ?? "";
+
+        private List<string> GetAllSavePaths() {
+            var parts = _fileName.Split('.').AsValueEnumerable().ToList();
+            var name = parts.AsValueEnumerable().ElementAtOrDefault(0) ?? "";
             name += "-";
             if (parts.Count > 0) parts.RemoveAt(0);
 
-            return Directory.GetFiles(Path, $"{name}*{string.Join(".", parts)}").OrderByDescending(file => file).ToList();
+            return Directory.GetFiles(Path, $"{name}*{string.Join(".", parts)}").AsValueEnumerable().OrderByDescending(file => file)
+                .ToList();
         }
 
         public async Task LoadFromLocal()
@@ -243,26 +281,33 @@ namespace Script.Controller.SaveLoad
                         || !Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead)) return;
                 }
 
-                CurrentLoadPath = GetAllSavePaths().Count > 0 ? GetAllSavePaths().First() : FilePath;
+                CurrentLoadPath = GetAllSavePaths().Count > 0 ? GetAllSavePaths().AsValueEnumerable().First() : FilePath;
                 if (_log) Debug.Log($"Current load path: {CurrentLoadPath}");
+                if (!File.Exists(CurrentLoadPath))
+                {
+                    if (_log) Debug.Log($"Save file doesn't exist: {CurrentLoadPath}. Cancelling...");
+                    return;
+                }
 
-                using (var file = System.IO.File.Open(CurrentLoadPath, FileMode.OpenOrCreate)) { }
+                using (var file = System.IO.File.Open(CurrentLoadPath, FileMode.OpenOrCreate))
+                {
+                    file.Close();
+                }
 
                 using StreamReader sr = new StreamReader(CurrentLoadPath);
                 var str = await sr.ReadToEndAsync();
-                var saveData = Deserialize<ConcurrentDictionary<string, string>>(Decrypt(str));
+                var saveData = Deserialize<Dictionary<string, string>>(Decrypt(str));
 
-                foreach (var data in saveData?.Keys ?? new List<string>())
-                {
-                    if (saveData is null) break;
-                    if (!SaveData.TryGetValue(data, out var value)) SaveData.TryAdd(data, saveData[data]);
-                    else if (value != saveData[data]) SaveData[data] = saveData[data];
+
+                if (saveData is not null) {
+                    foreach (var data in saveData.Keys) {
+                        if (!saveData.TryGetValue(data, out var value) || value is null) break;
+
+                        AddOrUpdate(data, value);
+                    }
                 }
-                // AlertManager.Instance.Raise(new GameAlert.Builder(AlertType.Notification)
-                //     .WithHeader("Loading data")
-                //     .WithMessage("Loading data successfully")
-                //     .WithCloseButton()
-                //     .Build());
+
+                sr.Close();
             }
             catch (System.Exception e)
             {

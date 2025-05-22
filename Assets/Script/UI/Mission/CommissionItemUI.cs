@@ -16,6 +16,8 @@ namespace Script.UI.Mission {
         public Commission Commission { get; set; }
 
         public void UpdateCommissionData() {
+            Debug.Log($"Showing commission: {string.Join(", ", Commission.Items.Select(c => c.Key))} for {Commission.Price}");
+            
             if (Commission is null) {
                 _name.text = "";
                 _description.text = "";
@@ -33,7 +35,8 @@ namespace Script.UI.Mission {
                     .Select(c => $"*{c.Key} {(boxController.TryGetAmount(c.Key, out var amount) ? amount : 0)}/{c.Value}"));
 
             if (Commission.Reward is ResourceQuestReward resourceReward) {
-                _reward.text = resourceReward.Resources.Where(r => r.Key == Resource.Gold).Select(r => r.Value).Sum().ToString();
+                // _reward.text = resourceReward.Resources.Where(r => r.Key == Resource.Gold).Select(r => r.Value).Sum().ToString();
+                _reward.text = Commission.Price.ToString();
             }
             else _reward.text = "";
         }

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using JetBrains.Annotations;
 using Script.Utils;
 using Unity.VisualScripting;
@@ -24,7 +24,11 @@ namespace Script.Alert {
         [SerializeField] public Sprite Green;
         [SerializeField] public Sprite Purple;
         [SerializeField] public Sprite Yellow;
+
+        public GameAlert Current { get; private set; } = null;
+
         [Space] [SerializeField] bool _logs = false;
+
         //Test
         [Space] [SerializeField] private bool _test = false;
         private GameObject _backgroundBlocker;
@@ -73,15 +77,16 @@ namespace Script.Alert {
                     if (rt.offsetMin != Vector2.zero || rt.offsetMax != Vector2.zero) slatedForDestroy.Add(b);
                     if (rt.localScale != Vector3.one) slatedForDestroy.Add(b);
                 }
+
                 if (!b.TryGetComponent<Image>(out var im)) {
                     if (im.color != Color.clear) slatedForDestroy.Add(b);
                     if (!im.raycastTarget) slatedForDestroy.Add(b);
                 }
             }
 
-            var exempt = blockers.Except(slatedForDestroy).ToList();
-            if (exempt.Any()) {
-                var first = exempt.First();
+            var exempt = blockers.AsValueEnumerable().Except(slatedForDestroy).ToList();
+            if (exempt.Count > 0) {
+                var first = exempt[0];
                 exempt.Remove(first);
                 slatedForDestroy.AddRange(exempt);
                 slatedForDestroy.ForEach(b => Destroy(b.gameObject));
@@ -111,21 +116,27 @@ namespace Script.Alert {
 
         public void RaiseBackLog() {
             if (_alertBackLog is null || _alertBackLog.Count == 0) return;
-            if (_alerts.Any(a => a.gameObject.activeInHierarchy)) return;
+            if (_alerts.AsValueEnumerable().Any(a => a.gameObject.activeInHierarchy)) return;
 
             var alert = _alertBackLog.Dequeue();
             Raise(alert);
         }
 
-        public void Raise(GameAlert alert) {
+        public void Raise(GameAlert alert, bool raiseAgainIfDuplicated = false) {
             // Raise(alert.Type, alert.Header, alert.Message, alert.HasCloseButton, alert.PauseGame, alert.OnClose, alert.Button1, alert.Button2);
-            if (_alerts.Any(a => a.gameObject.activeInHierarchy))
-                _alertBackLog.Enqueue(alert);
+            if (_alerts.AsValueEnumerable().Any(a => a.gameObject.activeInHierarchy)) {
+                if ((_alertBackLog.AsValueEnumerable().Any(a => a == alert) || alert == Current) && raiseAgainIfDuplicated) {
+                    _alertBackLog.Enqueue(alert);
+                }
+
+                return;
+            }
 
             if (_logs) Debug.Log("Raising alert " + alert.Header);
+            Current = alert;
 
             //Type
-            var fields = alert.GetType().GetFields().ToList();
+            var fields = alert.GetType().GetFields().AsValueEnumerable().ToList();
             fields.RemoveAll(f => f.Name == nameof(alert.Type));
             var raisingAlert = alert.Type switch {
                 AlertType.Error => _errorAlert,
@@ -179,12 +190,12 @@ namespace Script.Alert {
                 raisingAlert.onAlertClosed += wrapper;
             }
 
-            if (fields.Any())
+            if (fields.Count > 0)
                 Debug.LogWarning(
-                    $"Field(s) not used when creating alert: {string.Join(", ", fields.Select(f => f.Name))}");
+                    $"Field(s) not used when creating alert: {string.Join(", ", fields.AsValueEnumerable().Select(f => f.Name))}");
 
             _backgroundBlocker.gameObject.SetActive(true);
-            
+
             Action RemoveBlockerOnAlertClosed = null;
             RemoveBlockerOnAlertClosed = () => {
                 _backgroundBlocker.gameObject.SetActive(false);
@@ -194,13 +205,18 @@ namespace Script.Alert {
 
             raisingAlert.enabled = true;
             raisingAlert.gameObject.SetActive(true);
+            if (raisingAlert.gameObject.TryGetComponent<DotweenAnimation>(out var anim)) {
+                anim.AnimateIn();
+            }
+
             onAlertRaised?.Invoke(alert.Type, raisingAlert.Header.text);
         }
 
         public void Raise(AlertType type, string header, string message, bool hasClose = true, bool pauseGame = false,
             Action onClose = null,
             [CanBeNull] AlertUIButtonDetails button1 = null,
-            [CanBeNull] AlertUIButtonDetails button2 = null) {
+            [CanBeNull] AlertUIButtonDetails button2 = null,
+            bool raiseAgainIfDuplicated = false) {
             new GameAlert.Builder(type)
                 .WithHeader(header)
                 .WithMessage(message)
@@ -209,7 +225,7 @@ namespace Script.Alert {
                 .OnClose(onClose)
                 .WithButton1(button1)
                 .WithButton2(button2)
-                .Build().Raise();
+                .Build().Raise(raiseAgainIfDuplicated);
         }
 
         private void OnValidate() {

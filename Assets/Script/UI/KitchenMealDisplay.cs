@@ -13,7 +13,7 @@ public class KitchenMealDisplay : MonoBehaviour
         UpdateMealUI(0);
     }
 
-    private void UpdateMealUI(int change)
+    private void UpdateMealUI(long change)
     {
         if (mealText != null)
             mealText.text = $"Meals: {foodStorage.AvailableMeals}/{foodStorage.MaxCapacity}";

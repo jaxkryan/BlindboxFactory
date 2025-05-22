@@ -13,6 +13,7 @@ namespace Script.Quest {
 
         public override void Grant() {
             var tilemap = GameController.Instance.Ground;
+            var spawningTile = GameController.Instance.GroundTile;
             foreach (var data in Data) {
                 //With direction and offset, get the most outer tile
                 var direction = data.ExtendDirection switch {
@@ -41,7 +42,7 @@ namespace Script.Quest {
                 }
                 //Add the new tiles to the tilemap
                 foreach (var i in span) {
-                    tilemap.SetTile(i.ToVector3Int(), data.Tile);
+                    tilemap.SetTile(i.ToVector3Int(), spawningTile);
                 }
                 GameController.Instance.BuildNavMesh();
             }
@@ -68,9 +69,6 @@ namespace Script.Quest {
 
         [Serializable]
         public struct NewLandData {
-            [Tooltip("The tile use for the new land area")]
-            public Tile Tile;
-
             [Tooltip("How far away from the grid is the new plot.")]
             public int Extend;
             [Tooltip("Which direction to extend the new land")]

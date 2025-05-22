@@ -3,23 +3,20 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using ZLinq;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
-using Script.Alert;
+using NUnit.Framework;
 using Script.Controller;
 using Script.Controller.SaveLoad;
 using Script.Gacha.Base;
 using Script.Resources;
 using Script.Utils;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 namespace Script.HumanResource.Administrator {
     [Serializable]
     public class MascotController : ControllerBase {
-        [SerializeField] public List<Sprite> Portraits;
+        [SerializeField] public PortraitRandomizer Portraits;
 
         [CanBeNull]
         public Mascot GeneratorMascot {
@@ -71,6 +68,7 @@ namespace Script.HumanResource.Administrator {
 #nullable enable
         private List<Mascot> assignedMascots =>
             typeof(MascotController).GetProperties()
+                .AsValueEnumerable()
                 .Where(p => p.PropertyType == typeof(Mascot))
                 .Where(p => ((Mascot?)p.GetValue(this)) != null)
                 .Select(info => (Mascot)info.GetValue(this))
@@ -95,7 +93,7 @@ namespace Script.HumanResource.Administrator {
         }
 
         // Helper method to find where a mascot is currently assigned
-        private MascotType? GetAssignedDepartment([CanBeNull] Mascot mascot) {
+        public MascotType? GetAssignedDepartment([CanBeNull] Mascot mascot) {
             if (mascot == null) return null;
             if (GeneratorMascot == mascot) return MascotType.Generator;
             if (CanteenMascot == mascot) return MascotType.Canteen;
@@ -136,7 +134,7 @@ namespace Script.HumanResource.Administrator {
             get => _mascotsList.AsReadOnly();
         }
 
-        private List<Mascot> _mascotsList = new();
+        [SerializeField]private List<Mascot> _mascotsList = new();
 
         public bool TryAddMascot(Mascot mascot) {
             if (_mascotsList.Contains(mascot)) return false;
@@ -151,6 +149,8 @@ namespace Script.HumanResource.Administrator {
         }
 #nullable enable
         public event Action<MascotType, Mascot?> OnMascotChanged = delegate { };
+        public event Action<Mascot> OnMascotAdded = delegate { };
+        public event Action<Mascot> OnMascotRemoved = delegate { };
 #nullable restore
 
         public void AddMascot(Mascot mascot) {
@@ -168,11 +168,11 @@ namespace Script.HumanResource.Administrator {
 
             _mascotsList ??= new List<Mascot>();
             _mascotsList.Add(mascot);
+            OnMascotAdded?.Invoke(mascot);
         }
 
         public void RemoveMascot(Mascot mascot)
         {
-            if (!_mascotsList.Remove(mascot)) return;
 
             // If the mascot was assigned, unassign it
             if (GeneratorMascot == mascot)
@@ -236,8 +236,10 @@ namespace Script.HumanResource.Administrator {
             {
                 Debug.LogError("ResourceController is null in MascotController.RemoveMascot. Cannot add 500 Gold.");
             }
+            OnMascotRemoved?.Invoke(mascot);
+            if (!_mascotsList.Remove(mascot)) return;
 
-            Debug.Log($"Removed mascot: {mascot.Name} from collection.");
+            if (GameController.Instance?.Log ?? false) Debug.Log($"Removed mascot: {mascot.Name} from collection.");
         }
 
         public override void OnApplicationQuit() {
@@ -270,19 +272,22 @@ namespace Script.HumanResource.Administrator {
 
         public override void Load(SaveManager saveManager) {
             try {
-                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                       || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) return;
                 ClearData();
 
                 foreach (var mascotData in data.MascotsList) {
-                    var mascot = ScriptableObject.CreateInstance<Mascot>();
+                    var mascot = ScriptableObject.CreateInstance<CommonMascot>();
                     mascot.Name = mascotData.Name;
                     mascot.name = mascotData.Name;
                     mascot.SetGrade(mascotData.Grade);
-                    mascot.Portrait = Portraits.Count > mascotData.PortraitIndex
-                        ? Portraits[mascotData.PortraitIndex]
-                        : null;
+                    if (Portraits != null && mascotData.PortraitIndex >= 0) {
+                        mascot.Portrait = Portraits.ItemPool.Count() > mascotData.PortraitIndex
+                            ? Portraits.ItemPool.ToList().ElementAtOrDefault(mascotData.PortraitIndex)
+                            : null;
+                    }
 
+                    var policies = new List<Policy>();
                     foreach (var policyData in mascotData.Policies) {
                         var policy = (Policy)ScriptableObject.CreateInstance(policyData.Type);
                         if (!policy) {
@@ -291,8 +296,10 @@ namespace Script.HumanResource.Administrator {
                         }
 
                         policy.Load(policyData);
+                        policies.Add(policy);
                     }
 
+                    mascot.Policies = policies;
                     _mascotsList.Add(mascot);
                 }
 
@@ -341,16 +348,27 @@ namespace Script.HumanResource.Administrator {
                 var mData = new MascotData() {
                     Name = mascot.Name,
                     Grade = mascot.Grade,
-                    Policies = mascot.Policies.Select(p => p.Save()).ToList(),
-                    PortraitIndex = Portraits.IndexOf(mascot.Portrait)
+                    Policies = mascot.Policies.Select(p => {
+                        try {
+                            return p.Save();
+                        }
+                        catch {
+                            Debug.LogWarning("Cannot save mascot");
+                        }
+
+                        return null;
+                    }).Where(m => m != null).ToList(),
                 };
+                if (Portraits != null) {
+                    mData.PortraitIndex = Portraits?.ItemPool.ToList().IndexOf(mascot.Portrait) ?? -1;
+                }
                 newSave.MascotsList.Add(mData);
             }
 
             try {
                 var serialized = SaveManager.Serialize(newSave);
-                saveManager.SaveData.AddOrUpdate(this.GetType().Name, serialized, (key, oldValue) => serialized);
-                // if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                saveManager.AddOrUpdate(this.GetType().Name, serialized);
+                // if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                 //     || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
                 //     saveManager.SaveData.TryAdd(this.GetType().Name,
                 //         SaveManager.Serialize(newSave));

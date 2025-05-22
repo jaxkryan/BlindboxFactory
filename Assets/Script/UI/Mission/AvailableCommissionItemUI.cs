@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Text;
+using Script.Alert;
+using Script.Controller;
 using Script.Controller.Commission;
 using Script.Quest;
 using Script.Resources;
@@ -20,9 +22,7 @@ namespace Script.UI.Mission
 
         private Commission _commission;
         private StringBuilder _stringBuilder = new StringBuilder();
-        private float _nextUpdateTime;
         private double _remainingSeconds;
-        private const float UPDATE_INTERVAL = 1f; // Update every second
 
         public Commission Commission
         {
@@ -35,22 +35,7 @@ namespace Script.UI.Mission
                     // Calculate remaining time when commission is set
                     _remainingSeconds = (_commission.ExpireDate - DateTime.Now).TotalSeconds;
                     UpdateCommissionData();
-                    _nextUpdateTime = Time.time;
                 }
-            }
-        }
-
-        private void Update()
-        {
-            if (_commission == null) return;
-
-            // Update timer display only when the interval has passed
-            if (Time.time >= _nextUpdateTime)
-            {
-                // Decrease remaining time based on elapsed game time
-                _remainingSeconds -= (Time.time - _nextUpdateTime);
-                UpdateTimerDisplay();
-                _nextUpdateTime = Time.time + UPDATE_INTERVAL;
             }
         }
 
@@ -62,37 +47,32 @@ namespace Script.UI.Mission
             _stringBuilder.AppendJoin(", ", items.Keys);
             _name.text = _stringBuilder.ToString();
 
+            var box = GameController.Instance.BoxController;
+            bool isComplete = true;
+            
             _stringBuilder.Clear();
             foreach (var item in items)
             {
                 _stringBuilder.Append($"{item.Value}x {item.Key}, ");
+                
+                if (box.TryGetAmount(item.Key, out var amount)) {
+                    if (amount < item.Value) isComplete = false;
+                }
+                else Debug.LogError($"Cannot get amount {item.Key}");
             }
+
+            if (isComplete) _accept.image.sprite = AlertManager.Instance.Green;
             if (_stringBuilder.Length > 0) _stringBuilder.Length -= 2;
             _description.text = _stringBuilder.ToString();
 
-            _reward.text = _commission.Reward is ResourceQuestReward reward &&
-                          reward.Resources.TryGetValue(Resource.Gold, out var goldAmount)
-                ? $"{goldAmount} Gold"
+            _reward.text = _commission.Price > 0
+                ? $"{_commission.Price} Gold"
                 : "No reward";
 
-            UpdateTimerDisplay();
-        }
-
-        private void UpdateTimerDisplay()
-        {
-            bool isExpired = _remainingSeconds <= 0;
-            if (isExpired)
-            {
-                _expired.text = "Expired";
-                _accept.interactable = false;
-            }
-            else
-            {
-                int minutes = (int)(_remainingSeconds / 60);
-                int seconds = (int)(_remainingSeconds % 60);
-                _expired.text = $"{minutes:D2}m {seconds:D2}s";
-                _accept.interactable = true;
-            }
+            int hours = (int)(_remainingSeconds / 3600);
+            int minutes = (int)((_remainingSeconds % 3600) / 60);
+            int seconds = (int)(_remainingSeconds % 60);
+            _expired.text = $"{hours:D2}h {minutes:D2}m {seconds:D2}s";
         }
     }
 }

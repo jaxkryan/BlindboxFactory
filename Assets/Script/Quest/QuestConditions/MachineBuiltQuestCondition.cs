@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AYellowpaper.SerializedCollections;
+using BuildingSystem.Models;
 using Script.Controller;
 using Script.Machine;
 using UnityEngine;
@@ -9,10 +10,10 @@ using UnityEngine;
 namespace Script.Quest {
     [CreateAssetMenu(menuName = "Quest/Condition/Machine Built Condition", fileName = "Machine Built Condition")]
     public class MachineBuiltQuestCondition : QuestCondition {
-        Func<MachineBase, string> keyName = (machine) => $"{machine.name}";
-        
-        [Tooltip("For prefabs comparison only")]
-        [SerializeField] public SerializedDictionary<MachineBase, int> BuildMachines;
+        Func<BuildableItem, string> keyName = (machine) => $"{machine.Name}";
+
+        [Tooltip("For prefabs comparison only")] [SerializeField]
+        public SerializedDictionary<BuildableItem, int> BuildMachines;
 
         protected override string OnProgressCheck(Quest quest) {
             List<string> list = new List<string>();
@@ -20,7 +21,7 @@ namespace Script.Quest {
             foreach (var pair in BuildMachines) {
                 int value;
                 var machineCount = GameController.Instance.MachineController.Machines
-                    .Count(m => m.name == pair.Key.name);
+                    .Count(m => m.PrefabName == pair.Key.Name);
                 if (!quest.TryGetQuestData(keyName(pair.Key), out value)) {
                     value = machineCount;
                 }
@@ -33,7 +34,7 @@ namespace Script.Quest {
                 if (BuildMachines.Count > 1) str = $"{pair.Key.name} {str}";
                 list.Add(str);
             }
-            
+
             return string.Join("\n", list.ToArray());
         }
 
@@ -43,11 +44,12 @@ namespace Script.Quest {
             foreach (var machine in BuildMachines) {
                 var key = keyName(machine.Key);
                 var machineCount = machineController.Machines
-                    .Count(m => m.name == machine.Key.name);
-
+                    .Count(m => m.PrefabName == machine.Key.Name);
                 if (!quest.TryGetQuestData(key, out int value)) {
-                    quest.AddData(key, machineCount);
-                    passed = false;
+                    if (machineCount < machine.Value) {
+                        quest.AddData(key, machineCount);
+                        passed = false;
+                    }
                 }
                 else if (machineCount - value < machine.Value) passed = false;
             }

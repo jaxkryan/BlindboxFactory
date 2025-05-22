@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using ZLinq;
 
-    public class AgentAction {
+public class AgentAction {
         public string Name { get; }
         public float Cost { get; private set; }
 
@@ -22,7 +23,7 @@ using System.Collections.Generic;
             }
 
             if (!strategy.Complete) return;
-            Effects.ForEach(e => e.Evaluate());
+            Effects.AsValueEnumerable().ForEach(e => e.Evaluate());
         }
 
         public void Stop() => strategy.Stop();

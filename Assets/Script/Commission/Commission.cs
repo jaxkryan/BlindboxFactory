@@ -1,20 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using AYellowpaper.SerializedCollections;
+using ZLinq;
 using Script.Quest;
 using UnityEngine;
 
 namespace Script.Controller.Commission {
     public class Commission {
-        public ReadOnlyDictionary<BoxTypeName, int> Items { get; private set; }
+        public ReadOnlyDictionary<BoxTypeName, int> Items;
         public QuestReward Reward { get; private set; }
         private long _basePrice => CalculateBasePrice();
+        public long BonusPrice => _bonusPrice;
         private long _bonusPrice = 0;
         public long Price => _basePrice + _bonusPrice;
-        
-        public DateTime ExpireDate { get; private set; }
+        public TimeSpan ValidTime;
+        public DateTime? StartTime;
+        public DateTime ExpireDate {get => StartTime is not null ? ((DateTime)StartTime) + ValidTime : DateTime.Now + ValidTime; }
 
         private long CalculateBasePrice() {
             long basePrice = 0;
@@ -31,6 +32,8 @@ namespace Script.Controller.Commission {
 
             return basePrice;
         }
+        
+        public void Start() => StartTime = DateTime.Now;
 
 
         public bool IsFulfilled(out float progress) {
@@ -39,7 +42,11 @@ namespace Script.Controller.Commission {
                 return true;
             }
 
-            var total = Items.Values?.Sum() ?? 0;
+            var total = Items.Values?.AsValueEnumerable().Sum() ?? 0;
+            if (total == 0) {
+                progress = 100;
+                return true;
+            }
             progress = 0;
             foreach (var pair in Items) {
                 if (GameController.Instance.BoxController.TryGetAmount(pair.Key, out var amount)) {
@@ -78,8 +85,18 @@ namespace Script.Controller.Commission {
                 return this;
             }
 
-            public Builder WithExpiredDate(DateTime expiredDate) {
-                _commission.ExpireDate = expiredDate;
+            // public Builder WithExpiredDate(DateTime expiredDate) {
+            //     _commission.ExpireDate = expiredDate;
+            //     return this;
+            // }
+
+            public Builder WithValidTime(TimeSpan validTime) {
+                _commission.ValidTime = validTime;
+                return this;
+            }
+
+            public Builder WithStartTime(DateTime? startTime) {
+                _commission.StartTime = startTime;
                 return this;
             }
 

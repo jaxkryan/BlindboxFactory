@@ -30,6 +30,8 @@ namespace Script.Machine {
         event Action<float> onProgress;
         event Action onWorkerChanged;
         event Action<ProductBase> onCreateProduct;
+        event Action<bool> onMachineCloseStatusChanged;
+        event Action onMachineDestroyed;
         DateTimeOffset PlacedTime { get; } 
         Vector3 Position { get; }
     }

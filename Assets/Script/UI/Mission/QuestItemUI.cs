@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using JetBrains.Annotations;
 using Script.Controller.Commission;
@@ -23,7 +24,7 @@ namespace Script.UI.Mission {
         
         public Quest.Quest Quest { get; set; }
 
-        public void UpdateQuestData() {
+        public void SetQuestData() {
             if (Quest == null) {
                 _name.text = "";
                 _description.text = "";
@@ -75,11 +76,14 @@ namespace Script.UI.Mission {
             }
         }
 
-        private void OnQuesStateChanged(Quest.Quest quest, QuestState state) {
-            if (state == QuestState.Complete) {
-                Debug.Log($"Daily mission {Quest.Name} completed! Removing item.");
-                Destroy(gameObject);
+        private void OnDestroy() {
+            if (Quest != null) {
+                Quest.onQuestStateChanged -= OnQuesStateChanged;
             }
+        }
+
+        private void OnQuesStateChanged(Quest.Quest quest, QuestState state) {
+            if (quest == Quest) SetQuestData();
         }
     }
 }

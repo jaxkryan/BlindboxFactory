@@ -24,6 +24,9 @@ namespace Script.Alert {
         };
 
         public void Close() {
+            Button1.Button.onClick.RemoveAllListeners();
+            Button2.Button.onClick.RemoveAllListeners();
+            
             this.gameObject.SetActive(false);
         }
 

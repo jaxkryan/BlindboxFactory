@@ -27,7 +27,7 @@ public class AdministratorManagerUI : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("ManagerPanel is not assigned in the Inspector!");
+           // Debug.LogWarning("ManagerPanel is not assigned in the Inspector!");
         }
 
         // Ensure each department UI has the correct position assigned
@@ -51,7 +51,7 @@ public class AdministratorManagerUI : MonoBehaviour
     {
         if (_managerPanel == null)
         {
-            Debug.LogWarning("Cannot open AdministratorManagerUI: ManagerPanel is null!");
+            //Debug.LogWarning("Cannot open AdministratorManagerUI: ManagerPanel is null!");
             return;
         }
 

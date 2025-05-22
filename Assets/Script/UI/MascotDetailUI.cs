@@ -1,7 +1,7 @@
 using Script.Gacha.Base;
 using Script.HumanResource.Administrator;
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -56,7 +56,7 @@ public class MascotDetailUI : MonoBehaviour
         {
             _portrait.sprite = mascot.Portrait ?? _defaultPortrait;
             _nameText.text = mascot.Name.ToString();
-            var policies = mascot.Policies.Aggregate("", (current, p) => current + $"• {p.Description}\n").TrimEnd('\n');
+            var policies = mascot.Policies.AsValueEnumerable().Aggregate("", (current, p) => current + $"â€¢ {p.Description}\n").TrimEnd('\n');
             _policiesText.text = policies;
             _policiesText.color = _gradeColors[mascot.Grade];
             _gradeText.text = $"Grade: {mascot.Grade}";

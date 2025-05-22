@@ -1,11 +1,11 @@
 // #nullable enable
-using System.Linq;
+using ZLinq;
 using JetBrains.Annotations;
 using MyBox;
 using Script.Controller;
 using Script.HumanResource.Worker;
+using Script.Utils;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Script.Machine {
     [DisallowMultipleComponent]
@@ -14,6 +14,8 @@ namespace Script.Machine {
         [SerializeField] [CanBeNull] private Worker _currentWorker;
         [CanBeNull] public Worker WishListWorker  {get => _wishListWorker; private set => _wishListWorker = value; }
         [SerializeField] [CanBeNull] private Worker _wishListWorker;
+        public bool FlipWorker  {get => _flipWorker; set => _flipWorker = value; }
+        [SerializeField] private bool _flipWorker; 
         
         private CountdownTimer _wishlistTimer;
 
@@ -24,7 +26,7 @@ namespace Script.Machine {
         public MachineBase Machine { get; private set; }
 
         public bool SetCurrentWorker([CanBeNull] Worker worker = null) {
-            Debug.LogWarning($"Try setting {((Worker)worker)?.name ?? "null"} as the current worker");
+            // Debug.Log($"Try setting {((Worker)worker)?.name ?? "null"} as the current worker");
             if (worker is not null) {
                 if (CurrentWorker == worker) return true;
                 if (CurrentWorker is not null) {
@@ -54,9 +56,13 @@ namespace Script.Machine {
 
         public bool CanAddWorker(Worker worker) {
             if (!Machine.IsWorkable) return false;
-            
             if (_forAll) return true;
-            return _forWorker.Value.Any(w => w == IWorker.ToWorkerType(worker));
+
+            var type = worker.ToWorkerType(); 
+            foreach (var workerType in _forWorker.Value) {
+                if (workerType == type) return true;
+            }
+            return false;
         }
         
         public bool SetWishlist([CanBeNull] Worker worker = null) {

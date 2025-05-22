@@ -15,12 +15,12 @@ namespace Script.Patterns.AI.GOAP.Strategies {
         public bool Complete { get; private set; }
 
         private Worker _worker;
-        private Func<WorkerDirector, HashSet<MachineBase>> _machines;
+        private Func<WorkerDirector, IEnumerable<MachineBase>> _machines;
         private NavMeshAgent _agent;
         private int _retryAttempts;
         private CountdownTimer _timer;
         
-        public WishlistMachineStrategy(Worker worker, Func<WorkerDirector, HashSet<MachineBase>> machines, NavMeshAgent agent, int retryAttempts = 0, float retryTimer = 0.5f) {
+        public WishlistMachineStrategy(Worker worker, Func<WorkerDirector, IEnumerable<MachineBase>> machines, NavMeshAgent agent, int retryAttempts = 0, float retryTimer = 0.5f) {
             _worker = worker;
             _machines = machines;
             _agent = agent;
@@ -37,6 +37,7 @@ namespace Script.Patterns.AI.GOAP.Strategies {
                     .Where(s => s.WishListWorker == _worker).ForEach(s => s.SetWishlist()));
             if (TryWishlistMachine() || _retryAttempts <= 0) {
                 Debug.Log($"Wishlisted: {_worker.Director?.TargetSlot?.name ?? "Empty"}");
+                Complete = true;
                 return;
             }
             _timer.OnTimerStop += Retry;
@@ -64,10 +65,9 @@ namespace Script.Patterns.AI.GOAP.Strategies {
 
                     if (!NavMesh.SamplePosition(machine.transform.position, out hit, Single.MaxValue, NavMesh.AllAreas)) continue;
                     if (!_agent.CalculatePath(hit.position, path)) {
-                        Debug.Log($"Cannot calculate path to machine. From {_agent.transform.position} to {hit.position}");
+                        Debug.LogWarning($"Cannot calculate path to machine. From {_agent.transform.position} to {hit.position}");
                         continue;
                     }
-                    
                     slots.Add(slot, (CalculateWeight(slot, _agent, path), path, machine));
                 }
             }

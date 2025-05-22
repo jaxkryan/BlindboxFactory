@@ -40,7 +40,7 @@ namespace Script.Utils {
                 //Cast field
                 foreach (var fieldInfo in typeof(TParent).GetFields()) {
                     try {
-                        if (fieldInfo.GetValue(child) is not null) continue;
+                        // if (fieldInfo.GetValue(child) is not null) continue;
                         fieldInfo.SetValue(child, fieldInfo.GetValue(obj));
                     }
                     catch (System.Exception e) {

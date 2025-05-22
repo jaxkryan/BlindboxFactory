@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ZLinq;
 using AYellowpaper.SerializedCollections;
 using JetBrains.Annotations;
 using Script.Controller;
@@ -9,7 +10,9 @@ using Script.Machine.WorkDetails;
 using Script.Patterns.AI.GOAP.Strategies;
 using Script.Utils;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Serialization;
+using ZLinq.Linq;
 
 namespace Script.HumanResource.Worker {
     [RequireComponent(typeof(Worker))]
@@ -25,14 +28,14 @@ namespace Script.HumanResource.Worker {
                 var dict = new Dictionary<CoreType, float>();
 
                 Enum.GetValues(typeof(CoreType)).Cast<CoreType>().ForEach(c => dict.Add(c, 0.0f));
-                var coreBonuses = _worker.Bonuses.Where(b => b is CoreChangeBonus).Cast<CoreChangeBonus>().ToHashSet();
+                var coreBonuses = _worker.Bonuses.AsValueEnumerable().Where(b => b is CoreChangeBonus).Cast<CoreChangeBonus>().ToHashSet();
                 foreach (var b in coreBonuses) {
                     foreach (var c in b.CoreChanges)
                         dict[c.Key] += c.Value / b.TimeInterval;
                 }
 
                 if (_slot) {
-                    var workDetails = _slot.Machine.WorkDetails.Where(d => d.IsRunning)
+                    var workDetails = _slot.Machine.WorkDetails.AsValueEnumerable().Where(d => d.IsRunning)
                         .Where(d => d is CoreChangeWorkDetail).Cast<CoreChangeWorkDetail>().ToHashSet();
                     foreach (var d in workDetails) { dict[d.Core] += d.IncreaseBy; }
                 }
@@ -79,7 +82,7 @@ namespace Script.HumanResource.Worker {
             Dictionary<CoreType, float> min, float totalTime, float workedTime = 0f) {
             var newCores = EstCoreValuesWhenWorkDone(coreValues, coreChangesPerSec, totalTime - workedTime);
 
-            return newCores.Any(c => c.Value > max[c.Key] || c.Value < min[c.Key]);
+            return newCores.AsValueEnumerable().Any(c => c.Value > max[c.Key] || c.Value < min[c.Key]);
         }
 
         Worker _worker;
@@ -101,7 +104,7 @@ namespace Script.HumanResource.Worker {
             _worker = GetComponent<Worker>();
             if (_slot) WorkMachineSensor.Target = _slot.gameObject;
         }
-
+        
         protected override void SetupBeliefs() {
             base.SetupBeliefs();
             BeliefFactory bf = new(this, Beliefs);
@@ -111,22 +114,25 @@ namespace Script.HumanResource.Worker {
 
             bf.AddBelief($"{_worker.Name}Idle", () => !_navMeshAgent.hasPath);
             bf.AddBelief($"{_worker.Name}Walking", () => _navMeshAgent.hasPath);
+            bf.AddBelief($"{_worker.Name}IsOnNavMesh", () => _navMeshAgent.isOnNavMesh && _isOnWalkableArea(_navMeshAgent));
+            bf.AddBelief($"{_worker.Name}IsNotOnNavMesh", () => !_navMeshAgent.isOnNavMesh || !_isOnWalkableArea(_navMeshAgent));
             _worker.Bonuses.ForEach(bonus => {
                 var condition = bonus.Condition;
                 bf.AddBelief($"{_worker.Name}HasBonus: {bonus.Name}", () => condition.IsApplicable(_worker));
             });
-            bf.AddBelief($"{_worker.Name}HasWorkableMachine", () => _workableMachines(this).Any());
-            bf.AddBelief($"{_worker.Name}HasNoWorkableMachine", () => !_workableMachines(this).Any());
+            bf.AddBelief($"{_worker.Name}HasWorkingMachine", () => _workMachines(this).Where(m => m.Slots.Any(s => s.CurrentWorker == null && s.WishListWorker == null)).Any());
+            bf.AddBelief($"{_worker.Name}HasWorkableMachine", () => _workableMachines(this).AsValueEnumerable().Any());
+            bf.AddBelief($"{_worker.Name}HasNoWorkableMachine", () => !_workableMachines(this).AsValueEnumerable().Any());
             bf.AddBelief($"{_worker.Name}WishListedAMachine",
-                () => GameController.Instance.MachineController.Machines.Any(m =>
-                    m.Slots.Any(s => (Worker)s.WishListWorker == _worker)));
+                () => GameController.Instance.MachineController.Machines.AsValueEnumerable().Any(m =>
+                    m.Slots.AsValueEnumerable().Any(s => (Worker)s.WishListWorker == _worker)));
             bf.AddBelief($"{_worker.Name}WishListedMachineIsWorkMachine",
                 () => GameController.Instance.MachineController.Machines
-                    .Any(m
-                        => m.Slots.Any(s => (Worker)s.WishListWorker == _worker)
+                    .AsValueEnumerable().Any(m
+                        => m.Slots.AsValueEnumerable().Any(s => (Worker)s.WishListWorker == _worker)
                            && _workMachines(this).Contains(m)));
             bf.AddBelief($"{_worker.Name}HasNoWishListedMachine",
-                () => !GameController.Instance.MachineController.Machines.Any(m =>
+                () => !GameController.Instance.MachineController.Machines.AsValueEnumerable().Any(m =>
                     m.Slots.Any(s => (Worker)s.WishListWorker == _worker)));
             bf.AddBelief($"{_worker.Name}HasTargetMachine", () => _slot?.Machine is not null);
             bf.AddBelief($"{_worker.Name}TargetMachineIsWorkMachine", () => {
@@ -150,7 +156,7 @@ namespace Script.HumanResource.Worker {
                         return true;
                     }
                     
-                    return _worker.CurrentCores.All(c =>
+                    return _worker.CurrentCores.AsValueEnumerable().All(c =>
                         needList.ContainsKey(IWorker.ToWorkerType(_worker))
                         && c.Value > needList[IWorker.ToWorkerType(_worker)]
                             .GetValueOrDefault(c.Key));
@@ -164,34 +170,34 @@ namespace Script.HumanResource.Worker {
                 else
                     Enum.GetValues(typeof(CoreType)).Cast<CoreType>().ForEach(c => needDict.Add(c, 0));
                 bf.AddBelief($"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsDepleted", () =>
-                    _worker.CurrentCores[core] < needDict.GetValueOrDefault(core));
+                    _worker.CurrentCores[core] <= needDict.GetValueOrDefault(core) + 1);
                 bf.AddBelief($"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsFulfilled", () =>
-                    _worker.CurrentCores[core] < needDict.GetValueOrDefault(core));
+                    _worker.CurrentCores[core] > needDict.GetValueOrDefault(core) + 1);
                 //Beliefs for machines that improve cores
                 switch (core) {
                     case CoreType.Happiness:
                         bf.AddBelief($"{_worker.Name}Has{core}RecoveryMachine",
-                            () => _happinessRecoveryMachines(this).Any());
+                            () => _happinessRecoveryMachines(this).Where(m => m.Slots.Any(s => s.CurrentWorker == null && s.WishListWorker == null)).Any());
                         bf.AddBelief($"{_worker.Name}HasNo{core}RecoveryMachine",
-                            () => !_happinessRecoveryMachines(this).Any());
+                            () => !_happinessRecoveryMachines(this).Where(m => m.Slots.Any(s => s.CurrentWorker == null && s.WishListWorker == null)).Any());
                         bf.AddBelief($"{_worker.Name}WishListedMachineIs{core}RecoveryMachine",
                             () => GameController.Instance.MachineController.Machines
-                                .Any(m => m.Slots
-                                              .Any(s => s.WishListWorker != null
-                                                        && (Worker)s.WishListWorker == _worker)
-                                          && _happinessRecoveryMachines(this).Contains(m)));
+                                .AsValueEnumerable().Any(m => m.Slots
+                                                                  .AsValueEnumerable().Any(s => s.WishListWorker != null
+                                                                            && (Worker)s.WishListWorker == _worker)
+                                                              && _happinessRecoveryMachines(this).Contains(m)));
                         break;
                     case CoreType.Hunger:
                         bf.AddBelief($"{_worker.Name}Has{core}RecoveryMachine",
-                            () => _hungerRecoveryMachines(this).Any());
+                            () => _hungerRecoveryMachines(this).Where(m => m.Slots.Any(s => s.CurrentWorker == null && s.WishListWorker == null)).Any() );
                         bf.AddBelief($"{_worker.Name}HasNo{core}RecoveryMachine",
-                            () => !_hungerRecoveryMachines(this).Any());
+                            () => !_hungerRecoveryMachines(this).Where(m => m.Slots.Any(s => s.CurrentWorker == null && s.WishListWorker == null)).Any());
                         bf.AddBelief($"{_worker.Name}WishListedMachineIs{core}RecoveryMachine",
                             () => GameController.Instance.MachineController.Machines
-                                .Any(m => m.Slots
-                                              .Any(s => s.WishListWorker != null
-                                                        && (Worker)s.WishListWorker == _worker)
-                                          && _hungerRecoveryMachines(this).Contains(m)));
+                                .AsValueEnumerable().Any(m => m.Slots
+                                                                  .AsValueEnumerable().Any(s => s.WishListWorker != null
+                                                                            && (Worker)s.WishListWorker == _worker)
+                                                              && _hungerRecoveryMachines(this).Contains(m)));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -224,6 +230,10 @@ namespace Script.HumanResource.Worker {
                     .WithDesiredEffects(Beliefs[$"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsFulfilled"])
                     .Build());
             }
+            Goals.Add(new AgentGoal.Builder("WarpOnToNavMesh")
+                .WithPriority(99)
+                .WithDesiredEffects(Beliefs[$"{_worker.Name}IsOnNavMesh"])
+                .Build());
         }
 
         protected override void SetupActions() {
@@ -235,12 +245,14 @@ namespace Script.HumanResource.Worker {
                 .Build());
             Actions.Add(new AgentAction.Builder("Wander")
                 .WithStrategy(new WanderStrategy(_navMeshAgent, 10f))
+                .AddPrecondition(Beliefs[$"{_worker.Name}IsOnNavMesh"])
                 .AddEffect(Beliefs[$"{_worker.Name}Walking"])
                 .Build());
 
             Actions.Add(new AgentAction.Builder("ConsiderWorkMachine")
-                .WithStrategy(new WishlistMachineStrategy(_worker, _workMachines, _navMeshAgent, 3))
-                .AddPrecondition(Beliefs[$"{_worker.Name}HasWorkableMachine"])
+                .WithStrategy(new WishlistMachineStrategy(_worker, (director) => _workMachines(director).ToList(), _navMeshAgent, 3))
+                .AddPrecondition(Beliefs[$"{_worker.Name}HasWorkingMachine"])
+                .AddPrecondition(Beliefs[$"{_worker.Name}IsOnNavMesh"])
                 // .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
                 .AddPrecondition(Beliefs[$"{_worker.Name}IsRested"])
                 .AddEffect(Beliefs[$"{_worker.Name}TargetMachineIsWorkMachine"])
@@ -250,6 +262,7 @@ namespace Script.HumanResource.Worker {
                 .WithCost(2)
                 .WithStrategy(new MoveToSlotStrategy(_worker))
                 .AddPrecondition(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                .AddPrecondition(Beliefs[$"{_worker.Name}IsOnNavMesh"])
                 .AddPrecondition(Beliefs[$"{_worker.Name}TargetMachineIsWorkMachine"])
                 .AddPrecondition(Beliefs[$"{_worker.Name}IsRested"])
                 .AddEffect(Beliefs[$"{_worker.Name}AtMachine"])
@@ -266,11 +279,12 @@ namespace Script.HumanResource.Worker {
 
             foreach (CoreType core in Enum.GetValues(typeof(CoreType))) {
                 Actions.Add(new AgentAction.Builder($"Consider{core}RecoveryMachine")
-                    .WithStrategy(new WishlistMachineStrategy(_worker, _recoveryMachines,
+                    .WithStrategy(new WishlistMachineStrategy(_worker, (director) => _recoveryMachines(director).ToList(),
                         _navMeshAgent, 3))
                     .AddPrecondition(Beliefs[$"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsDepleted"])
-                    .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
+                    // .AddPrecondition(Beliefs[$"{_worker.Name}HasNoWishListedMachine"])
                     .AddPrecondition(Beliefs[$"{_worker.Name}Has{core}RecoveryMachine"])
+                    .AddPrecondition(Beliefs[$"{_worker.Name}IsOnNavMesh"])
                     .AddEffect(Beliefs[$"{_worker.Name}TargetMachineIsRecoveryMachine"])
                     .AddEffect(Beliefs[$"{_worker.Name}HasTargetMachine"])
                     .Build());
@@ -278,6 +292,7 @@ namespace Script.HumanResource.Worker {
                     .WithCost(2)
                     .WithStrategy(new MoveToSlotStrategy(_worker))
                     .AddPrecondition(Beliefs[$"{_worker.Name}HasTargetMachine"])
+                    .AddPrecondition(Beliefs[$"{_worker.Name}IsOnNavMesh"])
                     .AddPrecondition(Beliefs[$"{_worker.Name}TargetMachineIsRecoveryMachine"])
                     .AddEffect(Beliefs[$"{_worker.Name}AtMachine"])
                     .Build());
@@ -290,36 +305,58 @@ namespace Script.HumanResource.Worker {
                     .AddEffect(Beliefs[$"{_worker.Name}{Enum.GetName(typeof(CoreType), core)}NeedsFulfilled"])
                     .Build());
             }
+
+            Actions.Add(new AgentAction.Builder("WarpOnToNavMesh")
+                .WithCost(0)
+                .WithStrategy(new WarpToNavMeshStrategy(_navMeshAgent))
+                .AddPrecondition(Beliefs[$"{_worker.Name}IsNotOnNavMesh"])
+                .AddEffect(Beliefs[$"{_worker.Name}IsOnNavMesh"])
+                .Build());
         }
 
-        Func<WorkerDirector, HashSet<MachineBase>> _workableMachines = (director) =>
-            GameController.Instance.MachineController.FindWorkableMachines(director._worker).ToHashSet();
+        Func<WorkerDirector, IEnumerable<MachineBase>> _workableMachines = (director) =>
+            GameController.Instance.MachineController.FindWorkableMachines(director._worker);
 
-        private Func<WorkerDirector, HashSet<MachineBase>> _happinessRecoveryMachines = (director) => {
-            var list = new List<MachineBase>();
-            list.AddRange(GameController.Instance.MachineController
-                .FindRecoveryMachine(CoreType.Happiness, director._worker));
+        private Func<WorkerDirector, ValueEnumerable<ListWhere<MachineBase>,MachineBase>> _happinessRecoveryMachines = (director) => {
+            // var list = new List<MachineBase>();
+            // list.AddRange(
+            return GameController.Instance.MachineController
+                .FindRecoveryMachine(CoreType.Happiness, director._worker);
+            // );
 
-            return list.ToHashSet();
+            // Debug.LogWarning("Happiness recovery machines: " + string.Join(", ", list.Select(r => r.name)));
+
+            // return list;
         };
 
-        private Func<WorkerDirector, HashSet<MachineBase>> _hungerRecoveryMachines = (director) => {
-            var list = new List<MachineBase>();
-            list.AddRange(GameController.Instance.MachineController
-                .FindRecoveryMachine(CoreType.Hunger, director._worker));
+        private Func<WorkerDirector, ValueEnumerable<ListWhere<MachineBase>,MachineBase>> _hungerRecoveryMachines = (director) => {
+            // var list = new List<MachineBase>();
+            // list.AddRange(
+            return GameController.Instance.MachineController
+                .FindRecoveryMachine(CoreType.Hunger, director._worker);
 
-            return list.ToHashSet();
+            // Debug.LogWarning("Hunger recovery machines: " + string.Join(", ", list.Select(r => r.name)));
+            
+            // return list;
         };
 
-        private Func<WorkerDirector, HashSet<MachineBase>> _recoveryMachines = (director) =>
+        private Func<WorkerDirector, ValueEnumerable< Distinct<Concat<ListWhere<MachineBase>,ListWhere<MachineBase>,MachineBase>,MachineBase>,MachineBase>> _recoveryMachines = (director) => 
             director._happinessRecoveryMachines.Invoke(director)
-                .Concat(director._hungerRecoveryMachines.Invoke(director)).ToHashSet();
+                .Concat(director._hungerRecoveryMachines.Invoke(director)).Distinct();
 
 
-        Func<WorkerDirector, HashSet<MachineBase>> _workMachines = (director) =>
-            director._workableMachines.Invoke(director)
+        Func<WorkerDirector, ValueEnumerable< Except<FromEnumerable<MachineBase>,Distinct<Concat<ListWhere<MachineBase>,ListWhere<MachineBase>,MachineBase>,MachineBase>,MachineBase>, MachineBase>> _workMachines = (director) => 
+            director._workableMachines.Invoke(director).AsValueEnumerable()
                 .Except(
-                    director._recoveryMachines.Invoke(director))
-                .ToHashSet();
+                    director._recoveryMachines.Invoke(director));
+
+        private Func<NavMeshAgent, bool> _isOnWalkableArea = (agent) => {
+            var walkableMask = 1 << NavMesh.GetAreaFromName("Walkable");
+            if (NavMesh.SamplePosition(agent.transform.position, out var hit, 0.5f, NavMesh.AllAreas)) {
+                return hit.mask == walkableMask;
+            }
+
+            return false;
+        };
     }
 }

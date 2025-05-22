@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ZLinq;
 using Script.Gacha.Machine;
+using Script.Machine;
 using Unity.VisualScripting;
 
 public static class ListExtension {
@@ -59,7 +61,7 @@ public static class ListExtension {
     }
     
     public static bool IsNullOrEmpty<T>(this IList<T> list) {
-        return list == null || !list.Any();
+        return list == null || !(list.Count > 0);
     }
 
     public static void AddIfNew<T>(this List<T> list, T item) {
@@ -85,5 +87,10 @@ public static class ListExtension {
             root.SetNext(e);
         }
         return root;
+    }
+    
+
+    public static IEnumerable<MachineBase> FindMachinesOfType(this IEnumerable<MachineBase> list, Type type) {
+        return !type.IsSubclassOf(typeof(MachineBase)) ? Enumerable.Empty<MachineBase>() : list.Where(m => m.GetType() == type);
     }
 }

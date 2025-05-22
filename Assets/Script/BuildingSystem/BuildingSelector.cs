@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using TMPro; // Use TextMeshPro
 using BuildingSystem.Models;
 using BuildingSystem;
-using System.Linq;
+using ZLinq;
 using Script.Controller;
 
 [System.Serializable]
@@ -37,9 +37,12 @@ public class BuildingSelector : MonoBehaviour
     {
         bool newMode = !_buildingPlacer.GetStoreMode();
         _buildingPlacer.SetStoreMode(newMode);
-        //StoreModeButton.GetComponentInChildren<TMP_Text>().text = $"Store Mode: {(newMode ? "ON" : "OFF")}";
         _buildingPlacer.SetActiveBuildable(null);
         _buildingPlacer.ClearPreview();
+        ColorBlock cb = StoreModeButton.colors;
+        cb.normalColor = newMode ? Color.green : Color.white;
+        cb.selectedColor = newMode ? Color.green : Color.white;
+        StoreModeButton.colors = cb;
     }
     private void Start()
     {
@@ -73,7 +76,7 @@ public class BuildingSelector : MonoBehaviour
         }
 
         // Assign category button click listeners
-        for (int i = 0; i < categoryButtons.Count(); i++)
+        for (int i = 0; i < categoryButtons.AsValueEnumerable().Count(); i++)
         {
             int index = i; // Prevent closure issue
             categoryButtons[i].onClick.AddListener(() => SwitchCategory(index));
@@ -136,7 +139,7 @@ public class BuildingSelector : MonoBehaviour
         foreach (var buildable in Categories[categoryIndex].buildables)
         {
             GameController.Instance.MachineController.UnlockMachines.TryGetValue(buildable.Name, out bool lockstatus);
-            Debug.Log("Creating button for: " + buildable.name);
+            //Debug.Log("Creating button for: " + buildable.name);
 
             Button newButton = Instantiate(_buttonPrefab, _contentParent);
             newButton.name = "Button_" + buildable.name;
@@ -162,7 +165,7 @@ public class BuildingSelector : MonoBehaviour
                 }
             }
 
-            Image buttonImage = newButton.GetComponentsInChildren<Image>()
+            Image buttonImage = newButton.GetComponentsInChildren<Image>().AsValueEnumerable()
                 .FirstOrDefault(img => img.gameObject.name == "PreviewImg");
 
             SpriteRenderer spriteRenderer = buildable.gameObject.GetComponent<SpriteRenderer>();

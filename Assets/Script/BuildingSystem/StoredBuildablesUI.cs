@@ -4,7 +4,6 @@ using UnityEngine.UI;
 using TMPro;
 using BuildingSystem.Models;
 using BuildingSystem;
-using System.Linq;
 
 // using UnityEditor.Build.Reporting;
 
@@ -33,13 +32,16 @@ public class StoredBuildablesUI : MonoBehaviour
         _buildingPlacer.SetStoreMode(newMode);
         _buildingPlacer.SetActiveBuildable(null);
         _buildingPlacer.ClearPreview();
+        ColorBlock cb = StoreModeButton.colors;
+        cb.normalColor = newMode ? Color.green : Color.white;
+        cb.selectedColor = newMode ? Color.green : Color.white;
+        StoreModeButton.colors = cb;
     }
 
     private Dictionary<BuildableItem, Button> _buttons = new();
 
     private void OnEnable()
     {
-        Debug.Log("StoredBuildablesUI is now active, updating UI...");
         UpdateStoredBuildablesUI();
     }
 
@@ -69,7 +71,6 @@ public class StoredBuildablesUI : MonoBehaviour
     private void ClosePanel()
     {
         _buildingPlacer.IsbuildMode = false;
-        Debug.Log("clear ActiveBuildable");
         InventoryUI.SetActive(false);
         _buildingPlacer.SetActiveBuildable(null);
         _buildingPlacer.ClearPreview();
@@ -103,12 +104,19 @@ public class StoredBuildablesUI : MonoBehaviour
             var buildableItem = entry.Key;
             var count = entry.Value;
 
-            Debug.Log($"Creating button for {buildableItem.name}, Count: {count}");
-
             Button newButton = Instantiate(_buttonPrefab, _contentParent);
             TMP_Text buttonText = newButton.GetComponentInChildren<TMP_Text>();
-            Image buttonImage = newButton.GetComponentsInChildren<Image>()
-                .FirstOrDefault(img => img.gameObject.name == "PreviewImg");
+            Image buttonImage = null;
+            Image[] images = newButton.GetComponentsInChildren<Image>();
+
+            foreach (var img in images)
+            {
+                if (img.gameObject.name == "PreviewImg")
+                {
+                    buttonImage = img;
+                    break;
+                }
+            }
 
             if (buttonText == null)
             {
@@ -125,7 +133,6 @@ public class StoredBuildablesUI : MonoBehaviour
 
     private void SelectBuildable(BuildableItem buildable)
     {
-        Debug.Log("Selected Buildable: " + buildable.name);
         _buildingPlacer.SetBuildableFromInventory(buildable);
         _buildingPlacer.SetStoreMode(false);
     }

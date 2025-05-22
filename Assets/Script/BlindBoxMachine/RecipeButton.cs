@@ -3,9 +3,7 @@ using Script.Machine.ResourceManager;
 using Script.Resources;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -122,7 +120,7 @@ public class RecipeButton : MonoBehaviour
             {
                 Debug.LogError("[RecipeButton] resultImage reference is missing in the Inspector!");
             }
-            Debug.Log($"[RecipeButton] Setting sprite for {blindbox.BoxTypeName}");
+            //Debug.Log($"[RecipeButton] Setting sprite for {blindbox.BoxTypeName}");
             resultImage.sprite = boxData.sprite;
             resultImage.preserveAspect = true;
 

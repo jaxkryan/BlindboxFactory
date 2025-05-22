@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using ZLinq;
 using AYellowpaper.SerializedCollections;
 using Script.Controller.SaveLoad;
 using UnityEngine;
@@ -110,7 +111,7 @@ namespace Script.Controller {
                 var keys = _boxLog.Keys;
                 keys.ForEach(k => {
                     if (_boxLog.TryGetValue(k, out var logs)) {
-                        var expLogs = logs.Where(log => log.DateTime.AddHours(_expireTime) <= DateTime.Now).ToList()
+                        var expLogs = logs.AsValueEnumerable().Where(log => log.DateTime.AddHours(_expireTime) <= DateTime.Now).ToList()
                             .Clone();
                         expLogs.ForEach(log => logs.Remove(log));
                     }
@@ -120,10 +121,10 @@ namespace Script.Controller {
 
         public override void Load(SaveManager saveManager) {
             try {
-                if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                     || SaveManager.Deserialize<SaveData>(saveData) is not SaveData data) {
                     // Initialize defaults if no save data
-                    foreach (BoxTypeName btn in Enum.GetValues(typeof(BoxTypeName))) { _boxAmount[btn] = 100; }
+                    foreach (BoxTypeName btn in Enum.GetValues(typeof(BoxTypeName))) { _boxAmount[btn] = 0; }
 
                     return;
                 }
@@ -159,8 +160,8 @@ namespace Script.Controller {
 
             try {
                 var serialized = SaveManager.Serialize(newSave);
-                saveManager.SaveData.AddOrUpdate(this.GetType().Name, serialized, (key, oldValue) => serialized);
-                // if (!saveManager.SaveData.TryGetValue(this.GetType().Name, out var saveData)
+                saveManager.AddOrUpdate(this.GetType().Name, serialized);
+                // if (!saveManager.TryGetValue(this.GetType().Name, out var saveData)
                 //     || SaveManager.Deserialize<SaveData>(saveData) is SaveData data)
                 //     saveManager.SaveData.TryAdd(this.GetType().Name,
                 //         SaveManager.Serialize(newSave));

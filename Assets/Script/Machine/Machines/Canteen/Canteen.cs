@@ -12,47 +12,68 @@ namespace Script.Machine.Machines.Canteen {
         protected override void Awake() {
             base.Awake();
             _storage = GetComponent<CanteenFoodStorage>();
-            _storage.onMealAmountChanged += (amount) => {
-                IsClosed = _storage.AvailableMeals <= 0;
-            };
             if (_storage is null) Debug.LogError("Cannot find Food storage"); 
             
             _kitchen = GetComponentInChildren<CanteenKitchen>();
             if (_kitchen is null) Debug.LogError("Cannot find Kitchen"); 
         }
 
-        private int _lockedMeals = 0;
+        public override bool HasResourceForWork { get => base.HasResourceForWork && _storage.AvailableMeals > 0; }
 
-        private void LockMeal() {
-            if (_lockedMeals < 0) Debug.LogError("Number of locked meals cannot be less than 0!");
-            var count = Workers.Count();
-            var needMeals = _lockedMeals - count;
-            _storage.TryChangeMealAmount(-needMeals);
-            
-            _lockedMeals = count;
-        }
-        public override bool HasResourceForWork => base.HasResourceForWork && _lockedMeals > Workers.Count();
-
-        protected override void TryPullResource() {
-            base.TryPullResource();
-            LockMeal();
-        }
-
-        protected override void UnlockResource() {
-            base.UnlockResource();
-            UnlockMeals();
-        }
-
-        private void UnlockMeals() {
-            _storage.TryChangeMealAmount(_lockedMeals);
-            _lockedMeals = 0;
-        }
+        //
+        // [SerializeField]private int _lockedMeals = 0;
+        //
+        // private void LockMeal() {
+        //     if (_lockedMeals < 0) Debug.LogError("Number of locked meals cannot be less than 0!");
+        //     var count = Workers.Count() + 1;
+        //     var needMeals = _lockedMeals - count;
+        //     if (needMeals >= 0) return; 
+        //     if (_storage.AvailableMeals < needMeals) return;
+        //     _storage.TryChangeMealAmount(-needMeals);
+        //     
+        //     _lockedMeals = count;
+        // }
+        //
+        // public override bool HasResourceForWork => base.HasResourceForWork && HasMeal();
+        //
+        // private bool HasMeal() {
+        //     if (_lockedMeals <= Workers.Count()) {
+        //         LockMeal();
+        //     }
+        //     return _lockedMeals > Workers.Count();
+        // }
+        //
+        // protected override void TryPullResource() {
+        //     base.TryPullResource();
+        //     LockMeal();
+        // }
+        //
+        // protected override void UnlockResource() {
+        //     base.UnlockResource();
+        //     UnlockMeals();
+        // }
+        //
+        // private void UnlockMeals() {
+        //     _storage.TryChangeMealAmount(_lockedMeals);
+        //     _lockedMeals = 0;
+        // }
+        //
+        // protected override void OnEnable() {
+        //     base.OnEnable();
+        //     _storage.onMealAmountChanged += OnMealAmountChanged;
+        // }
+        //
+        // protected override void OnDisable() {
+        //     base.OnDisable();
+        //     _storage.onMealAmountChanged -= OnMealAmountChanged;
+        // }
+        //
+        // private void OnMealAmountChanged(int amount) => LockMeal();
 
         public override void Load(MachineBaseData data) {
             base.Load(data);
             if (data is not CanteenData saveData) return;
             _storage.Load(saveData.Storage);
-            _kitchen.Load(saveData.Kitchen);
         }
 
         public override MachineBaseData Save() {
@@ -60,21 +81,15 @@ namespace Script.Machine.Machines.Canteen {
             if (data is null) return base.Save();
             
             data.Storage = _storage.Save();
-            data.Kitchen = _kitchen.Save().CastToSubclass<KitchenData, MachineBase.MachineBaseData>();
             return data;
         }
 
         public class CanteenData : MachineBase.MachineBaseData {
             public FoodStorageData Storage;
-            public KitchenData Kitchen;
 
             public class FoodStorageData {
-                public int MaxCapacity;
-                public int AvailableMeals;
-            }
-
-            public class KitchenData : MachineBase.MachineBaseData {
-                
+                public long MaxCapacity;
+                public long AvailableMeals;
             }
         }
 
@@ -83,7 +98,6 @@ namespace Script.Machine.Machines.Canteen {
             var data = new Canteen.CanteenData
             {
                 Storage = _storage.Save(),
-                Kitchen = new CanteenData.KitchenData()
         };
             return data;
         }
