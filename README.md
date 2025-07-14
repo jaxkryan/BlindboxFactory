@@ -17,8 +17,8 @@ All these efforts are geared towards the goal of building a large, visually appe
 ## Visuals
 
 <div style="display: flex;">
-  <img src="[https://github.com/jaxkryan/elj-shop/assets/103254986/14d32aab-888c-4a55-accc-756ebbdc7ff4](https://raw.githubusercontent.com/jaxkryan/BlindboxFactory/refs/heads/main/Assets/01.png)" alt="homepage" width="400" />
-  <img src="[https://github.com/jaxkryan/elj-shop/assets/103254986/3a640fa5-df01-4715-bb81-2ebb8115799b](https://raw.githubusercontent.com/jaxkryan/BlindboxFactory/refs/heads/main/Assets/02.png)" alt="setting" width="400" />
+  <img src="https://raw.githubusercontent.com/jaxkryan/BlindboxFactory/refs/heads/main/Assets/01.png" alt="homepage" width="400" />
+  <img src="https://raw.githubusercontent.com/jaxkryan/BlindboxFactory/refs/heads/main/Assets/02.png" alt="setting" width="400" />
 </div>
 
 ## Installation
@@ -42,7 +42,7 @@ Send Email to huyg.a22052003@gmail.com for support.
 Special thanks to the following contributors who played key roles in the development of this project:
 - **Le Dang Huy**
   - Contribution: Game designer, login and save to Firebase functionalities
-  - 
+  
 - **Truong Quang Loc**
   - Contribution: Art design.
 
